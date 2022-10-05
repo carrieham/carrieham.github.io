@@ -38,11 +38,11 @@ button {
 	background-color: #26428b;
 	border: none;
 	color: white;
-	padding: 15px 32px;
+	padding: 15px 15px;
 	text-align: center;
 	text-decoration: none;
 	display: inline-block;
-	font-size: 16px;
+	font-size: 14px;
 	border-radius: 8px;
 	font-family: 'IBM Plex Mono', sans-serif;
 }
