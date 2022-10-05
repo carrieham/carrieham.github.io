@@ -41,12 +41,12 @@ button {
 	background-color: #26428b;
 	border: none;
 	color: white;
-	padding: 2px 2px;
+	padding: 4px 4px;
 	text-align: center;
 	text-decoration: none;
 	display: inline-block;
 	font-size: 12px;
-	border-radius: 2px;
+	border-radius: 6px;
 	font-family: 'IBM Plex Mono', sans-serif;
 }
 
