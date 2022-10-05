@@ -3,6 +3,7 @@
 h1 {
 	color: #26428b;
 	text-align: center;
+	font-size: 75%;
 }
 
 h2{
@@ -20,7 +21,6 @@ a:visited {
 
 body {
   color: #26428b;
-	font-size: larger;
 	font-family: 'IBM Plex Mono', sans-serif;
 	text-align: center;
 	margin: auto;
