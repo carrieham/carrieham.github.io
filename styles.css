@@ -22,13 +22,20 @@ a:visited {
 }
 
 body {
-  color: #26428b;
+  	color: #26428b;
 	font-family: 'IBM Plex Mono', sans-serif;
 	text-align: left;
 	max-width: 600px;
 	margin-left: 25px;
 	
 }
+
+favicon {
+	color: #BFBFBD;
+	font-family: Helvetica, sans-serif;
+	font-size: 8px;
+}
+	
 
 button {
 	background-color: #26428b;
