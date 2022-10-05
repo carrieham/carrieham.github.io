@@ -27,6 +27,13 @@ body {
 	
 }
 
+}
+
+.left {
+	margin: auto;
+	width: 40%;
+}
+
 button {
 	background-color: #26428b;
 	border: none;
@@ -41,6 +48,5 @@ button {
 }
 
 img {
-	width:30%;
-	height:30%;
+	height:400px;
 }
