@@ -3,13 +3,13 @@
 h1 {
 	color: #26428b;
 	font-family: 'IBM Plex Mono', sans-serif;
-	text-align: center;
+	text-align: left;
 }
 
 h2{
 	color: #26428b;
 	font-family: 'IBM Plex Mono', sans-serif;
-	text-align: center;
+	text-align: left;
 }
 
 a:link {
@@ -23,16 +23,8 @@ a:visited {
 body {
   color: #26428b;
 	font-family: 'IBM Plex Mono', sans-serif;
-	text-align: center;
-	margin: auto;
+	text-align: left;
 	
-}
-
-.center {
-	margin: auto;
-	width: 40%;
-	border: 3px;
-	padding: 10px;
 }
 
 button {
