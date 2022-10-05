@@ -2,12 +2,14 @@
 
 h1 {
 	color: #26428b;
-	text-align: center;
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: left;
 }
 
 h2{
 	color: #26428b;
-	text-align: center;
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: left;
 }
 
 a:link {
@@ -20,34 +22,26 @@ a:visited {
 
 body {
   color: #26428b;
-	font-size: larger;
 	font-family: 'IBM Plex Mono', sans-serif;
-	text-align: center;
-	margin: auto;
-	
-}
-
-.center {
-	margin: auto;
+	text-align: left;
 	width: 40%;
-	border: 3px;
-	padding: 10px;
+	margin: 40%;
+	
 }
 
 button {
 	background-color: #26428b;
 	border: none;
 	color: white;
-	padding: 15px 32px;
+	padding: 10px 10px;
 	text-align: center;
 	text-decoration: none;
 	display: inline-block;
-	font-size: 16px;
+	font-size: 12px;
 	border-radius: 8px;
 	font-family: 'IBM Plex Mono', sans-serif;
 }
 
 img {
-	width:50%;
-	height:50%;
+	height:300px;
 }
