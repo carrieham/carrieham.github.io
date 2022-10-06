@@ -7,22 +7,22 @@ h1 {
 }
 
 h2{
-	color: #26428b;
+	color: 32127a;
 	font-family: 'IBM Plex Mono', sans-serif;
 	text-align: left;
 	font-weight: normal;
 }
 
 a:link {
-	color: #26428b;
+	color: 32127a;
 }
 
 a:visited {
-	color: #26428b;
+	color: 32127a;
 }
 
 body {
-  	color: #26428b;
+  	color: #32127a;
 	font-family: 'IBM Plex Mono', sans-serif;
 	text-align: left;
 	max-width: 600px;
@@ -31,7 +31,7 @@ body {
 }
 
 favicon {
-	color: #26428b;
+	color: 32127a;
 	font-family: 'IBM Plex Mono', sans-serif;
 	font-size: 10px;
 }
