@@ -1,7 +1,7 @@
 @import url("https://cdn.jsdelivr.net/npm/@xz/fonts@1/serve/ibm-plex-mono.min.css");
 
 h1 {
-	color: #26428b;
+	color: #32127a;
 	font-family: 'IBM Plex Mono', sans-serif;
 	text-align: left;
 }
@@ -22,7 +22,7 @@ a:visited {
 }
 
 body {
-  	color: #26428b;
+  	color: #32127a;
 	font-family: 'IBM Plex Mono', sans-serif;
 	text-align: left;
 	max-width: 600px;
@@ -31,14 +31,14 @@ body {
 }
 
 favicon {
-	color: #26428b;
+	color: #32127a;
 	font-family: 'IBM Plex Mono', sans-serif;
 	font-size: 10px;
 }
 	
 
 button {
-	background-color: #6206d4;
+	background-color: #26428b;
 	border: none;
 	color: white;
 	padding: 4px 8px;
