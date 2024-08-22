@@ -1,48 +1,51 @@
 @import url("https://cdn.jsdelivr.net/npm/@xz/fonts@1/serve/ibm-plex-mono.min.css");
 
 h1 {
-	color: #26428b;
+	color: #32127a;
 	font-family: 'IBM Plex Mono', sans-serif;
 	text-align: left;
 }
 
 h2{
-	color: #26428b;
+	color: #32127a;
 	font-family: 'IBM Plex Mono', sans-serif;
 	text-align: left;
 	font-weight: normal;
 }
 
 a:link {
-	color: #26428b;
+	color: #32127a;
 }
 
 a:visited {
-	color: #26428b;
+	color: #32127a;
 }
 
 body {
-  color: #26428b;
+  	color: #32127a;
 	font-family: 'IBM Plex Mono', sans-serif;
 	text-align: left;
-	max-width: 600px;
+	max-width: 800px;
 	margin-left: 25px;
 	
 }
 
+favicon {
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	font-size: 10px;
+}
+	
+
 button {
-	background-color: #26428b;
+	background-color: #32127a;
 	border: none;
 	color: white;
-	padding: 5px 5px;
+	padding: 4px 8px;
 	text-align: center;
 	text-decoration: none;
 	display: inline-block;
 	font-size: 12px;
-	border-radius: 8px;
+	border-radius: 6px;
 	font-family: 'IBM Plex Mono', sans-serif;
-}
-
-img {
-	height:300px;
 }
