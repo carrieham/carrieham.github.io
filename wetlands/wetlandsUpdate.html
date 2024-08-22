@@ -36,7 +36,10 @@
 <script src="wetlandsUpdate_files/navigation-1.1/codefolding.js"></script>
 <link href="wetlandsUpdate_files/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
 <script src="wetlandsUpdate_files/pagedtable-1.1/js/pagedtable.js"></script>
+<!DOCTYPE html>
+<html>
 <link rel="shortcut icon" href="favicon.ico" />
+</html>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -49,6 +52,112 @@
 
 
 
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; } /* Alert */
+code span.an { color: #008000; } /* Annotation */
+code span.at { } /* Attribute */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #0000ff; } /* ControlFlow */
+code span.ch { color: #008080; } /* Char */
+code span.cn { } /* Constant */
+code span.co { color: #008000; } /* Comment */
+code span.cv { color: #008000; } /* CommentVar */
+code span.do { color: #008000; } /* Documentation */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.im { } /* Import */
+code span.in { color: #008000; } /* Information */
+code span.kw { color: #0000ff; } /* Keyword */
+code span.op { } /* Operator */
+code span.ot { color: #ff4000; } /* Other */
+code span.pp { color: #ff4000; } /* Preprocessor */
+code span.sc { color: #008080; } /* SpecialChar */
+code span.ss { color: #008080; } /* SpecialString */
+code span.st { color: #008080; } /* String */
+code span.va { } /* Variable */
+code span.vs { color: #008080; } /* VerbatimString */
+code span.wa { color: #008000; font-weight: bold; } /* Warning */
+
+.sourceCode .row {
+  width: 100%;
+}
+.sourceCode {
+  overflow-x: auto;
+}
+.code-folding-btn {
+  margin-right: -30px;
+}
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
 
 
 
@@ -263,43 +372,32 @@ div.tocify {
 href="https://california-coastal-commission-open-data-1-3-coastalcomm.hub.arcgis.com/datasets/coastalcomm::public-access-points/about">CA
 Coastal Commission</a> (Olivia’s extended dataset with Bay Area access
 points)</p>
-<pre class="r"><code>##### CA commission map
-map_access &lt;- ggplot() +
-  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
-  geom_sf(data=access,
-          alpha=0.7,
-          aes(color=wetland,
-              text=paste(name))) +
-  scale_color_manual(values=c(&quot;Yes&quot;=&quot;aquamarine4&quot;,
-                              &quot;No&quot;=&quot;grey65&quot;, 
-                              &quot;Unknown&quot;=&quot;darkslateblue&quot;))+ 
-  theme_minimal() + 
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-
-##### make interactive
-ggplotly(map_access, 
-         tooltip=&quot;text&quot;) %&gt;%
-  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
-                                  size=11))) %&gt;%
-  layout(legend=list(xref=&quot;paper&quot;,
-                     x=0.5,
-                     xanchor=&#39;center&#39;,
-                     y=0,
-                     yanchor=&#39;top&#39;,
-                     orientation=&#39;h&#39;,
-                     traceorder=&quot;reversed&quot;,
-                     title=list(font=list(color=&quot;#32127a&quot;,
-                                          family=&quot;IBM Plex Mono&quot;)),
-                     font=list(color=&quot;#32127a&quot;,
-                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
-  partial_bundle()</code></pre>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="do">##### CA commission map</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>map_access <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>CA, <span class="at">fill=</span><span class="st">&quot;grey92&quot;</span>, <span class="at">color=</span><span class="st">&quot;grey92&quot;</span>) <span class="sc">+</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>access,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>          <span class="at">alpha=</span><span class="fl">0.7</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">color=</span>wetland,</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>              <span class="at">text=</span><span class="fu">paste</span>(name))) <span class="sc">+</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;Yes&quot;</span><span class="ot">=</span><span class="st">&quot;aquamarine4&quot;</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>                              <span class="st">&quot;No&quot;</span><span class="ot">=</span><span class="st">&quot;grey65&quot;</span>, </span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>                              <span class="st">&quot;Unknown&quot;</span><span class="ot">=</span><span class="st">&quot;darkslateblue&quot;</span>)) <span class="sc">+</span> </span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.text.x=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>        <span class="at">axis.ticks.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.title.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>        <span class="at">axis.text.y=</span><span class="fu">element_blank</span>(),<span class="at">axis.ticks.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>        <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="do">##### make interactive</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="fu">ggplotly</span>(map_access,<span class="at">tooltip=</span><span class="st">&quot;text&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>  <span class="fu">style</span>(<span class="at">hoverlabel=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">11</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">legend=</span><span class="fu">list</span>(<span class="at">xref=</span><span class="st">&quot;paper&quot;</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>                     <span class="at">x=</span><span class="fl">0.5</span>,<span class="at">xanchor=</span><span class="st">&#39;center&#39;</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>                     <span class="at">y=</span><span class="dv">0</span>,<span class="at">yanchor=</span><span class="st">&#39;top&#39;</span>,</span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>                     <span class="at">orientation=</span><span class="st">&#39;h&#39;</span>,</span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>                     <span class="at">traceorder=</span><span class="st">&quot;reversed&quot;</span>,</span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>                     <span class="at">title=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>)),</span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a>                     <span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>))) </span></code></pre></div>
 <iframe src="map_access.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
@@ -315,42 +413,29 @@ to zoom. click legend layers to toggle on/off.</em> </font>
 <div id="x-select-access-points-with-wetlands-access"
 class="section level5">
 <h5>1. [X] select access points with wetlands access</h5>
-<pre class="r"><code>##### CA commission wetlands map
-map_access_wetlands &lt;- ggplot() +
-  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
-  geom_sf(data=access_wetlands,
-          alpha=0.7,
-          aes(color=wetland,
-              text=paste(name))) +
-  scale_color_manual(values=c(&quot;Yes&quot;=&quot;aquamarine4&quot;)) +
-  theme_minimal()+
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-
-
-
-##### make interactive
-ggplotly(map_access_wetlands, tooltip=&quot;text&quot;) %&gt;%
-  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
-                                  size=11))) %&gt;%
-    layout(legend=list(xref=&quot;paper&quot;,
-                     x=0.5,
-                     xanchor=&#39;center&#39;,
-                     y=0,
-                     yanchor=&#39;top&#39;,
-                     orientation=&#39;h&#39;,
-                     traceorder=&quot;reversed&quot;,
-                     title=list(font=list(color=&quot;#32127a&quot;,
-                                          family=&quot;IBM Plex Mono&quot;)),
-                     font=list(color=&quot;#32127a&quot;,
-                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
-  partial_bundle() </code></pre>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="do">##### CA commission wetlands map</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>map_access_wetlands <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>CA, <span class="at">fill=</span><span class="st">&quot;grey92&quot;</span>, <span class="at">color=</span><span class="st">&quot;grey92&quot;</span>) <span class="sc">+</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>access_wetlands,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>          <span class="at">alpha=</span><span class="fl">0.7</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">color=</span>wetland,</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>              <span class="at">text=</span><span class="fu">paste</span>(name))) <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;Yes&quot;</span><span class="ot">=</span><span class="st">&quot;aquamarine4&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.text.x=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>        <span class="at">axis.ticks.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.title.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>        <span class="at">axis.text.y=</span><span class="fu">element_blank</span>(),<span class="at">axis.ticks.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>        <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="do">##### make interactive</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="fu">ggplotly</span>(map_access_wetlands, <span class="at">tooltip=</span><span class="st">&quot;text&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  <span class="fu">style</span>(<span class="at">hoverlabel=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">11</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">legend=</span><span class="fu">list</span>(<span class="at">xref=</span><span class="st">&quot;paper&quot;</span>,<span class="at">x=</span><span class="fl">0.5</span>,<span class="at">xanchor=</span><span class="st">&#39;center&#39;</span>,</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>                     <span class="at">y=</span><span class="dv">0</span>,<span class="at">yanchor=</span><span class="st">&#39;top&#39;</span>,</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>                     <span class="at">orientation=</span><span class="st">&#39;h&#39;</span>,</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>                     <span class="at">traceorder=</span><span class="st">&quot;reversed&quot;</span>,</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>                     <span class="at">title=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>)),</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>                     <span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>)))</span></code></pre></div>
 <iframe src="map_access_wetlands.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
@@ -400,23 +485,19 @@ minimal additional data processing)</li>
 <h4>CONSIDERATIONS:</h4>
 <ul>
 <li>CA Coastal Commission dataset is point data</li>
-<li>what additional wetlands points should be manually added?
-<ul>
+<li>what additional wetlands points should be manually added?</li>
 <li>CA Coastal Commission data limited to beach access points</li>
 <li>there are approx. <strong>~436</strong> park polygons intersecting
 wetlands that are not accounted for by this approach so far (see
 APPROACH #2 below)</li>
-</ul></li>
 <li>what amenities data should be manually added to google earth
-additions?
-<ul>
+additions?</li>
 <li>there are <strong>~70</strong> amenities variables in the original
 CA Coastal Commission datset</li>
 <li>for the <strong>~130</strong> wetlands access points Olivia manually
 added in the bay area, she found the following amenities data: (1)
 parking, (2) disabled access, (3) restrooms, (4) sandy beach access, and
 (5) boating facility</li>
-</ul></li>
 <li>the wetlands classification is “unknown” for most CA Coastal
 Commission access points (see below). we could add wetland
 classifications to unknown access points based on whether they intersect
@@ -456,40 +537,29 @@ neighborhood parks) open spaces</li>
 requires permit or has limited hours of operation, but still publicly
 accessible)</li>
 </ul>
-<pre class="r"><code>##### park polygon map
-map_parks &lt;- ggplot() +
-  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
-  geom_sf(data=parks_simplified,
-          aes(color=access_typ,
-              fill=access_typ,
-              text=paste(access_typ))) +
-  scale_color_manual(values=c(&quot;thistle&quot;,&quot;plum4&quot;,&quot;honeydew3&quot;)) + 
-  scale_fill_manual(values=c(&quot;thistle&quot;,&quot;plum4&quot;,&quot;honeydew3&quot;)) + 
-  theme_minimal()+
-  guides(fill=guide_legend(title = &quot;&quot;),
-         color=guide_legend(title = &quot;&quot;)) +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-
-
-##### make interactive
-ggplotly(map_parks, tooltip=&quot;text&quot;) %&gt;%
-  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
-                                  size=11))) %&gt;%
-    layout(legend=list(x=0.5,
-                     xanchor=&#39;center&#39;,
-                     y=0,
-                     yanchor=&#39;top&#39;,
-                     orientation=&#39;h&#39;,
-                     font=list(color=&quot;#32127a&quot;,
-                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
-  partial_bundle() </code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="do">##### park polygon map</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>map_parks <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>CA, <span class="at">fill=</span><span class="st">&quot;grey92&quot;</span>, <span class="at">color=</span><span class="st">&quot;grey92&quot;</span>) <span class="sc">+</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>parks_simplified,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">color=</span>access_typ,<span class="at">fill=</span>access_typ,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>              <span class="at">text=</span><span class="fu">paste</span>(access_typ))) <span class="sc">+</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;thistle&quot;</span>,<span class="st">&quot;plum4&quot;</span>,<span class="st">&quot;honeydew3&quot;</span>)) <span class="sc">+</span> </span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;thistle&quot;</span>,<span class="st">&quot;plum4&quot;</span>,<span class="st">&quot;honeydew3&quot;</span>)) <span class="sc">+</span> </span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>         <span class="at">color=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.text.x=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>        <span class="at">axis.ticks.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.title.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>        <span class="at">axis.text.y=</span><span class="fu">element_blank</span>(),<span class="at">axis.ticks.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>        <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="do">##### make interactive</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="fu">ggplotly</span>(map_parks, <span class="at">tooltip=</span><span class="st">&quot;text&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>  <span class="fu">style</span>(<span class="at">hoverlabel=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">11</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">legend=</span><span class="fu">list</span>(<span class="at">x=</span><span class="fl">0.5</span>,<span class="at">xanchor=</span><span class="st">&#39;center&#39;</span>,</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>                     <span class="at">y=</span><span class="dv">0</span>,<span class="at">yanchor=</span><span class="st">&#39;top&#39;</span>,</span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>                     <span class="at">orientation=</span><span class="st">&#39;h&#39;</span>,</span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>                     <span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>))) </span></code></pre></div>
 <iframe src="map_parks.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
@@ -505,42 +575,29 @@ toggle on/off.</em>
 <p><a
 href="https://www.fws.gov/program/national-wetlands-inventory/data-download">National
 Wetlands Inventory</a> (filtered to “Estuarine and Marine Wetlands”)</p>
-<pre class="r"><code>##### wetlands map
-map_wetlands &lt;- ggplot() +
-  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
-  geom_sf(data=wetlands,
-          aes(color=wetland,
-              fill=wetland,
-              text=paste(wetland))) +
-  scale_fill_manual(values=c(&quot;wetland&quot;=&quot;#a7dea2&quot;)) +
-  scale_color_manual(values=c(&quot;wetland&quot;=&quot;#a7dea2&quot;)) +
-    guides(fill=guide_legend(title = &quot;&quot;),
-         color=guide_legend(title = &quot;&quot;)) +
-  theme_minimal()+ 
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-
-
-##### make interactive
-ggplotly(map_wetlands,tooltip=&quot;none&quot;) %&gt;%
-  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
-                                  size=11))) %&gt;%
-    layout(legend=list(x=0.5,
-                     xanchor=&#39;center&#39;,
-                     y=0,
-                     yanchor=&#39;top&#39;,
-                     orientation=&#39;h&#39;,
-                     font=list(color=&quot;#32127a&quot;,
-                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
-  partial_bundle()
-
-#120</code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="do">##### wetlands map</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>map_wetlands <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>CA, <span class="at">fill=</span><span class="st">&quot;grey92&quot;</span>, <span class="at">color=</span><span class="st">&quot;grey92&quot;</span>) <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>wetlands,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">color=</span>wetland,<span class="at">fill=</span>wetland,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>              <span class="at">text=</span><span class="fu">paste</span>(wetland))) <span class="sc">+</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;wetland&quot;</span><span class="ot">=</span><span class="st">&quot;#a7dea2&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;wetland&quot;</span><span class="ot">=</span><span class="st">&quot;#a7dea2&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>),</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>         <span class="at">color=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.text.x=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>        <span class="at">axis.ticks.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.title.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>        <span class="at">axis.text.y=</span><span class="fu">element_blank</span>(),<span class="at">axis.ticks.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>        <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="do">##### make interactive</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="fu">ggplotly</span>(map_wetlands,<span class="at">tooltip=</span><span class="st">&quot;none&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>  <span class="fu">style</span>(<span class="at">hoverlabel=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">11</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">legend=</span><span class="fu">list</span>(<span class="at">x=</span><span class="fl">0.5</span>,<span class="at">xanchor=</span><span class="st">&#39;center&#39;</span>,</span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>                     <span class="at">y=</span><span class="dv">0</span>,<span class="at">yanchor=</span><span class="st">&#39;top&#39;</span>,</span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>                     <span class="at">orientation=</span><span class="st">&#39;h&#39;</span>,</span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>                     <span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>))) </span></code></pre></div>
 <iframe src="map_wetlands.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
@@ -557,43 +614,31 @@ href="https://california-coastal-commission-open-data-1-3-coastalcomm.hub.arcgis
 Coastal Commission</a> (Olivia’s extended dataset with Bay Area access
 points)</p>
 <p>[to supplement park polygons w/ amenities data]</p>
-<pre class="r"><code>##### CA commission map
-map_access &lt;- ggplot() +
-  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
-  geom_sf(data=access,
-          alpha=0.7,
-          aes(color=wetland,
-              text=paste(name))) +
-  scale_color_manual(values=c(&quot;Yes&quot;=&quot;aquamarine4&quot;,
-                              &quot;No&quot;=&quot;grey65&quot;, 
-                              &quot;Unknown&quot;=&quot;darkslateblue&quot;))+ 
-  theme_minimal() + 
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-
-##### make interactive
-ggplotly(map_access, 
-         tooltip=&quot;text&quot;) %&gt;%
-  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
-                                  size=11))) %&gt;%
-  layout(legend=list(xref=&quot;paper&quot;,
-                     x=0.5,
-                     xanchor=&#39;center&#39;,
-                     y=0,
-                     yanchor=&#39;top&#39;,
-                     orientation=&#39;h&#39;,
-                     traceorder=&quot;reversed&quot;,
-                     title=list(font=list(color=&quot;#32127a&quot;,
-                                          family=&quot;IBM Plex Mono&quot;)),
-                     font=list(color=&quot;#32127a&quot;,
-                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
-  partial_bundle()</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="do">##### CA commission map</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>map_access <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>CA, <span class="at">fill=</span><span class="st">&quot;grey92&quot;</span>, <span class="at">color=</span><span class="st">&quot;grey92&quot;</span>) <span class="sc">+</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>access,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>          <span class="at">alpha=</span><span class="fl">0.7</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">color=</span>wetland,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>              <span class="at">text=</span><span class="fu">paste</span>(name))) <span class="sc">+</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;Yes&quot;</span><span class="ot">=</span><span class="st">&quot;aquamarine4&quot;</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>                              <span class="st">&quot;No&quot;</span><span class="ot">=</span><span class="st">&quot;grey65&quot;</span>, </span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>                              <span class="st">&quot;Unknown&quot;</span><span class="ot">=</span><span class="st">&quot;darkslateblue&quot;</span>)) <span class="sc">+</span> </span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.text.x=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>        <span class="at">axis.ticks.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.title.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>        <span class="at">axis.text.y=</span><span class="fu">element_blank</span>(),<span class="at">axis.ticks.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>        <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="do">##### make interactive</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="fu">ggplotly</span>(map_access, <span class="at">tooltip=</span><span class="st">&quot;text&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>  <span class="fu">style</span>(<span class="at">hoverlabel=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">11</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">legend=</span><span class="fu">list</span>(<span class="at">xref=</span><span class="st">&quot;paper&quot;</span>,<span class="at">x=</span><span class="fl">0.5</span>,<span class="at">xanchor=</span><span class="st">&#39;center&#39;</span>,</span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>                     <span class="at">y=</span><span class="dv">0</span>,<span class="at">yanchor=</span><span class="st">&#39;top&#39;</span>,</span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>                     <span class="at">orientation=</span><span class="st">&#39;h&#39;</span>,</span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>                     <span class="at">traceorder=</span><span class="st">&quot;reversed&quot;</span>,</span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>                     <span class="at">title=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>)),</span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a>                     <span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>))) </span></code></pre></div>
 <iframe src="map_access.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
@@ -611,62 +656,51 @@ id="x-select-parks-that-intersect-either-a-1-wetlands-polygon-or-2-wetlands-acce
 class="section level5">
 <h5>1. [X] select parks that intersect either a (1) wetlands polygon or
 (2) wetlands access point</h5>
-<pre class="r"><code>##### parks intersecting wetland polygon or wetland access point
-wetlandParks &lt;- parks %&gt;%
-  select(suid_nma,
-         unit_name,
-         county,
-         acres,
-         geometry) %&gt;%
-  mutate(intersects_wetland= case_when(lengths(st_intersects(.,wetlands)) &gt; 0 ~ &quot;park intersects wetland&quot;,
-                                       lengths(st_intersects(.,wetlands))==0 &amp; lengths(st_intersects(.,access_wetlands_snapped)) &gt; 0 ~ &quot;park intersects wetland access point&quot;)) %&gt;%
-  filter(!is.na(intersects_wetland)) %&gt;%
-  mutate(wetland_park=&quot;wetland-park&quot;)
-
-##### simplify for interactive maps
-wetlandParks_simplified &lt;- wetlandParks %&gt;%
-  mutate(wetland_park=&quot;wetland-park&quot;) %&gt;%
-  group_by(wetland_park) %&gt;%
-  summarise(wetland_park=paste(unique(wetland_park))) %&gt;%
-  st_union(by_feature=TRUE) %&gt;%
-  st_cast(&quot;MULTIPOLYGON&quot;)
-
-###### wetland-park map
-map_wetlandParks &lt;- ggplot() +
-    geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
-    geom_sf(data=wetlandParks,
-          aes(fill=intersects_wetland,
-              color=intersects_wetland,
-              text=paste(unit_name)))+ 
-  scale_fill_manual(values=c(&quot;park intersects wetland&quot;=&quot;blueviolet&quot;,
-                             &quot;park intersects wetland access point&quot;=&quot;violet&quot;)) +
-  scale_color_manual(values=c(&quot;park intersects wetland&quot;=&quot;blueviolet&quot;,
-                              &quot;park intersects wetland access point&quot;=&quot;violet&quot;)) +
-  guides(fill=guide_legend(title = &quot;&quot;),
-         color=guide_legend(title = &quot;&quot;)) +
-  theme_minimal() +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) 
-
-
-##### make interactive
-ggplotly(map_wetlandParks, tooltip=&quot;text&quot;) %&gt;%
-  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
-                                  size=11))) %&gt;%
-    layout(legend=list(x=0.5,
-                     xanchor=&#39;center&#39;,
-                     y=0,
-                     yanchor=&#39;top&#39;,
-                     orientation=&#39;h&#39;,
-                     font=list(color=&quot;#32127a&quot;,
-                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
-  partial_bundle() </code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="do">##### parks intersecting wetland polygon or wetland access point</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>wetlandParks <span class="ot">&lt;-</span> parks <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="fu">select</span>(suid_nma,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>         unit_name,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>         county,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>         acres,</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>         geometry) <span class="sc">%&gt;%</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">intersects_wetland=</span> <span class="fu">case_when</span>(<span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,wetlands)) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">&quot;park intersects wetland&quot;</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>                                       <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,wetlands))<span class="sc">==</span><span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,access_wetlands_snapped)) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">&quot;park intersects wetland access point&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(intersects_wetland)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wetland_park=</span><span class="st">&quot;wetland-park&quot;</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="do">##### simplify for interactive maps</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>wetlandParks_simplified <span class="ot">&lt;-</span> wetlandParks <span class="sc">%&gt;%</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wetland_park=</span><span class="st">&quot;wetland-park&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>  <span class="fu">group_by</span>(wetland_park) <span class="sc">%&gt;%</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">wetland_park=</span><span class="fu">paste</span>(<span class="fu">unique</span>(wetland_park))) <span class="sc">%&gt;%</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>  <span class="fu">st_union</span>(<span class="at">by_feature=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>  <span class="fu">st_cast</span>(<span class="st">&quot;MULTIPOLYGON&quot;</span>)</span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="do">###### wetland-park map</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>map_wetlandParks <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>CA, <span class="at">fill=</span><span class="st">&quot;grey92&quot;</span>, <span class="at">color=</span><span class="st">&quot;grey92&quot;</span>) <span class="sc">+</span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>wetlandParks,</span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">fill=</span>intersects_wetland,<span class="at">color=</span>intersects_wetland,</span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a>              <span class="at">text=</span><span class="fu">paste</span>(unit_name)))<span class="sc">+</span> </span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;park intersects wetland&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a>                             <span class="st">&quot;park intersects wetland access point&quot;</span><span class="ot">=</span><span class="st">&quot;violet&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;park intersects wetland&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>                              <span class="st">&quot;park intersects wetland access point&quot;</span><span class="ot">=</span><span class="st">&quot;violet&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>),</span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a>         <span class="at">color=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.text.x=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a>        <span class="at">axis.ticks.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.title.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a>        <span class="at">axis.text.y=</span><span class="fu">element_blank</span>(),<span class="at">axis.ticks.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a>        <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a></span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a><span class="do">##### make interactive</span></span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a><span class="fu">ggplotly</span>(map_wetlandParks, <span class="at">tooltip=</span><span class="st">&quot;text&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a>  <span class="fu">style</span>(<span class="at">hoverlabel=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">11</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">legend=</span><span class="fu">list</span>(<span class="at">x=</span><span class="fl">0.5</span>,<span class="at">xanchor=</span><span class="st">&#39;center&#39;</span>,</span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a>                     <span class="at">y=</span><span class="dv">0</span>,<span class="at">yanchor=</span><span class="st">&#39;top&#39;</span>,</span>
+<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a>                     <span class="at">orientation=</span><span class="st">&#39;h&#39;</span>,</span>
+<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a>                     <span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>)))  </span></code></pre></div>
 <iframe src="map_wetlandParks.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
@@ -692,75 +726,60 @@ id="x-join-wetland-access-points-to-wetland-park-polygons-they-intersect"
 class="section level5">
 <h5>2. [X] join wetland access points to wetland-park polygons they
 intersect</h5>
-<pre class="r"><code>##### find wetland access points that intersect wetland-parks
-access_wetlands &lt;- access_wetlands %&gt;%
-  mutate(matched = case_when(lengths(st_intersects(.,wetlandParks))==0 ~ &quot;does not intersect wetland-park&quot;,
-                            lengths(st_intersects(.,wetlandParks)) &gt; 0 ~ &quot;intersects wetland-park&quot;))
-
-##### filter to intersected wetland-parks for simplified mapping
-wetlandParks_raw_filter &lt;- wetlandParks %&gt;%
-  filter(matched_raw==&quot;intersects wetland access pt&quot;) %&gt;%
-  mutate(wetland_park_intersect=&quot;intersected wetland-park&quot;) %&gt;%
-  group_by(wetland_park_intersect) %&gt;%
-  summarise(wetland_park_intersect=paste(unique(wetland_park_intersect))) %&gt;%
-  st_union(by_feature=TRUE) %&gt;%
-  st_cast(&quot;MULTIPOLYGON&quot;)
-
-##### map of wetland access points that intersect wetland-parks
-map_access_wetlands_matches &lt;- ggplot() +
-  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
-  geom_sf(data=wetlands,
-          lwd=0,
-          alpha=0.35,
-          aes(color=wetland,
-              fill=wetland)) +
-  geom_sf(data=wetlandParks_raw_filter,
-          aes(fill=wetland_park_intersect,
-              color=wetland_park_intersect,
-              text=&quot;intersected wetland-park&quot;),
-          lwd=0,
-          alpha=0.35) +
-  geom_sf(data=access_wetlands,
-          alpha=0.85,
-          aes(color=matched,
-              fill=matched,
-              text=paste(name))) +
-  scale_color_manual(values=c(&quot;wetland&quot;=&quot;darkseagreen&quot;,
-                              &quot;intersected wetland-park&quot;=&quot;blueviolet&quot;,
-                              &quot;intersects wetland-park&quot;=&quot;blueviolet&quot;,
-                              &quot;does not intersect wetland-park&quot;=&quot;grey60&quot;)) +
-  scale_fill_manual(values=c(&quot;wetland&quot;=&quot;darkseagreen&quot;,
-                             &quot;intersected wetland-park&quot;=&quot;blueviolet&quot;,
-                              &quot;intersects wetland-park&quot;=&quot;blueviolet&quot;,
-                              &quot;does not intersect wetland-park&quot;=&quot;grey60&quot;)) +
-  guides(fill=guide_legend(title = &quot;&quot;),
-         color=guide_legend(title = &quot;&quot;)) +
-  theme_minimal()+ #remove grey background
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) 
-
-##### make interactives
-ggplotly(map_access_wetlands_matches, tooltip=&quot;text&quot;) %&gt;%
-  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
-                                  size=11))) %&gt;%
-    layout(legend=list(x=0.5,
-                     xanchor=&#39;center&#39;,
-                     y=0,
-                     yanchor=&#39;top&#39;,
-                     orientation=&#39;h&#39;,
-                     traceorder=&quot;reversed&quot;,
-                     title=list(font=list(color=&quot;#32127a&quot;,
-                                          family=&quot;IBM Plex Mono&quot;)),
-                     font=list(color=&quot;#32127a&quot;,
-                               family=&quot;IBM Plex Mono&quot;,
-                               size=10))) %&gt;%
-  partial_bundle() </code></pre>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">##### find wetland access points that intersect wetland-parks</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>access_wetlands <span class="ot">&lt;-</span> access_wetlands <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">matched =</span> <span class="fu">case_when</span>(<span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,wetlandParks))<span class="sc">==</span><span class="dv">0</span> <span class="sc">~</span> <span class="st">&quot;does not intersect wetland-park&quot;</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>                             <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,wetlandParks)) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">&quot;intersects wetland-park&quot;</span>))</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="do">##### filter to intersected wetland-parks for simplified mapping</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>wetlandParks_raw_filter <span class="ot">&lt;-</span> wetlandParks <span class="sc">%&gt;%</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="fu">filter</span>(matched_raw<span class="sc">==</span><span class="st">&quot;intersects wetland access pt&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wetland_park_intersect=</span><span class="st">&quot;intersected wetland-park&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="fu">group_by</span>(wetland_park_intersect) <span class="sc">%&gt;%</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">wetland_park_intersect=</span><span class="fu">paste</span>(<span class="fu">unique</span>(wetland_park_intersect))) <span class="sc">%&gt;%</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>  <span class="fu">st_union</span>(<span class="at">by_feature=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  <span class="fu">st_cast</span>(<span class="st">&quot;MULTIPOLYGON&quot;</span>)</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="do">##### map of wetland access points that intersect wetland-parks</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>map_access_wetlands_matches <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>CA, <span class="at">fill=</span><span class="st">&quot;grey92&quot;</span>, <span class="at">color=</span><span class="st">&quot;grey92&quot;</span>) <span class="sc">+</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>wetlands,</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>          <span class="at">lwd=</span><span class="dv">0</span>,<span class="at">alpha=</span><span class="fl">0.35</span>,</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">color=</span>wetland,<span class="at">fill=</span>wetland)) <span class="sc">+</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>wetlandParks_raw_filter,</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>          <span class="at">lwd=</span><span class="dv">0</span>,<span class="at">alpha=</span><span class="fl">0.35</span>,</span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">fill=</span>wetland_park_intersect,</span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a>              <span class="at">color=</span>wetland_park_intersect,</span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a>              <span class="at">text=</span><span class="st">&quot;intersected wetland-park&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>access_wetlands,</span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a>          <span class="at">alpha=</span><span class="fl">0.85</span>,</span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">color=</span>matched,<span class="at">fill=</span>matched,</span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a>              <span class="at">text=</span><span class="fu">paste</span>(name))) <span class="sc">+</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;wetland&quot;</span><span class="ot">=</span><span class="st">&quot;darkseagreen&quot;</span>,</span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a>                              <span class="st">&quot;intersected wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a>                              <span class="st">&quot;intersects wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a>                              <span class="st">&quot;does not intersect wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;grey60&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;wetland&quot;</span><span class="ot">=</span><span class="st">&quot;darkseagreen&quot;</span>,</span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a>                             <span class="st">&quot;intersected wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a>                             <span class="st">&quot;intersects wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a>                             <span class="st">&quot;does not intersect wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;grey60&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>),</span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a>         <span class="at">color=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb7-41"><a href="#cb7-41" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.text.x=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb7-42"><a href="#cb7-42" tabindex="-1"></a>        <span class="at">axis.ticks.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.title.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb7-43"><a href="#cb7-43" tabindex="-1"></a>        <span class="at">axis.text.y=</span><span class="fu">element_blank</span>(),<span class="at">axis.ticks.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb7-44"><a href="#cb7-44" tabindex="-1"></a>        <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb7-45"><a href="#cb7-45" tabindex="-1"></a></span>
+<span id="cb7-46"><a href="#cb7-46" tabindex="-1"></a><span class="do">##### make interactive</span></span>
+<span id="cb7-47"><a href="#cb7-47" tabindex="-1"></a><span class="fu">ggplotly</span>(map_access_wetlands_matches, <span class="at">tooltip=</span><span class="st">&quot;text&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-48"><a href="#cb7-48" tabindex="-1"></a>  <span class="fu">style</span>(<span class="at">hoverlabel=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">11</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb7-49"><a href="#cb7-49" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">legend=</span><span class="fu">list</span>(<span class="at">x=</span><span class="fl">0.5</span>,<span class="at">xanchor=</span><span class="st">&#39;center&#39;</span>,</span>
+<span id="cb7-50"><a href="#cb7-50" tabindex="-1"></a>                     <span class="at">y=</span><span class="dv">0</span>,<span class="at">yanchor=</span><span class="st">&#39;top&#39;</span>,</span>
+<span id="cb7-51"><a href="#cb7-51" tabindex="-1"></a>                     <span class="at">orientation=</span><span class="st">&#39;h&#39;</span>,</span>
+<span id="cb7-52"><a href="#cb7-52" tabindex="-1"></a>                     <span class="at">traceorder=</span><span class="st">&quot;reversed&quot;</span>,</span>
+<span id="cb7-53"><a href="#cb7-53" tabindex="-1"></a>                     <span class="at">title=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>)),</span>
+<span id="cb7-54"><a href="#cb7-54" tabindex="-1"></a>                     <span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">10</span>)))</span></code></pre></div>
 <iframe src="map_access_wetlands_matches.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
@@ -784,75 +803,58 @@ correspond with a wetland-park name; I snapped these such points to the
 nearest wetland-park polygon. depending on the approach we ultimately
 choose, <strong>I should comb back through the joined point-polygon data
 to more rigorously confirm matches</strong>.</p>
-<pre class="r"><code>##### find snapped access points that intersect wetland-parks
-access_wetlands_snapped &lt;- access_wetlands_snapped %&gt;%
-  mutate(matched= case_when(lengths(st_intersects(.,wetlandParks))==0 ~ &quot;does not intersect wetland-park&quot;,
-                            lengths(st_intersects(.,wetlandParks)) &gt; 0 ~ &quot;intersects wetland-park&quot;))
-
-##### filter to intersected wetland-parks for simplified mapping
-wetlandParks_filter &lt;- wetlandParks %&gt;%
-  filter(matched_snapped==&quot;intersects wetland access pt&quot;) %&gt;%
-  mutate(wetland_park_intersect=&quot;intersected wetland-park&quot;) %&gt;%
-  group_by(wetland_park_intersect) %&gt;%
-  summarise(wetland_park_intersect=paste(unique(wetland_park_intersect))) %&gt;%
-  st_union(by_feature=TRUE) %&gt;%
-  st_cast(&quot;MULTIPOLYGON&quot;)
-
-##### map of snapped access points that intersect wetland-parks
-map_access_wetlands_snapped_matches &lt;- ggplot() +
-  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
-  geom_sf(data=wetlands,
-          lwd=0,
-          alpha=0.35,
-          aes(color=wetland,
-              fill=wetland)) +
-  geom_sf(data=wetlandParks_filter,
-          aes(fill=wetland_park_intersect,
-              color=wetland_park_intersect,
-              text=&quot;intersected wetland-park&quot;),
-          lwd=0,
-          alpha=0.35) +
-  geom_sf(data=access_wetlands_snapped,
-          alpha=0.85,
-          aes(color=matched,
-              fill=matched,
-              text=paste(name))) +
-  scale_color_manual(values=c(&quot;wetland&quot;=&quot;darkseagreen&quot;,
-                              &quot;intersected wetland-park&quot;=&quot;blueviolet&quot;,
-                              &quot;intersects wetland-park&quot;=&quot;blueviolet&quot;,
-                              &quot;does not intersect wetland-park&quot;=&quot;grey60&quot;)) +
-  scale_fill_manual(values=c(&quot;wetland&quot;=&quot;darkseagreen&quot;,
-                             &quot;intersected wetland-park&quot;=&quot;blueviolet&quot;,
-                              &quot;intersects wetland-park&quot;=&quot;blueviolet&quot;,
-                              &quot;does not intersect wetland-park&quot;=&quot;grey60&quot;)) +
-  guides(fill=guide_legend(title = &quot;&quot;),
-         color=guide_legend(title = &quot;&quot;)) +
-  theme_minimal()+ #remove grey background
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-
-##### make interactive
-ggplotly(map_access_wetlands_snapped_matches, tooltip=&quot;text&quot;) %&gt;%
-  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
-                                  size=11))) %&gt;%
-    layout(legend=list(x=0.5,
-                     xanchor=&#39;center&#39;,
-                     y=0,
-                     yanchor=&#39;top&#39;,
-                     orientation=&#39;h&#39;,
-                     traceorder=&quot;reversed&quot;,
-                     title=list(font=list(color=&quot;#32127a&quot;,
-                                          family=&quot;IBM Plex Mono&quot;)),
-                     font=list(color=&quot;#32127a&quot;,
-                               family=&quot;IBM Plex Mono&quot;,
-                               size=10))) %&gt;%
-  partial_bundle() </code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="do">##### find snapped access points that intersect wetland-parks</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>access_wetlands_snapped <span class="ot">&lt;-</span> access_wetlands_snapped <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">matched=</span> <span class="fu">case_when</span>(<span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,wetlandParks))<span class="sc">==</span><span class="dv">0</span> <span class="sc">~</span> <span class="st">&quot;does not intersect wetland-park&quot;</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>                            <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,wetlandParks)) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">&quot;intersects wetland-park&quot;</span>))</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="do">##### filter to intersected wetland-parks for simplified mapping</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>wetlandParks_filter <span class="ot">&lt;-</span> wetlandParks <span class="sc">%&gt;%</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="fu">filter</span>(matched_snapped<span class="sc">==</span><span class="st">&quot;intersects wetland access pt&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wetland_park_intersect=</span><span class="st">&quot;intersected wetland-park&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>  <span class="fu">group_by</span>(wetland_park_intersect) <span class="sc">%&gt;%</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">wetland_park_intersect=</span><span class="fu">paste</span>(<span class="fu">unique</span>(wetland_park_intersect))) <span class="sc">%&gt;%</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  <span class="fu">st_union</span>(<span class="at">by_feature=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>  <span class="fu">st_cast</span>(<span class="st">&quot;MULTIPOLYGON&quot;</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="do">##### map of snapped access points that intersect wetland-parks</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>map_access_wetlands_snapped_matches <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>CA, <span class="at">fill=</span><span class="st">&quot;grey92&quot;</span>, <span class="at">color=</span><span class="st">&quot;grey92&quot;</span>) <span class="sc">+</span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>wetlands,<span class="at">lwd=</span><span class="dv">0</span>,<span class="at">alpha=</span><span class="fl">0.35</span>,</span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">color=</span>wetland,<span class="at">fill=</span>wetland)) <span class="sc">+</span></span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>wetlandParks_filter,</span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a>          <span class="at">lwd=</span><span class="dv">0</span>,<span class="at">alpha=</span><span class="fl">0.35</span>,</span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">fill=</span>wetland_park_intersect,<span class="at">color=</span>wetland_park_intersect,</span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a>              <span class="at">text=</span><span class="st">&quot;intersected wetland-park&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>access_wetlands_snapped,</span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a>          <span class="at">alpha=</span><span class="fl">0.85</span>,</span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">color=</span>matched,<span class="at">fill=</span>matched,</span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a>              <span class="at">text=</span><span class="fu">paste</span>(name))) <span class="sc">+</span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;wetland&quot;</span><span class="ot">=</span><span class="st">&quot;darkseagreen&quot;</span>,</span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a>                              <span class="st">&quot;intersected wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a>                              <span class="st">&quot;intersects wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a>                              <span class="st">&quot;does not intersect wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;grey60&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;wetland&quot;</span><span class="ot">=</span><span class="st">&quot;darkseagreen&quot;</span>,</span>
+<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a>                             <span class="st">&quot;intersected wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a>                             <span class="st">&quot;intersects wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a>                             <span class="st">&quot;does not intersect wetland-park&quot;</span><span class="ot">=</span><span class="st">&quot;grey60&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>),</span>
+<span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a>         <span class="at">color=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.text.x=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a>        <span class="at">axis.ticks.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.title.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a>        <span class="at">axis.text.y=</span><span class="fu">element_blank</span>(),<span class="at">axis.ticks.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a>        <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb8-43"><a href="#cb8-43" tabindex="-1"></a></span>
+<span id="cb8-44"><a href="#cb8-44" tabindex="-1"></a><span class="do">##### make interactive</span></span>
+<span id="cb8-45"><a href="#cb8-45" tabindex="-1"></a><span class="fu">ggplotly</span>(map_access_wetlands_snapped_matches, <span class="at">tooltip=</span><span class="st">&quot;text&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-46"><a href="#cb8-46" tabindex="-1"></a>  <span class="fu">style</span>(<span class="at">hoverlabel=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">11</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb8-47"><a href="#cb8-47" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">legend=</span><span class="fu">list</span>(<span class="at">x=</span><span class="fl">0.5</span>,<span class="at">xanchor=</span><span class="st">&#39;center&#39;</span>,</span>
+<span id="cb8-48"><a href="#cb8-48" tabindex="-1"></a>                     <span class="at">y=</span><span class="dv">0</span>,<span class="at">yanchor=</span><span class="st">&#39;top&#39;</span>,</span>
+<span id="cb8-49"><a href="#cb8-49" tabindex="-1"></a>                     <span class="at">orientation=</span><span class="st">&#39;h&#39;</span>,</span>
+<span id="cb8-50"><a href="#cb8-50" tabindex="-1"></a>                     <span class="at">traceorder=</span><span class="st">&quot;reversed&quot;</span>,</span>
+<span id="cb8-51"><a href="#cb8-51" tabindex="-1"></a>                     <span class="at">title=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>)),</span>
+<span id="cb8-52"><a href="#cb8-52" tabindex="-1"></a>                     <span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">10</span>)))</span></code></pre></div>
 <iframe src="map_access_wetlands_snapped_matches.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
@@ -871,62 +873,48 @@ class="section level5">
 points</h5>
 <p>Wetland-parks with 1+ intersecting wetlands access points (CA Coastal
 Commission data):</p>
-<pre class="r"><code>##### find + classify access point interections (wetland: yes, no, unknown)
-wetlandParks &lt;- wetlandParks %&gt;%
-    mutate(matched = case_when(lengths(st_intersects(.,access_snapped)) == 0 ~ &quot;not intersecting access pt&quot;,
-                             lengths(st_intersects(.,filter(access_snapped,wetland==&quot;Yes&quot;))) &gt; 0  ~ &quot;intersects wetland access pt&quot;,
-                             lengths(st_intersects(.,filter(access_snapped,wetland==&quot;Unknown&quot;))) &gt; 0  ~ &quot;intersects unknown access pt&quot;,
-                             lengths(st_intersects(.,filter(access_snapped,wetland==&quot;No&quot;))) &gt; 0  ~ &quot;intersects non-wetland access pt&quot;))  %&gt;%
-  mutate(matched_wetlandAccess=factor(matched,
-                                      levels=c(&quot;not intersecting access pt&quot;,
-                                               &quot;intersects non-wetland access pt&quot;,
-                                               &quot;intersects unknown access pt&quot;,
-                                               &quot;intersects wetland access pt&quot;)))
-
-##### access point intersection map
-map_wetlandParks_matches &lt;- ggplot() +
-  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
-  geom_sf(data=wetlandParks,
-          aes(color=matched,
-              fill=matched,
-              text=paste(unit_name)))+
-  scale_color_manual(values=c(&quot;intersects wetland access pt&quot;=&quot;blueviolet&quot;,
-                              &quot;intersects unknown access pt&quot;=&quot;darkmagenta&quot;,
-                              &quot;intersects non-wetland access pt&quot;=&quot;violet&quot;,
-                              &quot;not intersecting access pt&quot;=&quot;grey65&quot;)) +
-  scale_fill_manual(values=c(&quot;intersects wetland access pt&quot;=&quot;blueviolet&quot;,
-                             &quot;intersects unknown access pt&quot;=&quot;darkmagenta&quot;,
-                             &quot;intersects non-wetland access pt&quot;=&quot;violet&quot;,
-                              &quot;not intersecting access pt&quot;=&quot;grey65&quot;)) +
-  guides(fill=guide_legend(title = &quot;&quot;),
-         color=guide_legend(title = &quot;&quot;)) +
-  theme_minimal()+
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-
-##### make interactive
-ggplotly(map_wetlandParks_matches, tooltip=&quot;text&quot;) %&gt;%
-  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
-                                  size=11))) %&gt;%
-  layout(legend=list(x=0.5,
-                     xanchor=&#39;center&#39;,
-                     yref=&quot;paper&quot;,
-                     y=0,
-                     yanchor=&#39;top&#39;,
-                     orientation=&#39;h&#39;,
-                     traceorder=&quot;reversed&quot;,
-                     title=list(font=list(color=&quot;#32127a&quot;,
-                                          family=&quot;IBM Plex Mono&quot;)),
-                     font=list(color=&quot;#32127a&quot;,
-                               family=&quot;IBM Plex Mono&quot;,
-                               size=10))) %&gt;%
-  partial_bundle() </code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">##### find + classify access point interections (wetland: yes, no, unknown)</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>wetlandParks <span class="ot">&lt;-</span> wetlandParks <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">matched =</span> <span class="fu">case_when</span>(<span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,access_snapped)) <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">&quot;not intersecting access pt&quot;</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>                             <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,<span class="fu">filter</span>(access_snapped,wetland<span class="sc">==</span><span class="st">&quot;Yes&quot;</span>))) <span class="sc">&gt;</span> <span class="dv">0</span>  <span class="sc">~</span> <span class="st">&quot;intersects wetland access pt&quot;</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>                             <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,<span class="fu">filter</span>(access_snapped,wetland<span class="sc">==</span><span class="st">&quot;Unknown&quot;</span>))) <span class="sc">&gt;</span> <span class="dv">0</span>  <span class="sc">~</span> <span class="st">&quot;intersects unknown access pt&quot;</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>                             <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(.,<span class="fu">filter</span>(access_snapped,wetland<span class="sc">==</span><span class="st">&quot;No&quot;</span>))) <span class="sc">&gt;</span> <span class="dv">0</span>  <span class="sc">~</span> <span class="st">&quot;intersects non-wetland access pt&quot;</span>))  <span class="sc">%&gt;%</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">matched_wetlandAccess=</span><span class="fu">factor</span>(matched,<span class="at">levels=</span><span class="fu">c</span>(<span class="st">&quot;not intersecting access pt&quot;</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>                                                       <span class="st">&quot;intersects non-wetland access pt&quot;</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>                                                       <span class="st">&quot;intersects unknown access pt&quot;</span>,</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>                                                       <span class="st">&quot;intersects wetland access pt&quot;</span>)))</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="do">##### access point intersection map</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>map_wetlandParks_matches <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>CA, <span class="at">fill=</span><span class="st">&quot;grey92&quot;</span>, <span class="at">color=</span><span class="st">&quot;grey92&quot;</span>) <span class="sc">+</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data=</span>wetlandParks,</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">color=</span>matched,<span class="at">fill=</span>matched,</span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>              <span class="at">text=</span><span class="fu">paste</span>(unit_name)))<span class="sc">+</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;intersects wetland access pt&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>                              <span class="st">&quot;intersects unknown access pt&quot;</span><span class="ot">=</span><span class="st">&quot;darkmagenta&quot;</span>,</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>                              <span class="st">&quot;intersects non-wetland access pt&quot;</span><span class="ot">=</span><span class="st">&quot;violet&quot;</span>,</span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a>                              <span class="st">&quot;not intersecting access pt&quot;</span><span class="ot">=</span><span class="st">&quot;grey65&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">&quot;intersects wetland access pt&quot;</span><span class="ot">=</span><span class="st">&quot;blueviolet&quot;</span>,</span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a>                             <span class="st">&quot;intersects unknown access pt&quot;</span><span class="ot">=</span><span class="st">&quot;darkmagenta&quot;</span>,</span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a>                             <span class="st">&quot;intersects non-wetland access pt&quot;</span><span class="ot">=</span><span class="st">&quot;violet&quot;</span>,</span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a>                             <span class="st">&quot;not intersecting access pt&quot;</span><span class="ot">=</span><span class="st">&quot;grey65&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>),</span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a>         <span class="at">color=</span><span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="st">&quot;&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.text.x=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a>        <span class="at">axis.ticks.x=</span><span class="fu">element_blank</span>(),<span class="at">axis.title.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a>        <span class="at">axis.text.y=</span><span class="fu">element_blank</span>(),<span class="at">axis.ticks.y=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a>        <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a></span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="do">##### make interactive</span></span>
+<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a><span class="fu">ggplotly</span>(map_wetlandParks_matches, <span class="at">tooltip=</span><span class="st">&quot;text&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a>  <span class="fu">style</span>(<span class="at">hoverlabel=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">11</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">legend=</span><span class="fu">list</span>(<span class="at">x=</span><span class="fl">0.5</span>,<span class="at">xanchor=</span><span class="st">&#39;center&#39;</span>,</span>
+<span id="cb9-38"><a href="#cb9-38" tabindex="-1"></a>                     <span class="at">yref=</span><span class="st">&quot;paper&quot;</span>,<span class="at">y=</span><span class="dv">0</span>,<span class="at">yanchor=</span><span class="st">&#39;top&#39;</span>,</span>
+<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a>                     <span class="at">orientation=</span><span class="st">&#39;h&#39;</span>,</span>
+<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a>                     <span class="at">traceorder=</span><span class="st">&quot;reversed&quot;</span>,</span>
+<span id="cb9-41"><a href="#cb9-41" tabindex="-1"></a>                     <span class="at">title=</span><span class="fu">list</span>(<span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>)),</span>
+<span id="cb9-42"><a href="#cb9-42" tabindex="-1"></a>                     <span class="at">font=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">&quot;#32127a&quot;</span>,<span class="at">family=</span><span class="st">&quot;IBM Plex Mono&quot;</span>,<span class="at">size=</span><span class="dv">10</span>))) </span></code></pre></div>
 <iframe src="map_wetlandParks_matches.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
@@ -1002,27 +990,28 @@ APPROACH #1 RUNNING TOTAL: <strong>280 wetland access points</strong>
 <h5>DO NOT MANUALLY ADD DATA</h5>
 <ol style="list-style-type: decimal">
 <li>pursue <strong>APPROACH #1</strong>, and <em>do not manually add
-additional wetlands data</em>:
+additional wetlands data</em>:</li>
+</ol>
 <ul>
 <li>add <strong>0</strong> additional wetlands access points</li>
 <li>analyze existing <strong>280</strong> CA Commission wetlands access
 points</li>
 <li>est. time: <strong>~2 weeks</strong></li>
-</ul></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
 <li>pursue <strong>APPROACH #2</strong>, and <em>do not manually
-populate amenities data</em>. only include parks that match…
+populate amenities data</em>. only include parks that match…</li>
+</ol>
 <ul>
-<li><strong>[A]</strong> …a CA Coastal Commission wetlands access point:
-<ul>
+<li><strong>[A]</strong> …a CA Coastal Commission wetlands access
+point:</li>
 <li>populate amenities data for <strong>0</strong> additional
 wetland-park polygons</li>
 <li>analyze approx. <strong>280</strong> wetland-park polygons joined
 with full amenities data from access points</li>
 <li>est. time: <strong>~ 2 weeks</strong></li>
-</ul></li>
 <li><strong>[B]</strong> …any CA Coastal Commission access point
-(regardless of whether classified as wetland access point):
-<ul>
+(regardless of whether classified as wetland access point):</li>
 <li>populate amenities data for <strong>0</strong> additional
 wetland-park polygons</li>
 <li>analyze approx. <strong>[?]</strong> wetland-park polygons joined
@@ -1030,36 +1019,34 @@ with full amenities data from access points</li>
 <li>est. time: <strong>~3 weeks</strong> (contingent on #
 points/polygons that must be manually snapped/matched (i.e., those that
 are nearly but not quite intersecting)</li>
-</ul></li>
-</ul></li>
-</ol>
+</ul>
 </div>
 <div id="manually-add-data" class="section level5">
 <h5>MANUALLY ADD DATA</h5>
 <ol start="3" style="list-style-type: decimal">
 <li>pursue <strong>APPROACH #1</strong>, and use google earth to <em>add
-additional wetlands data + manually populate amenities data</em>:
+additional wetlands data + manually populate amenities data</em>:</li>
+</ol>
 <ul>
 <li>add/populate <strong>[?]</strong> additional access points</li>
 <li>analyze approx. <strong>[?]</strong> wetlands access points</li>
 <li>est. time: <strong>[?]</strong> (contingent on # wetlands access
 points we decide to add)</li>
-</ul></li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
 <li>pursue <strong>APPROACH #2</strong>, and <em>manually populate
-amenities data</em> (i.e., via park websites, google earth, etc.)…
+amenities data</em> (i.e., via park websites, google earth, etc.)…</li>
+</ol>
 <ul>
 <li><strong>[A]</strong> …for wetland-park polygons not matched to a CA
-Commission wetlands access point:
-<ul>
+Commission wetlands access point:</li>
 <li>populate amenities data for approx. <strong>~436</strong>
 wetland-park polygons</li>
 <li>analyze approx. <strong>~716</strong> wetland-park polygons</li>
 <li>est. time: <strong>~6 weeks</strong></li>
-</ul></li>
 <li><strong>[B]</strong> …but wetland-park not matched to any CA Coastal
 Commission access points (regardless of whether classified as wetland
-access point):
-<ul>
+access point):</li>
 <li>populate amenities data for <strong>~287</strong> additional
 wetland-park polygons</li>
 <li>analyze approx. <strong>~716</strong> wetland-park polygons joined
@@ -1068,9 +1055,7 @@ with full amenities data<br />
 <li>est. time: <strong>~4 weeks</strong> (contingent on # wetland-park
 polygons remaining that must be manually populated with amenities
 data)</li>
-</ul></li>
-</ul></li>
-</ol>
+</ul>
 </div>
 </div>
 </div>
