@@ -13,13 +13,13 @@
 
 <title>wetlands update</title>
 
-<script src="wetlandsUpdate_test_files/header-attrs-2.27/header-attrs.js"></script>
-<script src="wetlandsUpdate_test_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="wetlandsUpdate_files/header-attrs-2.27/header-attrs.js"></script>
+<script src="wetlandsUpdate_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="wetlandsUpdate_test_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
-<script src="wetlandsUpdate_test_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
-<script src="wetlandsUpdate_test_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
-<script src="wetlandsUpdate_test_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<link href="wetlandsUpdate_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="wetlandsUpdate_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="wetlandsUpdate_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="wetlandsUpdate_files/bootstrap-3.3.5/shim/respond.min.js"></script>
 <style>h1 {font-size: 34px;}
        h1.title {font-size: 38px;}
        h2 {font-size: 30px;}
@@ -29,13 +29,13 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
-<script src="wetlandsUpdate_test_files/jqueryui-1.13.2/jquery-ui.min.js"></script>
-<link href="wetlandsUpdate_test_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="wetlandsUpdate_test_files/tocify-1.9.1/jquery.tocify.js"></script>
-<script src="wetlandsUpdate_test_files/navigation-1.1/tabsets.js"></script>
-<script src="wetlandsUpdate_test_files/navigation-1.1/codefolding.js"></script>
-<link href="wetlandsUpdate_test_files/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
-<script src="wetlandsUpdate_test_files/pagedtable-1.1/js/pagedtable.js"></script>
+<script src="wetlandsUpdate_files/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="wetlandsUpdate_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="wetlandsUpdate_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="wetlandsUpdate_files/navigation-1.1/tabsets.js"></script>
+<script src="wetlandsUpdate_files/navigation-1.1/codefolding.js"></script>
+<link href="wetlandsUpdate_files/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="wetlandsUpdate_files/pagedtable-1.1/js/pagedtable.js"></script>
 <link rel="shortcut icon" href="favicon.ico" />
 
 <style type="text/css">
@@ -264,16 +264,43 @@ href="https://california-coastal-commission-open-data-1-3-coastalcomm.hub.arcgis
 Coastal Commission</a> (Olivia’s extended dataset with Bay Area access
 points)</p>
 <pre class="r"><code>##### CA commission map
-tags$iframe(
-  src = &quot;map_access.html&quot;, 
-  scrolling = &quot;no&quot;, 
-  seamless = &quot;seamless&quot;,
-  frameBorder = &quot;0&quot;,
-  height=600,
-  width=&quot;500&quot;
-)</code></pre>
-<iframe src="map_access.html" scrolling="no" seamless="seamless" frameBorder="0" height="600" width="500"></iframe>
-<pre class="r"><code>#52</code></pre>
+map_access &lt;- ggplot() +
+  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=access,
+          alpha=0.7,
+          aes(color=wetland,
+              text=paste(name))) +
+  scale_color_manual(values=c(&quot;Yes&quot;=&quot;aquamarine4&quot;,
+                              &quot;No&quot;=&quot;grey65&quot;, 
+                              &quot;Unknown&quot;=&quot;darkslateblue&quot;))+ 
+  theme_minimal() + 
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_access, 
+         tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
+                                  size=11))) %&gt;%
+  layout(legend=list(xref=&quot;paper&quot;,
+                     x=0.5,
+                     xanchor=&#39;center&#39;,
+                     y=0,
+                     yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     traceorder=&quot;reversed&quot;,
+                     title=list(font=list(color=&quot;#32127a&quot;,
+                                          family=&quot;IBM Plex Mono&quot;)),
+                     font=list(color=&quot;#32127a&quot;,
+                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
+  partial_bundle()</code></pre>
+<iframe src="map_access.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
 <font size="2"> <em>hover over points for site names. draw bounding box
@@ -288,11 +315,50 @@ to zoom. click legend layers to toggle on/off.</em> </font>
 <div id="x-select-access-points-with-wetlands-access"
 class="section level5">
 <h5>1. [X] select access points with wetlands access</h5>
-<iframe src="map_access_wetlands.html" scrolling="no" seamless="seamless" frameBorder="0" height="600" width="500"></iframe>
-<!-- <p> -->
-<!-- <center><font size="2"> *hover over points for site names. draw bounding box to zoom.* </font></center> -->
-<!-- </p> -->
-<!-- <br> -->
+<pre class="r"><code>##### CA commission wetlands map
+map_access_wetlands &lt;- ggplot() +
+  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=access_wetlands,
+          alpha=0.7,
+          aes(color=wetland,
+              text=paste(name))) +
+  scale_color_manual(values=c(&quot;Yes&quot;=&quot;aquamarine4&quot;)) +
+  theme_minimal()+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+
+##### make interactive
+ggplotly(map_access_wetlands, tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
+                                  size=11))) %&gt;%
+    layout(legend=list(xref=&quot;paper&quot;,
+                     x=0.5,
+                     xanchor=&#39;center&#39;,
+                     y=0,
+                     yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     traceorder=&quot;reversed&quot;,
+                     title=list(font=list(color=&quot;#32127a&quot;,
+                                          family=&quot;IBM Plex Mono&quot;)),
+                     font=list(color=&quot;#32127a&quot;,
+                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
+  partial_bundle() </code></pre>
+<iframe src="map_access_wetlands.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
+<p>
+<center>
+<font size="2"> <em>hover over points for site names. draw bounding box
+to zoom.</em> </font>
+</center>
+</p>
+<p><br></p>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["county"],"name":[2],"type":["chr"],"align":["left"]},{"label":["wetland"],"name":[3],"type":["fct"],"align":["left"]}],"data":[{"1":"Abbotts Lagoon","2":"Marin","3":"Yes"},{"1":"Agua Hedionda Discovery Center","2":"San Diego","3":"Yes"},{"1":"Agua Hedionda Lagoon","2":"San Diego","3":"Yes"},{"1":"Agua Hedionda Lagoon Ecological Reserve","2":"San Diego","3":"Yes"},{"1":"Alameda Creek Vista Point","2":"Alameda","3":"Yes"},{"1":"Alviso Marina","2":"Santa Clara","3":"Yes"},{"1":"Andree Clark Bird Refuge","2":"Santa Barbara","3":"Yes"},{"1":"Andrew Molera State Park","2":"Monterey","3":"Yes"},{"1":"Arcata Bay","2":"Humboldt","3":"Yes"},{"1":"Arcata Marsh and Wildlife Sanctuary","2":"Humboldt","3":"Yes"},{"1":"Arroyo Burro Beach County Park","2":"Santa Barbara","3":"Yes"},{"1":"Audubon Canyon Ranch","2":"Marin","3":"Yes"},{"1":"Back Bay Science Center","2":"Orange","3":"Yes"},{"1":"Bair Island Aquatic Center","2":"San Mateo","3":"Yes"},{"1":"Ballona Lagoon Walkway","2":"Los Angeles","3":"Yes"},{"1":"Ballona Wetlands","2":"Los Angeles","3":"Yes"},{"1":"Batiquitos Lagoon","2":"San Diego","3":"Yes"},{"1":"Bay Area Ridge Trail (San Francisco)","2":"San Francisco","3":"Yes"},{"1":"Bay Trail Scenic Overlook","2":"Marin","3":"Yes"},{"1":"Bayfront Park","2":"San Mateo","3":"Yes"},{"1":"Baylands Nature Preserve","2":"San Mateo","3":"Yes"},{"1":"Baylands Park","2":"Santa Clara","3":"Yes"},{"1":"Bayshore Bikeway","2":"San Diego","3":"Yes"},{"1":"Bayshore Bluffs Park","2":"San Luis Obispo","3":"Yes"},{"1":"Baywinds Park","2":"San Mateo","3":"Yes"},{"1":"Baywood Park Beach","2":"San Luis Obispo","3":"Yes"},{"1":"Bedwell Bayfront Park","2":"San Mateo","3":"Yes"},{"1":"Beldon's Landing","2":"Solano","3":"Yes"},{"1":"Big Basin Redwoods State Park","2":"Santa Cruz","3":"Yes"},{"1":"Big Lagoon County Park","2":"Humboldt","3":"Yes"},{"1":"Bird Walk Coastal Access","2":"Sonoma","3":"Yes"},{"1":"Bivalve Overlook","2":"Marin","3":"Yes"},{"1":"Black Point Boat Launch","2":"Marin","3":"Yes"},{"1":"Bodega Harbor","2":"Sonoma","3":"Yes"},{"1":"Bolinas Beach","2":"Marin","3":"Yes"},{"1":"Bolinas Lagoon Nature Preserve","2":"Marin","3":"Yes"},{"1":"Bolsa Chica Ecological Reserve","2":"Orange","3":"Yes"},{"1":"Bolsa Chica Interpretive Center","2":"Orange","3":"Yes"},{"1":"Border Field State Park","2":"San Diego","3":"Yes"},{"1":"Bothin Marsh Preserve","2":"Marin","3":"Yes"},{"1":"Bridgeview Park","2":"San Mateo","3":"Yes"},{"1":"Brinkman's Marina","2":"Solano","3":"Yes"},{"1":"Buccaneer Park","2":"San Diego","3":"Yes"},{"1":"Buena Vista Audubon Nature Center","2":"San Diego","3":"Yes"},{"1":"Buena Vista Lagoon Ecological Reserve","2":"San Diego","3":"Yes"},{"1":"Cabrillo Creek Trail","2":"San Luis Obispo","3":"Yes"},{"1":"Campbell Cove","2":"Sonoma","3":"Yes"},{"1":"Candlestick Point State Recreation Area","2":"San Francisco","3":"Yes"},{"1":"Carmel River State Beach","2":"Monterey","3":"Yes"},{"1":"Carpinteria Salt Marsh Nature Park","2":"Santa Barbara","3":"Yes"},{"1":"Carpinteria State Beach","2":"Santa Barbara","3":"Yes"},{"1":"Castaways Park","2":"Orange","3":"Yes"},{"1":"Cerro Cabrillo Day Use Area","2":"San Luis Obispo","3":"Yes"},{"1":"Chase Palm Park","2":"Santa Barbara","3":"Yes"},{"1":"Chicken Ranch Beach","2":"Marin","3":"Yes"},{"1":"China Camp State Park","2":"Marin","3":"Yes"},{"1":"Chula Vista Launch Ramp","2":"San Diego","3":"Yes"},{"1":"City of Morro Bay","2":"San Luis Obispo","3":"Yes"},{"1":"Coal Oil Point Natural Reserve","2":"Santa Barbara","3":"Yes"},{"1":"Corcoran Lagoon Beach","2":"Santa Cruz","3":"Yes"},{"1":"Corte Madera Marsh State Marine Park","2":"Marin","3":"Yes"},{"1":"Coyote Hills Regional Park","2":"Alameda","3":"Yes"},{"1":"Coyote Lagoon at Don Edwards","2":"Alameda","3":"Yes"},{"1":"Crab County Park","2":"Humboldt","3":"Yes"},{"1":"Crissy Marsh","2":"San Francisco","3":"Yes"},{"1":"Crown Memorial State Beach","2":"Alameda","3":"Yes"},{"1":"Crown Point Shores","2":"San Diego","3":"Yes"},{"1":"Cullinan Ranch","2":"Solano","3":"Yes"},{"1":"Cuttings Wharf","2":"Napa","3":"Yes"},{"1":"Dairy Mart Ponds","2":"San Diego","3":"Yes"},{"1":"Dana Landing","2":"San Diego","3":"Yes"},{"1":"Dana Marsh","2":"Marin","3":"Yes"},{"1":"De Anza Cove","2":"San Diego","3":"Yes"},{"1":"Del Norte Street Pier","2":"Humboldt","3":"Yes"},{"1":"Don Edwards San Francisco Bay National Wildlife Refuge","2":"Alameda","3":"Yes"},{"1":"Doolittle Drive; Airport Channel","2":"Alameda","3":"Yes"},{"1":"Douglas Family Preserve","2":"Santa Barbara","3":"Yes"},{"1":"Downtown Suisun City","2":"Solano","3":"Yes"},{"1":"Drakes Estero","2":"Marin","3":"Yes"},{"1":"Dry Lagoon","2":"Humboldt","3":"Yes"},{"1":"Eden Landing Ecological Preserve","2":"Alameda","3":"Yes"},{"1":"Eel River Wildlife Area/Cannibal Island Unit","2":"Humboldt","3":"Yes"},{"1":"Eel River Wildlife Area/Ocean Ranch Unit","2":"Humboldt","3":"Yes"},{"1":"Eel River and Delta","2":"Humboldt","3":"Yes"},{"1":"El Estero Park","2":"Monterey","3":"Yes"},{"1":"El Moro Elfin Forest","2":"San Luis Obispo","3":"Yes"},{"1":"Elk River Access Area","2":"Humboldt","3":"Yes"},{"1":"Elkhorn Slough National Estuarine Research Reserve","2":"Monterey","3":"Yes"},{"1":"Elsie Roemer Bird Sanctuary","2":"Alameda","3":"Yes"},{"1":"Emma Wood Group Camp","2":"Ventura","3":"Yes"},{"1":"Environmental Nature Center","2":"Orange","3":"Yes"},{"1":"Estero de Limantour","2":"Marin","3":"Yes"},{"1":"Eureka","2":"Humboldt","3":"Yes"},{"1":"Eureka Slough / Dead Mouse Marsh","2":"Humboldt","3":"Yes"},{"1":"Eureka Slough Boat Ramp","2":"Humboldt","3":"Yes"},{"1":"Famosa Slough","2":"San Diego","3":"Yes"},{"1":"Fields Landing County Park","2":"Humboldt","3":"Yes"},{"1":"Fiesta Island","2":"San Diego","3":"Yes"},{"1":"Freshwater Lagoon","2":"Humboldt","3":"Yes"},{"1":"Garcia River Access","2":"Mendocino","3":"Yes"},{"1":"Garretson Point Staging (EBRPD)","2":"Alameda","3":"Yes"},{"1":"Giacomini Wetlands","2":"Marin","3":"Yes"},{"1":"Golden Gate Park","2":"San Francisco","3":"Yes"},{"1":"Golden Shore Marine Biological Reserve","2":"Los Angeles","3":"Yes"},{"1":"Golden Shore RV Resort","2":"Los Angeles","3":"Yes"},{"1":"Goleta Beach County Park","2":"Santa Barbara","3":"Yes"},{"1":"Greenwood State Beach","2":"Mendocino","3":"Yes"},{"1":"Guadalupe-Nipomo Dunes National Wildlife Refuge","2":"San Luis Obispo","3":"Yes"},{"1":"Gualala River","2":"Mendocino","3":"Yes"},{"1":"Harry A. Merlo State Recreation Area","2":"Humboldt","3":"Yes"},{"1":"Hayward Regional Shoreline","2":"Alameda","3":"Yes"},{"1":"Hayward Shoreline Interpretive Center","2":"Alameda","3":"Yes"},{"1":"Hearst San Simeon State Park","2":"San Luis Obispo","3":"Yes"},{"1":"Hookton Slough","2":"Humboldt","3":"Yes"},{"1":"Hudeman Slough","2":"Sonoma","3":"Yes"},{"1":"Humboldt Bay","2":"Humboldt","3":"Yes"},{"1":"Humboldt Bay National Wildlife Refuge","2":"Humboldt","3":"Yes"},{"1":"Humboldt Bay Trail - North","2":"Humboldt","3":"Yes"},{"1":"Huntington Beach Wetlands","2":"Orange","3":"Yes"},{"1":"Huntington Beach Wetlands / Talbert Marsh","2":"Orange","3":"Yes"},{"1":"JFK Memorial Park","2":"Napa","3":"Yes"},{"1":"Jalama Beach County Park","2":"Santa Barbara","3":"Yes"},{"1":"Jim Hench Memorial Kayak Launch","2":"Napa","3":"Yes"},{"1":"Kehoe Beach","2":"Marin","3":"Yes"},{"1":"Keys Creek Fishing Access","2":"Marin","3":"Yes"},{"1":"King Salmon","2":"Humboldt","3":"Yes"},{"1":"Kirby Park","2":"Monterey","3":"Yes"},{"1":"Lagoon Creek Access","2":"Del Norte","3":"Yes"},{"1":"Laguna Grande Park","2":"Monterey","3":"Yes"},{"1":"Lagunitas Creek","2":"Marin","3":"Yes"},{"1":"Lake Cleone","2":"Mendocino","3":"Yes"},{"1":"Lake Earl Wildlife Area","2":"Del Norte","3":"Yes"},{"1":"Lake Merced","2":"San Francisco","3":"Yes"},{"1":"Lakeview Drive Boat Launch","2":"Del Norte","3":"Yes"},{"1":"Las Gallinas Valley birding loop","2":"Marin","3":"Yes"},{"1":"Limantour Beach","2":"Marin","3":"Yes"},{"1":"Little Sur River","2":"Monterey","3":"Yes"},{"1":"Livermore Marsh / Cypress Grove","2":"Marin","3":"Yes"},{"1":"Living Coast Discovery Center","2":"San Diego","3":"Yes"},{"1":"Locke Paddon Park","2":"Monterey","3":"Yes"},{"1":"Lone Tree/Rodeo Beach","2":"Contra Costa","3":"Yes"},{"1":"Long Marine Laboratory","2":"Santa Cruz","3":"Yes"},{"1":"Los Padres National Forest","2":"Monterey","3":"Yes"},{"1":"Los Pe<U+00F1>asquitos Lagoon","2":"San Diego","3":"Yes"},{"1":"Ma-Le'l Dunes North","2":"Humboldt","3":"Yes"},{"1":"MacKerricher State Park","2":"Mendocino","3":"Yes"},{"1":"Malibu Lagoon State Beach","2":"Los Angeles","3":"Yes"},{"1":"Manila Community Park","2":"Humboldt","3":"Yes"},{"1":"Mare Island Shoreline Heritage Preserve","2":"Contra Costa","3":"Yes"},{"1":"Mariner Park","2":"San Mateo","3":"Yes"},{"1":"Marshall Beach","2":"Marin","3":"Yes"},{"1":"Martin Luther King Jr. Regional Shoreline","2":"Alameda","3":"Yes"},{"1":"Martinelli Park","2":"Marin","3":"Yes"},{"1":"Mattole River and Beach","2":"Humboldt","3":"Yes"},{"1":"Maxton Brown Park","2":"San Diego","3":"Yes"},{"1":"McGrath State Beach","2":"Ventura","3":"Yes"},{"1":"McKegney Green","2":"Marin","3":"Yes"},{"1":"McLaughlin Eastshore State Seashore","2":"Alameda","3":"Yes"},{"1":"Meeker Slough","2":"Contra Costa","3":"Yes"},{"1":"Mike Thompson Wildlife Area / South Spit","2":"Humboldt","3":"Yes"},{"1":"Miller/Knox Regional Shoreline","2":"Contra Costa","3":"Yes"},{"1":"Monarch Lane","2":"San Luis Obispo","3":"Yes"},{"1":"Monta<U+00F1>a de Oro State Park","2":"San Luis Obispo","3":"Yes"},{"1":"Monterey State Beach (Houghton M. Roberts Beach)","2":"Monterey","3":"Yes"},{"1":"Moran Lake Beach and Park","2":"Santa Cruz","3":"Yes"},{"1":"Morro Bay Access","2":"San Luis Obispo","3":"Yes"},{"1":"Morro Bay Estuary","2":"San Luis Obispo","3":"Yes"},{"1":"Morro Bay State Park","2":"San Luis Obispo","3":"Yes"},{"1":"Morro Bay State Park Campground","2":"San Luis Obispo","3":"Yes"},{"1":"Morro Bay State Park Marina","2":"San Luis Obispo","3":"Yes"},{"1":"Morro Bay State Park Museum of Natural History","2":"San Luis Obispo","3":"Yes"},{"1":"Morro Bay Street Ends","2":"San Luis Obispo","3":"Yes"},{"1":"Morro Dunes Natural Preserve","2":"San Luis Obispo","3":"Yes"},{"1":"Moss Landing Harbor","2":"Monterey","3":"Yes"},{"1":"Moss Landing Harbor - North","2":"Monterey","3":"Yes"},{"1":"Moss Landing Marine Laboratory","2":"Monterey","3":"Yes"},{"1":"Moss Landing State Beach","2":"Monterey","3":"Yes"},{"1":"Moss Landing Wildlife Area","2":"Monterey","3":"Yes"},{"1":"Mugu Lagoon","2":"Ventura","3":"Yes"},{"1":"Natural Bridges State Beach","2":"Santa Cruz","3":"Yes"},{"1":"Navarro Point Preserve","2":"Mendocino","3":"Yes"},{"1":"Neary Lagoon City Park","2":"Santa Cruz","3":"Yes"},{"1":"Newport Dunes Waterfront Resort and Marina","2":"Orange","3":"Yes"},{"1":"North Salmon Creek Beach","2":"Sonoma","3":"Yes"},{"1":"North Spit","2":"Humboldt","3":"Yes"},{"1":"Ocean Beach County Park","2":"Santa Barbara","3":"Yes"},{"1":"Oceano Dunes State Vehicular Recreation Area","2":"San Luis Obispo","3":"Yes"},{"1":"Oceano Memorial Campground","2":"San Luis Obispo","3":"Yes"},{"1":"Old Bayshore Highway","2":"San Mateo","3":"Yes"},{"1":"Olema Marsh","2":"Marin","3":"Yes"},{"1":"Ormond Beach","2":"Ventura","3":"Yes"},{"1":"Oso Flaco Lake","2":"San Luis Obispo","3":"Yes"},{"1":"Palo Alto Sail Station","2":"Santa Clara","3":"Yes"},{"1":"Pescadero Marsh Natural Preserve","2":"San Mateo","3":"Yes"},{"1":"Peter and Mary Muth Interpretive Center","2":"Orange","3":"Yes"},{"1":"Pfeiffer Beach","2":"Monterey","3":"Yes"},{"1":"Pickleweed Park","2":"Marin","3":"Yes"},{"1":"Pinole Bay Front Park","2":"Contra Costa","3":"Yes"},{"1":"Pismo Dunes Natural Preserve","2":"San Luis Obispo","3":"Yes"},{"1":"Pismo Lake Ecological Preserve","2":"San Luis Obispo","3":"Yes"},{"1":"Pismo State Beach North Beach Campground","2":"San Luis Obispo","3":"Yes"},{"1":"Pismo State Beach Oceano Campground","2":"San Luis Obispo","3":"Yes"},{"1":"Point Arena Headland/Stornetta Public Lands","2":"Mendocino","3":"Yes"},{"1":"Point Pinole","2":"Contra Costa","3":"Yes"},{"1":"Point Pinole Regional Park - Dotson Family Marsh","2":"Contra Costa","3":"Yes"},{"1":"Point San Bruno Park","2":"San Mateo","3":"Yes"},{"1":"Preserve Park","2":"San Mateo","3":"Yes"},{"1":"Quivira Basin","2":"San Diego","3":"Yes"},{"1":"Rancho Guadalupe Dunes County Park","2":"Santa Barbara","3":"Yes"},{"1":"Rancho del Oso Nature Center","2":"Santa Cruz","3":"Yes"},{"1":"Ravenswood Open Space Preserve","2":"San Mateo","3":"Yes"},{"1":"Redwood National Park (Del Norte)","2":"Del Norte","3":"Yes"},{"1":"Redwood National Park (Humboldt)","2":"Humboldt","3":"Yes"},{"1":"Refugio State Beach","2":"Santa Barbara","3":"Yes"},{"1":"Roberts Lake","2":"Monterey","3":"Yes"},{"1":"Rodeo Beach","2":"Marin","3":"Yes"},{"1":"Sail Bay and Riviera Shores","2":"San Diego","3":"Yes"},{"1":"Salinas River National Wildlife Refuge","2":"Monterey","3":"Yes"},{"1":"Samoa Dunes Recreation Area","2":"Humboldt","3":"Yes"},{"1":"San Diego Bay NWR - Sweetwater Marsh","2":"San Diego","3":"Yes"},{"1":"San Diego Bay National Wildlife Refuge","2":"San Diego","3":"Yes"},{"1":"San Dieguito Lagoon","2":"San Diego","3":"Yes"},{"1":"San Elijo Lagoon","2":"San Diego","3":"Yes"},{"1":"San Elijo Lagoon Nature Center","2":"San Diego","3":"Yes"},{"1":"San Gregorio State Beach","2":"San Mateo","3":"Yes"},{"1":"San Luis Rey River","2":"San Diego","3":"Yes"},{"1":"San Mateo Campground","2":"San Diego","3":"Yes"},{"1":"Santa Clara Estuary Natural Preserve","2":"Ventura","3":"Yes"},{"1":"Santa Clara River","2":"Ventura","3":"Yes"},{"1":"Santa Rosa Creek Access","2":"San Luis Obispo","3":"Yes"},{"1":"Santa Venetia Marsh Preserve","2":"Marin","3":"Yes"},{"1":"Scott Creek Beach","2":"Santa Cruz","3":"Yes"},{"1":"Sea Lookout Park","2":"Santa Barbara","3":"Yes"},{"1":"Seal Point Park","2":"San Mateo","3":"Yes"},{"1":"Sears Point","2":"Sonoma","3":"Yes"},{"1":"Seaside Wilderness Park","2":"Ventura","3":"Yes"},{"1":"Second Street Pier","2":"San Luis Obispo","3":"Yes"},{"1":"Seymour Marine Discovery Center","2":"Santa Cruz","3":"Yes"},{"1":"Shamel County Park","2":"San Luis Obispo","3":"Yes"},{"1":"Sharp Park Golf Course","2":"San Mateo","3":"Yes"},{"1":"Shields Saltmarsh","2":"Marin","3":"Yes"},{"1":"Shorebird Park","2":"San Mateo","3":"Yes"},{"1":"Silver Strand State Beach","2":"San Diego","3":"Yes"},{"1":"Ski Beach","2":"San Diego","3":"Yes"},{"1":"South Bay Marine Biological Study Area","2":"San Diego","3":"Yes"},{"1":"Stevens Creek Shoreline Nature Study Area Preserve","2":"Santa Clara","3":"Yes"},{"1":"Stone Lagoon","2":"Humboldt","3":"Yes"},{"1":"Sweet Springs Nature Preserve","2":"San Luis Obispo","3":"Yes"},{"1":"Table Bluff County Park","2":"Humboldt","3":"Yes"},{"1":"Ten Mile Beach and Dunes","2":"Mendocino","3":"Yes"},{"1":"Ten Mile River View Area","2":"Mendocino","3":"Yes"},{"1":"Thomas H. Kuchel Visitor Center","2":"Humboldt","3":"Yes"},{"1":"Tidelands Park","2":"San Luis Obispo","3":"Yes"},{"1":"Tidewater Boating Center","2":"Alameda","3":"Yes"},{"1":"Tijuana Estuary Visitor Center","2":"San Diego","3":"Yes"},{"1":"Tijuana River Estuary","2":"San Diego","3":"Yes"},{"1":"Tijuana River National Estuarine Research Reserve","2":"San Diego","3":"Yes"},{"1":"Tolowa Dunes State Park","2":"Del Norte","3":"Yes"},{"1":"Tomales Bay Ecological Reserve","2":"Marin","3":"Yes"},{"1":"Tomales Bay State Park - Millerton Point","2":"Marin","3":"Yes"},{"1":"Torrey Pines State Natural Reserve","2":"San Diego","3":"Yes"},{"1":"Town of Bolinas","2":"Marin","3":"Yes"},{"1":"Turtle Back Hill Nature Trail","2":"Marin","3":"Yes"},{"1":"Twin Lakes State Beach","2":"Santa Cruz","3":"Yes"},{"1":"Twin Lakes State Beach - East","2":"Santa Cruz","3":"Yes"},{"1":"University of California at Santa Barbara (West)","2":"Santa Barbara","3":"Yes"},{"1":"Upper Newport Bay Ecological Reserve","2":"Orange","3":"Yes"},{"1":"Vacation Isle","2":"San Diego","3":"Yes"},{"1":"Van Damme State Park","2":"Mendocino","3":"Yes"},{"1":"Vista Point (Upper Newport Bay)","2":"Orange","3":"Yes"},{"1":"Waddell Creek Beach","2":"Santa Cruz","3":"Yes"},{"1":"Walker Creek Delta","2":"Marin","3":"Yes"},{"1":"Walla Vista Walkway","2":"Marin","3":"Yes"},{"1":"West 9th Street Launching Facility","2":"Solano","3":"Yes"},{"1":"West Beach Trail","2":"San Mateo","3":"Yes"},{"1":"Westside Regional Park","2":"Sonoma","3":"Yes"},{"1":"Wetlands Edge Park","2":"Napa","3":"Yes"},{"1":"White House Pool","2":"Marin","3":"Yes"},{"1":"Wilder Ranch State Park","2":"Santa Cruz","3":"Yes"},{"1":"Zmudowski State Beach","2":"Monterey","3":"Yes"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
@@ -301,9 +367,8 @@ class="section level5">
 <p>
 <p><br></p>
 <center>
-<font size="4"> TOTAL: <strong>280</strong> wetland access points
+TOTAL: <strong>280</strong> wetland access points
 </center>
-<p></font></p>
 </p>
 <p><br></p>
 </div>
@@ -391,7 +456,41 @@ neighborhood parks) open spaces</li>
 requires permit or has limited hours of operation, but still publicly
 accessible)</li>
 </ul>
-<iframe src="map_parks.html" scrolling="no" seamless="seamless" frameBorder="0" height="600" width="500"></iframe>
+<pre class="r"><code>##### park polygon map
+map_parks &lt;- ggplot() +
+  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=parks_simplified,
+          aes(color=access_typ,
+              fill=access_typ,
+              text=paste(access_typ))) +
+  scale_color_manual(values=c(&quot;thistle&quot;,&quot;plum4&quot;,&quot;honeydew3&quot;)) + 
+  scale_fill_manual(values=c(&quot;thistle&quot;,&quot;plum4&quot;,&quot;honeydew3&quot;)) + 
+  theme_minimal()+
+  guides(fill=guide_legend(title = &quot;&quot;),
+         color=guide_legend(title = &quot;&quot;)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_parks, tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
+                                  size=11))) %&gt;%
+    layout(legend=list(x=0.5,
+                     xanchor=&#39;center&#39;,
+                     y=0,
+                     yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     font=list(color=&quot;#32127a&quot;,
+                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
+  partial_bundle() </code></pre>
+<iframe src="map_parks.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
 <font size="2"> <em>draw bounding box to zoom. click legend layers to
@@ -406,7 +505,43 @@ toggle on/off.</em>
 <p><a
 href="https://www.fws.gov/program/national-wetlands-inventory/data-download">National
 Wetlands Inventory</a> (filtered to “Estuarine and Marine Wetlands”)</p>
-<iframe src="map_wetlands.html" scrolling="no" seamless="seamless" frameBorder="0" height="600" width="500"></iframe>
+<pre class="r"><code>##### wetlands map
+map_wetlands &lt;- ggplot() +
+  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=wetlands,
+          aes(color=wetland,
+              fill=wetland,
+              text=paste(wetland))) +
+  scale_fill_manual(values=c(&quot;wetland&quot;=&quot;#a7dea2&quot;)) +
+  scale_color_manual(values=c(&quot;wetland&quot;=&quot;#a7dea2&quot;)) +
+    guides(fill=guide_legend(title = &quot;&quot;),
+         color=guide_legend(title = &quot;&quot;)) +
+  theme_minimal()+ 
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_wetlands,tooltip=&quot;none&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
+                                  size=11))) %&gt;%
+    layout(legend=list(x=0.5,
+                     xanchor=&#39;center&#39;,
+                     y=0,
+                     yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     font=list(color=&quot;#32127a&quot;,
+                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
+  partial_bundle()
+
+#120</code></pre>
+<iframe src="map_wetlands.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
 <font size="2"> <em>draw bounding box to zoom.</em>
@@ -422,10 +557,48 @@ href="https://california-coastal-commission-open-data-1-3-coastalcomm.hub.arcgis
 Coastal Commission</a> (Olivia’s extended dataset with Bay Area access
 points)</p>
 <p>[to supplement park polygons w/ amenities data]</p>
-<iframe src="map_access.html" scrolling="no" seamless="seamless" frameBorder="0" height="600" width="500"></iframe>
+<pre class="r"><code>##### CA commission map
+map_access &lt;- ggplot() +
+  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=access,
+          alpha=0.7,
+          aes(color=wetland,
+              text=paste(name))) +
+  scale_color_manual(values=c(&quot;Yes&quot;=&quot;aquamarine4&quot;,
+                              &quot;No&quot;=&quot;grey65&quot;, 
+                              &quot;Unknown&quot;=&quot;darkslateblue&quot;))+ 
+  theme_minimal() + 
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_access, 
+         tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
+                                  size=11))) %&gt;%
+  layout(legend=list(xref=&quot;paper&quot;,
+                     x=0.5,
+                     xanchor=&#39;center&#39;,
+                     y=0,
+                     yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     traceorder=&quot;reversed&quot;,
+                     title=list(font=list(color=&quot;#32127a&quot;,
+                                          family=&quot;IBM Plex Mono&quot;)),
+                     font=list(color=&quot;#32127a&quot;,
+                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
+  partial_bundle()</code></pre>
+<iframe src="map_access.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
+<p>
 <center>
 <font size="2"> <em>hover over points for site names. draw bounding box
-to zoom.</em> </font>
+to zoom. click legend layers to toggle on/off.</em> </font>
 </center>
 </p>
 <p><br></p>
@@ -438,7 +611,63 @@ id="x-select-parks-that-intersect-either-a-1-wetlands-polygon-or-2-wetlands-acce
 class="section level5">
 <h5>1. [X] select parks that intersect either a (1) wetlands polygon or
 (2) wetlands access point</h5>
-<iframe src="map_wetlandParks.html" scrolling="no" seamless="seamless" frameBorder="0" height="600" width="500"></iframe>
+<pre class="r"><code>##### parks intersecting wetland polygon or wetland access point
+wetlandParks &lt;- parks %&gt;%
+  select(suid_nma,
+         unit_name,
+         county,
+         acres,
+         geometry) %&gt;%
+  mutate(intersects_wetland= case_when(lengths(st_intersects(.,wetlands)) &gt; 0 ~ &quot;park intersects wetland&quot;,
+                                       lengths(st_intersects(.,wetlands))==0 &amp; lengths(st_intersects(.,access_wetlands_snapped)) &gt; 0 ~ &quot;park intersects wetland access point&quot;)) %&gt;%
+  filter(!is.na(intersects_wetland)) %&gt;%
+  mutate(wetland_park=&quot;wetland-park&quot;)
+
+##### simplify for interactive maps
+wetlandParks_simplified &lt;- wetlandParks %&gt;%
+  mutate(wetland_park=&quot;wetland-park&quot;) %&gt;%
+  group_by(wetland_park) %&gt;%
+  summarise(wetland_park=paste(unique(wetland_park))) %&gt;%
+  st_union(by_feature=TRUE) %&gt;%
+  st_cast(&quot;MULTIPOLYGON&quot;)
+
+###### wetland-park map
+map_wetlandParks &lt;- ggplot() +
+    geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+    geom_sf(data=wetlandParks,
+          aes(fill=intersects_wetland,
+              color=intersects_wetland,
+              text=paste(unit_name)))+ 
+  scale_fill_manual(values=c(&quot;park intersects wetland&quot;=&quot;blueviolet&quot;,
+                             &quot;park intersects wetland access point&quot;=&quot;violet&quot;)) +
+  scale_color_manual(values=c(&quot;park intersects wetland&quot;=&quot;blueviolet&quot;,
+                              &quot;park intersects wetland access point&quot;=&quot;violet&quot;)) +
+  guides(fill=guide_legend(title = &quot;&quot;),
+         color=guide_legend(title = &quot;&quot;)) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+
+##### make interactive
+ggplotly(map_wetlandParks, tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
+                                  size=11))) %&gt;%
+    layout(legend=list(x=0.5,
+                     xanchor=&#39;center&#39;,
+                     y=0,
+                     yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     font=list(color=&quot;#32127a&quot;,
+                               family=&quot;IBM Plex Mono&quot;))) %&gt;%
+  partial_bundle() </code></pre>
+<iframe src="map_wetlandParks.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
 <font size="2"> <em>hover over polygons for park names. draw bounding
@@ -463,7 +692,76 @@ id="x-join-wetland-access-points-to-wetland-park-polygons-they-intersect"
 class="section level5">
 <h5>2. [X] join wetland access points to wetland-park polygons they
 intersect</h5>
-<iframe src="map_access_wetlands_matches.html" scrolling="no" seamless="seamless" frameBorder="0" height="600" width="500"></iframe>
+<pre class="r"><code>##### find wetland access points that intersect wetland-parks
+access_wetlands &lt;- access_wetlands %&gt;%
+  mutate(matched = case_when(lengths(st_intersects(.,wetlandParks))==0 ~ &quot;does not intersect wetland-park&quot;,
+                            lengths(st_intersects(.,wetlandParks)) &gt; 0 ~ &quot;intersects wetland-park&quot;))
+
+##### filter to intersected wetland-parks for simplified mapping
+wetlandParks_raw_filter &lt;- wetlandParks %&gt;%
+  filter(matched_raw==&quot;intersects wetland access pt&quot;) %&gt;%
+  mutate(wetland_park_intersect=&quot;intersected wetland-park&quot;) %&gt;%
+  group_by(wetland_park_intersect) %&gt;%
+  summarise(wetland_park_intersect=paste(unique(wetland_park_intersect))) %&gt;%
+  st_union(by_feature=TRUE) %&gt;%
+  st_cast(&quot;MULTIPOLYGON&quot;)
+
+##### map of wetland access points that intersect wetland-parks
+map_access_wetlands_matches &lt;- ggplot() +
+  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=wetlands,
+          lwd=0,
+          alpha=0.35,
+          aes(color=wetland,
+              fill=wetland)) +
+  geom_sf(data=wetlandParks_raw_filter,
+          aes(fill=wetland_park_intersect,
+              color=wetland_park_intersect,
+              text=&quot;intersected wetland-park&quot;),
+          lwd=0,
+          alpha=0.35) +
+  geom_sf(data=access_wetlands,
+          alpha=0.85,
+          aes(color=matched,
+              fill=matched,
+              text=paste(name))) +
+  scale_color_manual(values=c(&quot;wetland&quot;=&quot;darkseagreen&quot;,
+                              &quot;intersected wetland-park&quot;=&quot;blueviolet&quot;,
+                              &quot;intersects wetland-park&quot;=&quot;blueviolet&quot;,
+                              &quot;does not intersect wetland-park&quot;=&quot;grey60&quot;)) +
+  scale_fill_manual(values=c(&quot;wetland&quot;=&quot;darkseagreen&quot;,
+                             &quot;intersected wetland-park&quot;=&quot;blueviolet&quot;,
+                              &quot;intersects wetland-park&quot;=&quot;blueviolet&quot;,
+                              &quot;does not intersect wetland-park&quot;=&quot;grey60&quot;)) +
+  guides(fill=guide_legend(title = &quot;&quot;),
+         color=guide_legend(title = &quot;&quot;)) +
+  theme_minimal()+ #remove grey background
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactives
+ggplotly(map_access_wetlands_matches, tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
+                                  size=11))) %&gt;%
+    layout(legend=list(x=0.5,
+                     xanchor=&#39;center&#39;,
+                     y=0,
+                     yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     traceorder=&quot;reversed&quot;,
+                     title=list(font=list(color=&quot;#32127a&quot;,
+                                          family=&quot;IBM Plex Mono&quot;)),
+                     font=list(color=&quot;#32127a&quot;,
+                               family=&quot;IBM Plex Mono&quot;,
+                               size=10))) %&gt;%
+  partial_bundle() </code></pre>
+<iframe src="map_access_wetlands_matches.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
 <font size="2"> <em>hover over points for site names. draw bounding box
@@ -486,7 +784,76 @@ correspond with a wetland-park name; I snapped these such points to the
 nearest wetland-park polygon. depending on the approach we ultimately
 choose, <strong>I should comb back through the joined point-polygon data
 to more rigorously confirm matches</strong>.</p>
-<iframe src="map_access_wetlands_snapped_matches.html" scrolling="no" seamless="seamless" frameBorder="0" height="600" width="500"></iframe>
+<pre class="r"><code>##### find snapped access points that intersect wetland-parks
+access_wetlands_snapped &lt;- access_wetlands_snapped %&gt;%
+  mutate(matched= case_when(lengths(st_intersects(.,wetlandParks))==0 ~ &quot;does not intersect wetland-park&quot;,
+                            lengths(st_intersects(.,wetlandParks)) &gt; 0 ~ &quot;intersects wetland-park&quot;))
+
+##### filter to intersected wetland-parks for simplified mapping
+wetlandParks_filter &lt;- wetlandParks %&gt;%
+  filter(matched_snapped==&quot;intersects wetland access pt&quot;) %&gt;%
+  mutate(wetland_park_intersect=&quot;intersected wetland-park&quot;) %&gt;%
+  group_by(wetland_park_intersect) %&gt;%
+  summarise(wetland_park_intersect=paste(unique(wetland_park_intersect))) %&gt;%
+  st_union(by_feature=TRUE) %&gt;%
+  st_cast(&quot;MULTIPOLYGON&quot;)
+
+##### map of snapped access points that intersect wetland-parks
+map_access_wetlands_snapped_matches &lt;- ggplot() +
+  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=wetlands,
+          lwd=0,
+          alpha=0.35,
+          aes(color=wetland,
+              fill=wetland)) +
+  geom_sf(data=wetlandParks_filter,
+          aes(fill=wetland_park_intersect,
+              color=wetland_park_intersect,
+              text=&quot;intersected wetland-park&quot;),
+          lwd=0,
+          alpha=0.35) +
+  geom_sf(data=access_wetlands_snapped,
+          alpha=0.85,
+          aes(color=matched,
+              fill=matched,
+              text=paste(name))) +
+  scale_color_manual(values=c(&quot;wetland&quot;=&quot;darkseagreen&quot;,
+                              &quot;intersected wetland-park&quot;=&quot;blueviolet&quot;,
+                              &quot;intersects wetland-park&quot;=&quot;blueviolet&quot;,
+                              &quot;does not intersect wetland-park&quot;=&quot;grey60&quot;)) +
+  scale_fill_manual(values=c(&quot;wetland&quot;=&quot;darkseagreen&quot;,
+                             &quot;intersected wetland-park&quot;=&quot;blueviolet&quot;,
+                              &quot;intersects wetland-park&quot;=&quot;blueviolet&quot;,
+                              &quot;does not intersect wetland-park&quot;=&quot;grey60&quot;)) +
+  guides(fill=guide_legend(title = &quot;&quot;),
+         color=guide_legend(title = &quot;&quot;)) +
+  theme_minimal()+ #remove grey background
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_access_wetlands_snapped_matches, tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
+                                  size=11))) %&gt;%
+    layout(legend=list(x=0.5,
+                     xanchor=&#39;center&#39;,
+                     y=0,
+                     yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     traceorder=&quot;reversed&quot;,
+                     title=list(font=list(color=&quot;#32127a&quot;,
+                                          family=&quot;IBM Plex Mono&quot;)),
+                     font=list(color=&quot;#32127a&quot;,
+                               family=&quot;IBM Plex Mono&quot;,
+                               size=10))) %&gt;%
+  partial_bundle() </code></pre>
+<iframe src="map_access_wetlands_snapped_matches.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
 <font size="2"> <em>hover over points for site names. draw bounding box
@@ -516,27 +883,63 @@ wetlandParks &lt;- wetlandParks %&gt;%
                                                &quot;intersects unknown access pt&quot;,
                                                &quot;intersects wetland access pt&quot;)))
 
-##### table
-wetlandParks %&gt;%
-  group_by(matched) %&gt;%
-  summarize(total=n()) %&gt;%
-  as_tibble() %&gt;%
-  select(-geometry) %&gt;%
-  arrange(desc(matched))</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["matched"],"name":[1],"type":["chr"],"align":["left"]},{"label":["total"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"not intersecting access pt","2":"287"},{"1":"intersects wetland access pt","2":"187"},{"1":"intersects unknown access pt","2":"141"},{"1":"intersects non-wetland access pt","2":"101"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>#173</code></pre>
-<p><br></p>
-<iframe src="map_wetlandParks_matches.html" scrolling="no" seamless="seamless" frameBorder="0" height="600" width="500"></iframe>
+##### access point intersection map
+map_wetlandParks_matches &lt;- ggplot() +
+  geom_sf(data=CA, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=wetlandParks,
+          aes(color=matched,
+              fill=matched,
+              text=paste(unit_name)))+
+  scale_color_manual(values=c(&quot;intersects wetland access pt&quot;=&quot;blueviolet&quot;,
+                              &quot;intersects unknown access pt&quot;=&quot;darkmagenta&quot;,
+                              &quot;intersects non-wetland access pt&quot;=&quot;violet&quot;,
+                              &quot;not intersecting access pt&quot;=&quot;grey65&quot;)) +
+  scale_fill_manual(values=c(&quot;intersects wetland access pt&quot;=&quot;blueviolet&quot;,
+                             &quot;intersects unknown access pt&quot;=&quot;darkmagenta&quot;,
+                             &quot;intersects non-wetland access pt&quot;=&quot;violet&quot;,
+                              &quot;not intersecting access pt&quot;=&quot;grey65&quot;)) +
+  guides(fill=guide_legend(title = &quot;&quot;),
+         color=guide_legend(title = &quot;&quot;)) +
+  theme_minimal()+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_wetlandParks_matches, tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,
+                                  size=11))) %&gt;%
+  layout(legend=list(x=0.5,
+                     xanchor=&#39;center&#39;,
+                     yref=&quot;paper&quot;,
+                     y=0,
+                     yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     traceorder=&quot;reversed&quot;,
+                     title=list(font=list(color=&quot;#32127a&quot;,
+                                          family=&quot;IBM Plex Mono&quot;)),
+                     font=list(color=&quot;#32127a&quot;,
+                               family=&quot;IBM Plex Mono&quot;,
+                               size=10))) %&gt;%
+  partial_bundle() </code></pre>
+<iframe src="map_wetlandParks_matches.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <p>
 <center>
 <font size="2"> <em>draw bounding box to zoom. click legend layers to
 toggle on/off.</em> </font>
 </center>
 </p>
+<p><br></p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["matched"],"name":[1],"type":["chr"],"align":["left"]},{"label":["total"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"not intersecting access pt","2":"287"},{"1":"intersects wetland access pt","2":"187"},{"1":"intersects unknown access pt","2":"141"},{"1":"intersects non-wetland access pt","2":"101"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
 <br>
 <center>
 <p>TOTAL # MATCHED TO ACCESS POINTS: <strong>429</strong> wetland-parks
@@ -555,8 +958,8 @@ matched access point(s)</h5>
 <h4>STRENGTHS:</h4>
 <ul>
 <li>polygon data</li>
-<li>more complete <strong>wetlands access</strong> data (broader scope
-than <strong>beaches with wetlands access</strong>).</li>
+<li>more complete wetlands access data (broader scope than CA Coastal
+Commission’s beaches-with-wetlands-access point data).</li>
 </ul>
 <p><br></p>
 </div>
@@ -608,15 +1011,18 @@ points</li>
 </ul></li>
 <li>pursue <strong>APPROACH #2</strong>, and <em>do not manually
 populate amenities data</em>. only include parks that match…
-<strong>[A]</strong> …a CA Coastal Commission wetlands access point:
+<ul>
+<li><strong>[A]</strong> …a CA Coastal Commission wetlands access point:
 <ul>
 <li>populate amenities data for <strong>0</strong> additional
 wetland-park polygons</li>
 <li>analyze approx. <strong>280</strong> wetland-park polygons joined
 with full amenities data from access points</li>
-<li>est. time: <strong>~ 2 weeks</strong> <strong>[B]</strong> …any CA
-Coastal Commission access point (regardless of whether classified as
-wetland access point):</li>
+<li>est. time: <strong>~ 2 weeks</strong></li>
+</ul></li>
+<li><strong>[B]</strong> …any CA Coastal Commission access point
+(regardless of whether classified as wetland access point):
+<ul>
 <li>populate amenities data for <strong>0</strong> additional
 wetland-park polygons</li>
 <li>analyze approx. <strong>[?]</strong> wetland-park polygons joined
@@ -624,6 +1030,7 @@ with full amenities data from access points</li>
 <li>est. time: <strong>~3 weeks</strong> (contingent on #
 points/polygons that must be manually snapped/matched (i.e., those that
 are nearly but not quite intersecting)</li>
+</ul></li>
 </ul></li>
 </ol>
 </div>
@@ -640,15 +1047,19 @@ points we decide to add)</li>
 </ul></li>
 <li>pursue <strong>APPROACH #2</strong>, and <em>manually populate
 amenities data</em> (i.e., via park websites, google earth, etc.)…
-<strong>[A]</strong> …for wetland-park polygons not matched to a CA
+<ul>
+<li><strong>[A]</strong> …for wetland-park polygons not matched to a CA
 Commission wetlands access point:
 <ul>
 <li>populate amenities data for approx. <strong>~436</strong>
 wetland-park polygons</li>
 <li>analyze approx. <strong>~716</strong> wetland-park polygons</li>
-<li>est. time: <strong>~6 weeks</strong> <strong>[B]</strong> …but
-wetland-park not matched to any CA Coastal Commission access points
-(regardless of whether classified as wetland access point):</li>
+<li>est. time: <strong>~6 weeks</strong></li>
+</ul></li>
+<li><strong>[B]</strong> …but wetland-park not matched to any CA Coastal
+Commission access points (regardless of whether classified as wetland
+access point):
+<ul>
 <li>populate amenities data for <strong>~287</strong> additional
 wetland-park polygons</li>
 <li>analyze approx. <strong>~716</strong> wetland-park polygons joined
@@ -657,6 +1068,7 @@ with full amenities data<br />
 <li>est. time: <strong>~4 weeks</strong> (contingent on # wetland-park
 polygons remaining that must be manually populated with amenities
 data)</li>
+</ul></li>
 </ul></li>
 </ol>
 </div>
