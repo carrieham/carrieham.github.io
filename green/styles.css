@@ -1,0 +1,119 @@
+@import url("https://cdn.jsdelivr.net/npm/@xz/fonts@1/serve/ibm-plex-mono.min.css");
+
+h1 {
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: center;
+	font-weight: bold;
+}
+
+h2{
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: center;
+	font-weight: normal;
+	font-weight: bold;
+}
+
+h3{
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: center;
+	font-weight: bold;
+}
+
+h4{
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: left;
+	font-weight: bold;
+}
+
+
+a:link {
+	color: #669999;
+	text-decoration: underline dotted;
+	font-weight: bold;
+}
+
+a:visited {
+	color: #669999;
+	text-decoration: underline dotted;
+	font-weight: bold;
+}
+
+a:hover {
+  color: white;
+  background-color: #669999;
+  text-decoration: underline dotted;
+  font-weight: normal;
+}
+
+a:active {
+  color: white;
+  background-color: #669999;
+  text-decoration: underline dotted;
+  font-weight: normal;
+}
+
+body {
+  	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: left;
+	max-width: 1000px;
+	margin-left: 25px;
+	
+}
+
+
+
+
+/* Pretty print */
+/* line 593, ../scss/default.scss */
+.prettyprint .str,
+.prettyprint .atv {
+  /* a markup attribute value */
+  color: #009f5d;
+}
+
+/* line 597, ../scss/default.scss */
+.prettyprint .kwd,
+.prettyprint .tag {
+  /* a markup tag name */
+  color: #0066cc;
+}
+
+/* line 600, ../scss/default.scss */
+.prettyprint .com {
+  /* a comment */
+  color: #4b0082;
+  font-style: italic;
+}
+
+/* line 604, ../scss/default.scss */
+.prettyprint .lit {
+  /* a literal value */
+  color: #7f0000;
+}
+
+/* line 609, ../scss/default.scss */
+.prettyprint .pun,
+.prettyprint .opn,
+.prettyprint .clo {
+  color: #515151;
+}
+
+/* line 615, ../scss/default.scss */
+.prettyprint .typ,
+.prettyprint .atn,
+.prettyprint .dec,
+.prettyprint .var {
+  /* a declaration; a variable name */
+  color: #d94d3a;
+}
+
+/* line 618, ../scss/default.scss */
+.prettyprint .pln {
+  color: #515151;
+}
+
