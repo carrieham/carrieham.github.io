@@ -14,11 +14,29 @@ h2{
 }
 
 a:link {
-	color: #32127a;
+	color: #669999;
+	text-decoration: underline dotted;
+	font-weight: bold;
 }
 
 a:visited {
-	color: #32127a;
+	color: #669999;
+	text-decoration: underline dotted;
+	font-weight: bold;
+}
+
+a:hover {
+  color: white;
+  background-color: #669999;
+  text-decoration: underline dotted;
+  font-weight: normal;
+}
+
+a:active {
+  color: white;
+  background-color: #669999;
+  text-decoration: underline dotted;
+  font-weight: normal;
 }
 
 body {
