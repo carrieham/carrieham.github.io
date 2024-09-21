@@ -56,14 +56,18 @@ favicon {
 	
 
 button {
-	background-color: #32127a;
+	background-color: #669999;
 	border: none;
 	color: white;
 	padding: 4px 8px;
 	text-align: center;
-	text-decoration: none;
+	text-decoration: underline dotted;
 	display: inline-block;
 	font-size: 12px;
 	border-radius: 6px;
 	font-family: 'IBM Plex Mono', sans-serif;
+}
+
+button:hover {
+  font-weight: bold;
 }
