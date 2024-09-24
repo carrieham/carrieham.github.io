@@ -29,14 +29,14 @@ a:hover {
   color: white;
   background-color: #669999;
   text-decoration: underline dotted;
-  font-weight: normal;
+  font-weight: bold;
 }
 
 a:active {
   color: white;
   background-color: #669999;
   text-decoration: underline dotted;
-  font-weight: normal;
+  font-weight: bold;
 }
 
 body {
