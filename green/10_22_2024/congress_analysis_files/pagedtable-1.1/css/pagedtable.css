@@ -1,0 +1,148 @@
+.pagedtable {
+  overflow: auto;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.pagedtable-wrapper {
+  border: 2px/*1px*/ solid #c6c1d4;/*#ccc;*/
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.pagedtable table {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.pagedtable th {
+  padding: 0 5px 0 5px;
+  border: none;
+  border-bottom: 2px solid #c6c1d4;/*#dddddd;*/
+  min-width: 45px;
+}
+
+.pagedtable-empty th {
+  display: none;
+}
+
+.pagedtable td {
+  padding: 0 4px 0 4px;
+  vertical-align: middle;
+}
+
+.pagedtable .even {
+  background-color: #e9e6f0;/*#e5e1ed #c6c1d4;rgba(140, 140, 140, 0.1);*/
+  border:0
+}
+
+.pagedtable .odd {
+  border:0
+}
+
+.pagedtable-padding-col {
+  display: none;
+}
+
+.pagedtable a {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.pagedtable-index-nav {
+  cursor: pointer;
+  padding: 0 5px 0 5px;
+  float: right;
+  border: 0;
+}
+
+.pagedtable-index-nav-disabled {
+  cursor: default;
+  text-decoration: none;
+  color: #c6c1d4;/*#999;*/
+}
+
+a.pagedtable-index-nav-disabled:hover {
+  text-decoration: none;
+  color: #c6c1d4;/*#999;*/
+  background-color: white;
+}
+
+.pagedtable-indexes {
+  cursor: pointer;
+  float: right;
+  border: 0;
+}
+
+.pagedtable-index-current {
+  cursor: default;
+  text-decoration: none;
+  font-weight: bold;
+  color: #669999;/*#333;*/
+  border: 0;
+}
+
+a.pagedtable-index-current:hover {
+  /*text-decoration: none;*/
+  font-weight: bold;
+  /*color: *#333;*/
+}
+
+.pagedtable-index {
+  width: 30px;
+  display: inline-block;
+  text-align: center;
+  border: 0;
+}
+
+.pagedtable-index-separator-left {
+  display: inline-block;
+  color: #32127a;/*#333;*/
+  font-size: 9px;
+  padding: 0 0 0 0;
+  cursor: default;
+}
+
+.pagedtable-index-separator-right {
+  display: inline-block;
+  color: #32127a;/*#333;*/
+  font-size: 9px;
+  padding: 0 4px 0 0;
+  cursor: default;
+}
+
+.pagedtable-footer {
+  padding-top: 4px;
+  padding-bottom: 5px;
+}
+
+.pagedtable-not-empty .pagedtable-footer {
+  border-top: 2px solid #c6c1d4;/*#dddddd;*/
+}
+
+.pagedtable-info {
+  overflow: hidden;
+  color: #c6c1d4;/*#999;*/
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pagedtable-header-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pagedtable-header-type {
+  color: #c6c1d4;/*#999;*/
+  font-weight: 400;
+}
+
+.pagedtable-na-cell {
+  font-style: italic;
+  opacity: 0.3;
+}
