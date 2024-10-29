@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>CLC text mining</title>
+
+<script src="congress_analysis_files/header-attrs-2.27/header-attrs.js"></script>
+<script src="congress_analysis_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="congress_analysis_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="congress_analysis_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="congress_analysis_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="congress_analysis_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="congress_analysis_files/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="congress_analysis_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="congress_analysis_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="congress_analysis_files/navigation-1.1/tabsets.js"></script>
+<link href="congress_analysis_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="congress_analysis_files/highlightjs-9.12.0/highlight.js"></script>
+<link href="congress_analysis_files/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="congress_analysis_files/pagedtable-1.1/js/pagedtable.js"></script>
+<!DOCTYPE html>
+<html>
+<link rel="shortcut icon" href="favicon.ico" />
+</html>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 90%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">CLC text mining</h1>
+
+</div>
+
+
+<p>
+<center>
+<font size="3">2024-10-29</font>
+</center>
+</p>
+<div id="paper" class="section level3">
+<h3>PAPER</h3>
+<p>methods: how do different text mining approaches spotlight different
+historical trends/fluctuations/moments in labor-environmental (labor?
+environmental?) issues since the 1960s? (i.e., compare the methods)</p>
+<ul>
+<li>period distinctiveness (tf-ipf)</li>
+<li>textual averages (triples)</li>
+<li>convergence/divergence (topic models + word co-occurrence
+networks)</li>
+</ul>
+</div>
+<div id="updates" class="section level3">
+<h3>UPDATES</h3>
+<ul>
+<li><a
+href="https://docs.google.com/presentation/d/1pxNu46ObGVL0M1YyESZgl6qajdTQmLb_auOjtcf_y-E/edit?usp=sharing">CLC
+presentation</a> (went well!)</li>
+<li>validating old vs. new speeches</li>
+<li>re-ran all prior analyses</li>
+</ul>
+</p>
+</div>
+<div id="additional-processing" class="section level3">
+<h3>ADDITIONAL PROCESSING</h3>
+<div id="steps" class="section level4">
+<h4>steps</h4>
+<ul>
+<li>cross-checked hein 2016 vs. my scraped 2016 speeches.</li>
+<li>tracked down “remain_sept” bigram popping up in later years–related
+to budgetary language included in the full text of bills/amendments read
+out loud in congress; this kind of “speech” was excluded from the hein
+1973-2016 dataset. i’m working on a way to exclude them from 2016-2024
+data.</li>
+<li>re-scraped code to extract section headers and compared the speeches
+present in my scraped 2016 speeches but absent from hein 2016
+speeches.</li>
+<li>removed speeches meeting following conditions:
+<ul>
+<li>speaker is:
+<ul>
+<li>The PRESIDING OFFICER</li>
+<li>The SPEAKER</li>
+<li>The SPEAKER Pro Tempore</li>
+<li>The CHAIR</li>
+<li>The Acting CHAIR</li>
+</ul></li>
+</ul></li>
+<li>speech begins with:
+<ul>
+<li>“for himself”</li>
+<li>“for herself”</li>
+<li>“for Mr”</li>
+<li>“for Mrs”</li>
+<li>“for Ms”</li>
+<li>“from the Committee on”</li>
+<li>“for the Committee on”</li>
+<li>“Committee on”</li>
+<li>“was allowed to speak”</li>
+<li>“asked and was given”</li>
+<li>“presented”</li>
+<li>“submitted the following”</li>
+<li>“submitted an amendment”</li>
+<li>“S. Res. [:digit:]+</li>
+<li>“H. Res. [:digit:]+</li>
+<li>“S. [:digit:]+”</li>
+<li>“H.R. [:digit:]+”</li>
+<li>“addressed the Chair”</li>
+</ul></li>
+</ul>
+</div>
+<div id="next-steps" class="section level4">
+<h4>next steps:</h4>
+<p>after above processing, there are significantly more speeches in
+earlier (hein data) years that recent years. i suspect this is because
+(1) there are a good number of typos due to OCR in earliest years (e.g.,
+“Tihe SPEAKER” instead of “The SPEAKER”) and (2) earlier speeches
+contain a lot of very, very short, extraneous speeches/exchanges that
+for some reason are not in more recent Congressional Record speeches
+(e.g., “Yes.”). i plan to: - correct the most common/prevalent typos in
+earlier speeches - filter speeches to be &gt; 10(?) words</p>
+</div>
+<div id="all-speeches" class="section level4">
+<h4>all speeches:</h4>
+<p>…</p>
+</div>
+</div>
+<div id="keywords" class="section level3">
+<h3>KEYWORDS</h3>
+<br>
+</p>
+<div id="environmental-keyword" class="section level4">
+<h4>environmental keyword</h4>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"environmental"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<br>
+</p>
+</div>
+<div id="labor-keyword" class="section level4">
+<h4>labor keyword</h4>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"labor"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<br>
+</p>
+</div>
+<div id="hein-topic-environmental" class="section level4">
+<h4>hein topic: environmental</h4>
+<p><b>keywords:</b></p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["keyword"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"canyon"},{"1":"climat"},{"1":"conserv"},{"1":"contam"},{"1":"dam"},{"1":"environ"},{"1":"eros"},{"1":"forest"},{"1":"garden"},{"1":"hurrican"},{"1":"lake"},{"1":"natur"},{"1":"plant"},{"1":"pollut"},{"1":"shale"},{"1":"soil"},{"1":"wast"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<b>included phrases:</b>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["topic_phrase"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"administr environment"},{"1":"agricultur conserv"},{"1":"air pollut"},{"1":"anim plant"},{"1":"botan garden"},{"1":"boulder canyon"},{"1":"boulder dam"},{"1":"build dam"},{"1":"bureau plant"},{"1":"canyon dam"},{"1":"canyon nation"},{"1":"canyon project"},{"1":"care environ"},{"1":"chang natur"},{"1":"civilian conserv"},{"1":"clean environ"},{"1":"climat chang"},{"1":"coal plant"},{"1":"concern environ"},{"1":"conserv act"},{"1":"conserv area"},{"1":"conserv corp"},{"1":"conserv develop"},{"1":"conserv effort"},{"1":"conserv energi"},{"1":"conserv fund"},{"1":"conserv group"},{"1":"conserv manag"},{"1":"conserv natur"},{"1":"conserv plan"},{"1":"conserv practic"},{"1":"conserv program"},{"1":"conserv project"},{"1":"conserv recoveri"},{"1":"conserv reserv"},{"1":"conserv servic"},{"1":"conserv soil"},{"1":"construct dam"},{"1":"control pollut"},{"1":"coule dam"},{"1":"council environment"},{"1":"creat environ"},{"1":"creek dam"},{"1":"dam across"},{"1":"dam built"},{"1":"dam construct"},{"1":"dam project"},{"1":"dam reservoir"},{"1":"depart environment"},{"1":"depart natur"},{"1":"develop environment"},{"1":"develop natur"},{"1":"dispos wast"},{"1":"econom environment"},{"1":"energi conserv"},{"1":"energi environ"},{"1":"energi environment"},{"1":"environment assess"},{"1":"environment benefit"},{"1":"environment cleanup"},{"1":"environment communiti"},{"1":"environment concern"},{"1":"environment control"},{"1":"environment damag"},{"1":"environment degrad"},{"1":"environment econom"},{"1":"environment educ"},{"1":"environment effect"},{"1":"environment friend"},{"1":"environment group"},{"1":"environment health"},{"1":"environment impact"},{"1":"environment issu"},{"1":"environment legisl"},{"1":"environment manag"},{"1":"environment organ"},{"1":"environment polici"},{"1":"environment pollut"},{"1":"environment problem"},{"1":"environment program"},{"1":"environment protect"},{"1":"environment qualiti"},{"1":"environment regul"},{"1":"environment research"},{"1":"environment respons"},{"1":"environment restor"},{"1":"environment review"},{"1":"environment sensit"},{"1":"environment sound"},{"1":"environment standard"},{"1":"environment studi"},{"1":"eros control"},{"1":"feder environment"},{"1":"feet natur"},{"1":"fisheri conserv"},{"1":"forestri servic"},{"1":"glen canyon"},{"1":"global climat"},{"1":"global environ"},{"1":"grand canyon"},{"1":"great lake"},{"1":"great natur"},{"1":"hazard wast"},{"1":"health environ"},{"1":"health environment"},{"1":"hell canyon"},{"1":"highlevel wast"},{"1":"hoover dam"},{"1":"hurrican katrina"},{"1":"import environment"},{"1":"improv environ"},{"1":"industri wast"},{"1":"irrepar damag"},{"1":"lake champlain"},{"1":"lake eri"},{"1":"lake level"},{"1":"lake region"},{"1":"lake stream"},{"1":"lake superior"},{"1":"lake taho"},{"1":"learn environ"},{"1":"liquefi natur"},{"1":"lock dam"},{"1":"lowlevel wast"},{"1":"mother natur"},{"1":"municip wast"},{"1":"nation environment"},{"1":"nation lakeshor"},{"1":"nation natur"},{"1":"natur area"},{"1":"natur beauti"},{"1":"natur disast"},{"1":"natur environ"},{"1":"natur extent"},{"1":"natur gas"},{"1":"natur problem"},{"1":"natur resourc"},{"1":"natur right"},{"1":"natur rubber"},{"1":"natur servic"},{"1":"natur state"},{"1":"natur thing"},{"1":"need conserv"},{"1":"nois pollut"},{"1":"noneconom damag"},{"1":"nuclear wast"},{"1":"oil natur"},{"1":"oil pollut"},{"1":"oil shale"},{"1":"plant anim"},{"1":"pollut abat"},{"1":"pollut air"},{"1":"pollut control"},{"1":"pollut pay"},{"1":"pollut problem"},{"1":"preserv environ"},{"1":"preserv natur"},{"1":"product natur"},{"1":"protect environ"},{"1":"protect natur"},{"1":"radioact wast"},{"1":"reduc pollut"},{"1":"reduc wast"},{"1":"requir environment"},{"1":"resourc conserv"},{"1":"resourc environ"},{"1":"secur environ"},{"1":"shale oil"},{"1":"similar natur"},{"1":"soil conserv"},{"1":"soil eros"},{"1":"soilconserv program"},{"1":"solid wast"},{"1":"sourc pollut"},{"1":"stabil conserv"},{"1":"state natur"},{"1":"suppli natur"},{"1":"toxic pollut"},{"1":"toxic wast"},{"1":"understand natur"},{"1":"use natur"},{"1":"wast dispos"},{"1":"wast dump"},{"1":"wast generat"},{"1":"wast manag"},{"1":"wast problem"},{"1":"wast program"},{"1":"wast public"},{"1":"wast treatment"},{"1":"wastewat treatment"},{"1":"wildlif conserv"},{"1":"youth conserv"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<b>excluded phrases:</b>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["excluded_phrase"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"lake citi"},{"1":"lake st"},{"1":"lake state"},{"1":"salt lake"},{"1":"bill natur"},{"1":"bipartisan natur"},{"1":"human natur"},{"1":"immigr natur"},{"1":"natur citizen"},{"1":"expressli reserv"},{"1":"express reserv"},{"1":"feder reserv"},{"1":"forc reserv"},{"1":"gas reserv"},{"1":"gold reserv"},{"1":"govern reserv"},{"1":"grain reserv"},{"1":"guard reserv"},{"1":"histor preserv"},{"1":"indian reserv"},{"1":"interest preserv"},{"1":"member reserv"},{"1":"militari reserv"},{"1":"naval reserv"},{"1":"offic reserv"},{"1":"oil reserv"},{"1":"order preserv"},{"1":"organ reserv"},{"1":"petroleum reserv"},{"1":"preserv freedom"},{"1":"preserv histor"},{"1":"preserv integr"},{"1":"protect preserv"},{"1":"readi reserv"},{"1":"reserv act"},{"1":"reserv balanc"},{"1":"reserv board"},{"1":"reserv compon"},{"1":"reserv corp"},{"1":"reserv fleet"},{"1":"reserv forc"},{"1":"reserv fund"},{"1":"reserv nation"},{"1":"reserv note"},{"1":"reserv object"},{"1":"reserv offic"},{"1":"reserv program"},{"1":"reserv remaind"},{"1":"reserv requir"},{"1":"reserv reserv"},{"1":"reserv state"},{"1":"reserv system"},{"1":"reserv unit"},{"1":"said reserv"},{"1":"select reserv"},{"1":"serious reserv"},{"1":"state reserv"},{"1":"strateg reserv"},{"1":"tri preserv"},{"1":"upon reserv"},{"1":"withdraw reserv"},{"1":"without reserv"},{"1":"build plant"},{"1":"construct plant"},{"1":"defens plant"},{"1":"demonstr plant"},{"1":"farmer plant"},{"1":"generat plant"},{"1":"industri plant"},{"1":"manufactur plant"},{"1":"munit plant"},{"1":"nitrat plant"},{"1":"nuclear plant"},{"1":"oper plant"},{"1":"organ transplant"},{"1":"pilot plant"},{"1":"plant built"},{"1":"plant close"},{"1":"plant construct"},{"1":"plant corpor"},{"1":"plant crop"},{"1":"plant equip"},{"1":"plant facil"},{"1":"plant locat"},{"1":"plant oper"},{"1":"plant produc"},{"1":"process plant"},{"1":"steam plant"},{"1":"treatment plant"},{"1":"war plant"},{"1":"address fundament"},{"1":"basic fundament"},{"1":"consum madam"},{"1":"damag award"},{"1":"damag caus"},{"1":"damag destroy"},{"1":"damag done"},{"1":"damag nation"},{"1":"damag result"},{"1":"econom damag"},{"1":"fundament chang"},{"1":"fundament differ"},{"1":"fundament flaw"},{"1":"fundament freedom"},{"1":"fundament human"},{"1":"fundament import"},{"1":"fundament issu"},{"1":"fundament principl"},{"1":"fundament problem"},{"1":"fundament purpos"},{"1":"fundament question"},{"1":"fundament reform"},{"1":"fundament right"},{"1":"fundament wrong"},{"1":"great damag"},{"1":"legisl madam"},{"1":"notr dame"},{"1":"one fundament"},{"1":"properti damag"},{"1":"punit damag"},{"1":"repair damag"},{"1":"right fundament"},{"1":"saddam hussein"},{"1":"serious damag"},{"1":"sever damag"},{"1":"think fundament"},{"1":"time madam"},{"1":"trebl damag"},{"1":"fraud wast"},{"1":"wast fraud"},{"1":"wast govern"},{"1":"wast spend"},{"1":"wast taxpay"},{"1":"wast time"},{"1":"american soil"},{"1":"fertil soil"},{"1":"foreign soil"},{"1":"aerospac industri"},{"1":"multipl sclerosi"},{"1":"presid signatur"},{"1":"safeti environment"},{"1":"labor environment"},{"1":"actual damag"},{"1":"amend madam"},{"1":"bill madam"},{"1":"brain damag"},{"1":"caus damag"},{"1":"compensatori damag"},{"1":"fundament unfair"},{"1":"loss damag"},{"1":"make fundament"},{"1":"remov saddam"},{"1":"supplement supplant"},{"1":"privat plant"},{"1":"plant industri"},{"1":"safeti environ"},{"1":"environment safeti"},{"1":"govern plant"},{"1":"take plant"},{"1":"product soil"},{"1":"damag economi"},{"1":"potenti damag"},{"1":"war damag"},{"1":"econom climat"},{"1":"econom environ"},{"1":"dollar wast"},{"1":"elimin wast"},{"1":"go wast"},{"1":"govern wast"},{"1":"wast extravag"},{"1":"wast feder"},{"1":"wast ineffici"},{"1":"wast bill"},{"1":"wast abus"},{"1":"wast polici"},{"1":"conserv estim"},{"1":"conserv liber"},{"1":"conserv measur"},{"1":"fiscal conserv"},{"1":"liber conserv"},{"1":"nation conserv"},{"1":"polici conserv"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<br>
+</p>
+</div>
+<div id="hein-topic-labor" class="section level4">
+<h4>hein topic: labor</h4>
+<p><b>keywords:</b></p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["keyword"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"compens"},{"1":"employ"},{"1":"job"},{"1":"labor"},{"1":"longshoremen"},{"1":"pay"},{"1":"pension"},{"1":"retir"},{"1":"salari"},{"1":"strike"},{"1":"unemploy"},{"1":"union"},{"1":"vocat"},{"1":"wage"},{"1":"worker"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<b>included phrases:</b>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["topic_phrase"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"abil pay"},{"1":"abl pay"},{"1":"actual pay"},{"1":"addit compens"},{"1":"addit employe"},{"1":"addit job"},{"1":"addit pay"},{"1":"adjust compens"},{"1":"afford pay"},{"1":"agricultur labor"},{"1":"agricultur worker"},{"1":"allow employ"},{"1":"america pay"},{"1":"america worker"},{"1":"american job"},{"1":"american labor"},{"1":"american pay"},{"1":"american unemploy"},{"1":"american worker"},{"1":"applic pension"},{"1":"appropri pay"},{"1":"associ retir"},{"1":"auto worker"},{"1":"averag wage"},{"1":"avoid pay"},{"1":"back pay"},{"1":"base pay"},{"1":"basic pay"},{"1":"benefit employe"},{"1":"benefit payment"},{"1":"benefit worker"},{"1":"better job"},{"1":"bill pay"},{"1":"bureau labor"},{"1":"busi employ"},{"1":"busi job"},{"1":"busi labor"},{"1":"busi pay"},{"1":"capit labor"},{"1":"care worker"},{"1":"cheap labor"},{"1":"chines labor"},{"1":"civilian employe"},{"1":"coal strike"},{"1":"colleagu pay"},{"1":"commerc labor"},{"1":"commission pension"},{"1":"compani pay"},{"1":"compel pay"},{"1":"compens act"},{"1":"compens benefit"},{"1":"compens paid"},{"1":"compens pension"},{"1":"compens program"},{"1":"compens servic"},{"1":"compens system"},{"1":"compens victim"},{"1":"comprehens employ"},{"1":"congression pay"},{"1":"construct job"},{"1":"construct worker"},{"1":"consum pay"},{"1":"continu pay"},{"1":"contract labor"},{"1":"convict labor"},{"1":"corpor pay"},{"1":"cost job"},{"1":"cost labor"},{"1":"cost taxpay"},{"1":"countri pay"},{"1":"creat job"},{"1":"creation job"},{"1":"daili worker"},{"1":"debt pay"},{"1":"depart labor"},{"1":"difficult job"},{"1":"direct payment"},{"1":"disabl compens"},{"1":"discrimin employ"},{"1":"disloc worker"},{"1":"displac worker"},{"1":"dollar pay"},{"1":"domest worker"},{"1":"draw pension"},{"1":"draw salari"},{"1":"economi job"},{"1":"educ employ"},{"1":"educ job"},{"1":"emerg unemploy"},{"1":"employ act"},{"1":"employ contribut"},{"1":"employ discrimin"},{"1":"employ employ"},{"1":"employ employe"},{"1":"employ feder"},{"1":"employ govern"},{"1":"employ labor"},{"1":"employ men"},{"1":"employ must"},{"1":"employ opportun"},{"1":"employ pay"},{"1":"employ peopl"},{"1":"employ practic"},{"1":"employ program"},{"1":"employ provid"},{"1":"employ sanction"},{"1":"employ secur"},{"1":"employ servic"},{"1":"employ state"},{"1":"employ tax"},{"1":"employ train"},{"1":"employe benefit"},{"1":"employe compens"},{"1":"employe depart"},{"1":"employe employ"},{"1":"employe feder"},{"1":"employe govern"},{"1":"employe health"},{"1":"employe organ"},{"1":"employe pay"},{"1":"employe receiv"},{"1":"employe retir"},{"1":"employe right"},{"1":"employe state"},{"1":"employe union"},{"1":"employe unit"},{"1":"end pay"},{"1":"enough pay"},{"1":"entitl pension"},{"1":"equal employ"},{"1":"equal pay"},{"1":"excel job"},{"1":"extend unemploy"},{"1":"extens unemploy"},{"1":"extra pay"},{"1":"famili pay"},{"1":"farm labor"},{"1":"farm worker"},{"1":"farmer labor"},{"1":"farmer pay"},{"1":"farmer union"},{"1":"feder employ"},{"1":"feder employe"},{"1":"feder labor"},{"1":"feder retir"},{"1":"feder retire"},{"1":"feder salari"},{"1":"feder unemploy"},{"1":"feder worker"},{"1":"fewer job"},{"1":"find employ"},{"1":"find job"},{"1":"finish job"},{"1":"forc labor"},{"1":"forc pay"},{"1":"foreign labor"},{"1":"foreign worker"},{"1":"full employ"},{"1":"fund pay"},{"1":"get job"},{"1":"get pay"},{"1":"give employ"},{"1":"give pension"},{"1":"go job"},{"1":"go pay"},{"1":"goodpay job"},{"1":"govern employ"},{"1":"govern employe"},{"1":"govern job"},{"1":"govern pay"},{"1":"govern worker"},{"1":"great job"},{"1":"growth job"},{"1":"guest worker"},{"1":"help pay"},{"1":"help unemploy"},{"1":"help worker"},{"1":"high unemploy"},{"1":"high wage"},{"1":"higher wage"},{"1":"highest unemploy"},{"1":"highpay job"},{"1":"hour labor"},{"1":"hour wage"},{"1":"import job"},{"1":"increas compens"},{"1":"increas employ"},{"1":"increas job"},{"1":"increas salari"},{"1":"increas unemploy"},{"1":"increas wage"},{"1":"individu retir"},{"1":"industri employ"},{"1":"industri labor"},{"1":"industri worker"},{"1":"inflat unemploy"},{"1":"insur employe"},{"1":"insur unemploy"},{"1":"intern labor"},{"1":"invest job"},{"1":"job act"},{"1":"job also"},{"1":"job america"},{"1":"job american"},{"1":"job avail"},{"1":"job back"},{"1":"job bill"},{"1":"job come"},{"1":"job congress"},{"1":"job corp"},{"1":"job countri"},{"1":"job creat"},{"1":"job creation"},{"1":"job creator"},{"1":"job done"},{"1":"job dont"},{"1":"job econom"},{"1":"job economi"},{"1":"job even"},{"1":"job everi"},{"1":"job fact"},{"1":"job get"},{"1":"job go"},{"1":"job growth"},{"1":"job help"},{"1":"job home"},{"1":"job import"},{"1":"job increas"},{"1":"job job"},{"1":"job just"},{"1":"job keep"},{"1":"job know"},{"1":"job last"},{"1":"job loss"},{"1":"job lost"},{"1":"job make"},{"1":"job mani"},{"1":"job move"},{"1":"job must"},{"1":"job need"},{"1":"job next"},{"1":"job one"},{"1":"job opportun"},{"1":"job oversea"},{"1":"job pay"},{"1":"job peopl"},{"1":"job privat"},{"1":"job program"},{"1":"job protect"},{"1":"job provid"},{"1":"job put"},{"1":"job result"},{"1":"job right"},{"1":"job search"},{"1":"job secur"},{"1":"job sinc"},{"1":"job skill"},{"1":"job state"},{"1":"job take"},{"1":"job talk"},{"1":"job tax"},{"1":"job think"},{"1":"job time"},{"1":"job train"},{"1":"job tri"},{"1":"job unemploy"},{"1":"job unit"},{"1":"job want"},{"1":"job without"},{"1":"job year"},{"1":"join union"},{"1":"just compens"},{"1":"just pay"},{"1":"keep job"},{"1":"kill job"},{"1":"labor act"},{"1":"labor bill"},{"1":"labor board"},{"1":"labor capit"},{"1":"labor class"},{"1":"labor cost"},{"1":"labor countri"},{"1":"labor depart"},{"1":"labor disput"},{"1":"labor employ"},{"1":"labor environment"},{"1":"labor forc"},{"1":"labor hhs"},{"1":"labor human"},{"1":"labor industri"},{"1":"labor leader"},{"1":"labor legisl"},{"1":"labor manag"},{"1":"labor men"},{"1":"labor movement"},{"1":"labor organ"},{"1":"labor peopl"},{"1":"labor practic"},{"1":"labor protect"},{"1":"labor relat"},{"1":"labor right"},{"1":"labor standard"},{"1":"labor statist"},{"1":"labor subcommitte"},{"1":"labor surplus"},{"1":"labor union"},{"1":"laborhew appropri"},{"1":"labormanag relat"},{"1":"level unemploy"},{"1":"liberti union"},{"1":"like pay"},{"1":"loan repay"},{"1":"local union"},{"1":"longterm unemploy"},{"1":"look job"},{"1":"lose job"},{"1":"loss job"},{"1":"lost job"},{"1":"lower wage"},{"1":"magnific job"},{"1":"manag labor"},{"1":"mani employe"},{"1":"mani job"},{"1":"mani worker"},{"1":"manual labor"},{"1":"manufactur job"},{"1":"medicar pay"},{"1":"member labor"},{"1":"member union"},{"1":"men employ"},{"1":"mexican labor"},{"1":"mexican worker"},{"1":"migrant worker"},{"1":"migratori labor"},{"1":"militari pay"},{"1":"militari retir"},{"1":"militari retire"},{"1":"million job"},{"1":"million unemploy"},{"1":"million worker"},{"1":"mine worker"},{"1":"minimum wage"},{"1":"move job"},{"1":"must pay"},{"1":"nation labor"},{"1":"nation laboratori"},{"1":"nation unemploy"},{"1":"need job"},{"1":"need pay"},{"1":"number employe"},{"1":"number job"},{"1":"number unemploy"},{"1":"oblig pay"},{"1":"offic employe"},{"1":"offic retir"},{"1":"oldag pension"},{"1":"older worker"},{"1":"one job"},{"1":"one pay"},{"1":"onthejob train"},{"1":"opportun pay"},{"1":"order pay"},{"1":"organ labor"},{"1":"outstand job"},{"1":"overtim pay"},{"1":"paid labor"},{"1":"pauper labor"},{"1":"pay abort"},{"1":"pay act"},{"1":"pay addit"},{"1":"pay allow"},{"1":"pay amount"},{"1":"pay averag"},{"1":"pay benefit"},{"1":"pay close"},{"1":"pay cost"},{"1":"pay duti"},{"1":"pay employe"},{"1":"pay enlist"},{"1":"pay equal"},{"1":"pay feder"},{"1":"pay full"},{"1":"pay go"},{"1":"pay govern"},{"1":"pay health"},{"1":"pay high"},{"1":"pay higher"},{"1":"pay incom"},{"1":"pay job"},{"1":"pay just"},{"1":"pay less"},{"1":"pay men"},{"1":"pay much"},{"1":"pay nation"},{"1":"pay pension"},{"1":"pay rais"},{"1":"pay rate"},{"1":"pay roll"},{"1":"pay salari"},{"1":"pay system"},{"1":"pay tax"},{"1":"pay tribut"},{"1":"payabl gold"},{"1":"payrol tax"},{"1":"pension agenc"},{"1":"pension also"},{"1":"pension benefit"},{"1":"pension bureau"},{"1":"pension claim"},{"1":"pension fund"},{"1":"pension legisl"},{"1":"pension offic"},{"1":"pension plan"},{"1":"pension rate"},{"1":"pension reform"},{"1":"pension roll"},{"1":"pension soldier"},{"1":"pension system"},{"1":"pension widow"},{"1":"peopl employ"},{"1":"peopl job"},{"1":"peopl unemploy"},{"1":"percent employ"},{"1":"percent job"},{"1":"percent pay"},{"1":"percent unemploy"},{"1":"percent worker"},{"1":"postal employe"},{"1":"postal worker"},{"1":"prevail wage"},{"1":"prison labor"},{"1":"privat employ"},{"1":"privat pension"},{"1":"problem unemploy"},{"1":"produc job"},{"1":"product employ"},{"1":"product labor"},{"1":"program job"},{"1":"protect employe"},{"1":"protect job"},{"1":"protect labor"},{"1":"protect worker"},{"1":"provid compens"},{"1":"provid employ"},{"1":"provid employe"},{"1":"provid job"},{"1":"public employ"},{"1":"public employe"},{"1":"railroad employe"},{"1":"railroad labor"},{"1":"railroad retir"},{"1":"railroad strike"},{"1":"railroad worker"},{"1":"railway labor"},{"1":"rais salari"},{"1":"rate compens"},{"1":"rate pay"},{"1":"rate unemploy"},{"1":"rate wage"},{"1":"real job"},{"1":"receiv compens"},{"1":"receiv pay"},{"1":"receiv pension"},{"1":"receiv salari"},{"1":"reduc salari"},{"1":"reduc unemploy"},{"1":"refus pay"},{"1":"relief unemploy"},{"1":"requir employ"},{"1":"research laboratori"},{"1":"retir account"},{"1":"retir act"},{"1":"retir age"},{"1":"retir benefit"},{"1":"retir board"},{"1":"retir end"},{"1":"retir fund"},{"1":"retir incom"},{"1":"retir list"},{"1":"retir militari"},{"1":"retir offic"},{"1":"retir pay"},{"1":"retir plan"},{"1":"retir program"},{"1":"retir save"},{"1":"retir secur"},{"1":"retir system"},{"1":"retir year"},{"1":"retire health"},{"1":"right labor"},{"1":"right strike"},{"1":"right worker"},{"1":"rise pay"},{"1":"rise unemploy"},{"1":"salari employe"},{"1":"salari expens"},{"1":"salari fix"},{"1":"salari increas"},{"1":"salari paid"},{"1":"save job"},{"1":"save retir"},{"1":"secretari labor"},{"1":"sector job"},{"1":"secur retir"},{"1":"senior pay"},{"1":"servic employ"},{"1":"servic employe"},{"1":"servic job"},{"1":"servic retir"},{"1":"skill labor"},{"1":"skill worker"},{"1":"slave labor"},{"1":"social worker"},{"1":"special pay"},{"1":"start pay"},{"1":"state employ"},{"1":"state employe"},{"1":"state pay"},{"1":"state unemploy"},{"1":"still pay"},{"1":"subcommitte employ"},{"1":"subcommitte labor"},{"1":"take job"},{"1":"takehom pay"},{"1":"taxpay union"},{"1":"textil worker"},{"1":"thousand job"},{"1":"thousand worker"},{"1":"time pay"},{"1":"trade union"},{"1":"train employ"},{"1":"train job"},{"1":"tremend job"},{"1":"unemploy american"},{"1":"unemploy among"},{"1":"unemploy area"},{"1":"unemploy benefit"},{"1":"unemploy compens"},{"1":"unemploy countri"},{"1":"unemploy figur"},{"1":"unemploy insur"},{"1":"unemploy peopl"},{"1":"unemploy problem"},{"1":"unemploy rate"},{"1":"unemploy relief"},{"1":"unemploy situat"},{"1":"unemploy state"},{"1":"unemploy tax"},{"1":"unemploy underemploy"},{"1":"unemploy worker"},{"1":"unfair labor"},{"1":"union continu"},{"1":"union leader"},{"1":"union member"},{"1":"union membership"},{"1":"union must"},{"1":"union offici"},{"1":"union organ"},{"1":"union repres"},{"1":"union shop"},{"1":"union unit"},{"1":"upon pay"},{"1":"upon retir"},{"1":"us job"},{"1":"us pay"},{"1":"use pay"},{"1":"veteran employ"},{"1":"veteran pension"},{"1":"vocat educ"},{"1":"vocat rehabilit"},{"1":"vocat school"},{"1":"vocat train"},{"1":"vote pay"},{"1":"wage base"},{"1":"wage benefit"},{"1":"wage bill"},{"1":"wage board"},{"1":"wage earner"},{"1":"wage hour"},{"1":"wage increas"},{"1":"wage job"},{"1":"wage labor"},{"1":"wage level"},{"1":"wage paid"},{"1":"wage rate"},{"1":"wage salari"},{"1":"wage worker"},{"1":"want job"},{"1":"want pay"},{"1":"war labor"},{"1":"way pay"},{"1":"welfar payment"},{"1":"whose job"},{"1":"wish pay"},{"1":"without compens"},{"1":"without job"},{"1":"without pay"},{"1":"wonder job"},{"1":"worker america"},{"1":"worker american"},{"1":"worker compens"},{"1":"worker countri"},{"1":"worker earn"},{"1":"worker employ"},{"1":"worker famili"},{"1":"worker get"},{"1":"worker go"},{"1":"worker job"},{"1":"worker lose"},{"1":"worker lost"},{"1":"worker make"},{"1":"worker need"},{"1":"worker pay"},{"1":"worker program"},{"1":"worker protect"},{"1":"worker receiv"},{"1":"worker right"},{"1":"worker union"},{"1":"workmen compens"},{"1":"year pay"},{"1":"year retir"},{"1":"year salari"},{"1":"youth employ"},{"1":"youth unemploy"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<b>excluded phrases:</b>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["excluded_phrase"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"compensatori duti"},{"1":"compensatori educ"},{"1":"air strike"},{"1":"first strike"},{"1":"strike balanc"},{"1":"strike forc"},{"1":"commerc act"},{"1":"commerc also"},{"1":"commerc among"},{"1":"commerc claus"},{"1":"commerc commiss"},{"1":"commerc countri"},{"1":"commerc depart"},{"1":"commerci aircraft"},{"1":"commerci develop"},{"1":"commerci industri"},{"1":"commerc justic"},{"1":"commerc state"},{"1":"commerc unit"},{"1":"depart commerc"},{"1":"domest commerc"},{"1":"energi commerc"},{"1":"industri commerci"},{"1":"interst commerc"},{"1":"regul commerc"},{"1":"secretari commerc"},{"1":"trade commerc"},{"1":"done job"},{"1":"agre pay"},{"1":"also pay"},{"1":"feder pay"},{"1":"feder payment"},{"1":"feder taxpay"},{"1":"increas pay"},{"1":"individu taxpay"},{"1":"interest payment"},{"1":"mail pay"},{"1":"medicar payment"},{"1":"pay bill"},{"1":"pay claim"},{"1":"pay colleg"},{"1":"pay increas"},{"1":"pay interest"},{"1":"payment claim"},{"1":"payment debt"},{"1":"payment deficit"},{"1":"payment feder"},{"1":"payment interest"},{"1":"payment lieu"},{"1":"payment limit"},{"1":"payment made"},{"1":"payment poll"},{"1":"payment posit"},{"1":"payment problem"},{"1":"payment program"},{"1":"payment state"},{"1":"payment system"},{"1":"payment tax"},{"1":"pay mortgag"},{"1":"pay offic"},{"1":"pay one"},{"1":"pay pay"},{"1":"pay peopl"},{"1":"pay premium"},{"1":"pay program"},{"1":"pay respect"},{"1":"pay social"},{"1":"pay special"},{"1":"pay us"},{"1":"pay war"},{"1":"pay way"},{"1":"peopl pay"},{"1":"plan pay"},{"1":"program pay"},{"1":"prospect payment"},{"1":"protect taxpay"},{"1":"provid payment"},{"1":"repay loan"},{"1":"requir pay"},{"1":"requir payment"},{"1":"save taxpay"},{"1":"secur payment"},{"1":"speci payment"},{"1":"spend taxpay"},{"1":"subsidi payment"},{"1":"support payment"},{"1":"tax pay"},{"1":"taxpay bill"},{"1":"taxpay countri"},{"1":"taxpay dollar"},{"1":"tax payer"},{"1":"taxpay expens"},{"1":"taxpay fund"},{"1":"taxpay go"},{"1":"tax payment"},{"1":"taxpay nation"},{"1":"taxpay pay"},{"1":"taxpay unit"},{"1":"treasuri pay"},{"1":"use taxpay"},{"1":"wast taxpay"},{"1":"european union"},{"1":"intern union"},{"1":"interparliamentari union"},{"1":"soviet union"},{"1":"union address"},{"1":"union armi"},{"1":"union pacif"},{"1":"union soldier"},{"1":"union soviet"},{"1":"union state"},{"1":"union station"},{"1":"western union"},{"1":"assist payment"},{"1":"author payment"},{"1":"averag taxpay"},{"1":"american taxpay"},{"1":"advanc payment"},{"1":"balanc payment"},{"1":"billion taxpay"},{"1":"cash payment"},{"1":"disast payment"},{"1":"defici payment"},{"1":"incom taxpay"},{"1":"million taxpay"},{"1":"mortgag payment"},{"1":"nation taxpay"},{"1":"payment farmer"},{"1":"percent taxpay"},{"1":"receiv payment"},{"1":"pay attent"},{"1":"pay back"},{"1":"pay debt"},{"1":"pay rent"},{"1":"compensatori damag"},{"1":"indemn compens"},{"1":"collabor effort"},{"1":"feder laboratori"},{"1":"strike subsect"},{"1":"strike subparagraph"},{"1":"strike semicolon"},{"1":"strike period"},{"1":"strike item"},{"1":"sentenc strike"},{"1":"dollar taxpay"},{"1":"expens taxpay"},{"1":"paid taxpay"},{"1":"physician payment"},{"1":"program payment"},{"1":"repay debt"},{"1":"repay program"},{"1":"state taxpay"},{"1":"taxpay get"},{"1":"taxpay subsidi"},{"1":"taxpay taxabl"},{"1":"year taxpay"},{"1":"talk job"},{"1":"american union"},{"1":"balanceofpay deficit"},{"1":"balanceofpay problem"},{"1":"budget pay"},{"1":"dont pay"},{"1":"pay farmer"},{"1":"pay freight"},{"1":"pay lot"},{"1":"pay thing"},{"1":"promis pay"},{"1":"propos pay"},{"1":"purpos pay"},{"1":"struggl pay"},{"1":"retir bill"},{"1":"retir congress"},{"1":"civilservic employe"},{"1":"wage war"},{"1":"job presid"},{"1":"middleincom taxpay"},{"1":"admit union"},{"1":"credit union"},{"1":"union nationmail|."}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<br>
+</p>
+</div>
+</div>
+<div id="speeches" class="section level3">
+<h3>SPEECHES</h3>
+<div id="all-speeches-1" class="section level4">
+<h4>all speeches:</h4>
+<p>
+<center>
+enviro speeches (sample of n=1 per year):
+</center>
+<p>…</p>
+<br>
+</p>
+<p>
+<center>
+labor speeches (sample of n=1 per year):
+</center>
+<p>…</p>
+<br>
+</p>
+<p>
+<center>
+enviro-labor speeches (sample of n=1 per year):
+</center>
+<p>…</p>
+<br>
+</p>
+</div>
+</div>
+<div id="tokens" class="section level3">
+<h3>TOKENS</h3>
+<div id="top-25-bigrams" class="section level4">
+<h4>top 25 bigrams:</h4>
+<center>
+enviro
+</center>
+<p>…</p>
+<center>
+labor
+</center>
+<p>…</p>
+<center>
+enviro-labor
+</center>
+<p>…</p>
+</p>
+<p>
+</div>
+<div id="tokens-by-year" class="section level4">
+<h4>tokens by year</h4>
+<div id="top-20-enviro-tokens-per-20-year-period-since-1900"
+class="section level5">
+<h5>top 20 enviro tokens per 20-year period (since 1900)</h5>
+<p>…</p>
+<p><br></p>
+</p>
+<p>
+</div>
+<div id="top-20-labor-tokens-per-20-year-period-since-1900"
+class="section level5">
+<h5>top 20 labor tokens per 20-year period (since 1900)</h5>
+<p>…</p>
+<p><br></p>
+</p>
+<p>
+</div>
+<div id="top-20-envirolabor-tokens-per-20-year-period-since-1900"
+class="section level5">
+<h5>top 20 enviroLabor tokens per 20-year period (since 1900)</h5>
+<p>…</p>
+<br>
+</p>
+<p>
+</div>
+<div id="top-20-enviro-tokens-per-10-year-period-since-1960"
+class="section level5">
+<h5>top 20 enviro tokens per 10-year period (since 1960)</h5>
+<p>…</p>
+<p><br></p>
+</p>
+<p>
+</div>
+<div id="top-20-labor-tokens-per-10-year-period-since-1960"
+class="section level5">
+<h5>top 20 labor tokens per 10-year period (since 1960)</h5>
+<p>…</p>
+<p><br></p>
+</p>
+<p>
+</div>
+<div id="top-20-enviro-labor-tokens-per-10-year-period-since-1960"
+class="section level5">
+<h5>top 20 enviro-labor tokens per 10-year period (since 1960)</h5>
+<p>…</p>
+<p><br></p>
+</p>
+<p>
+</div>
+</div>
+</div>
+<div id="next-steps-1" class="section level3">
+<h3>NEXT STEPS</h3>
+<ul>
+<li>analysis:
+<ul>
+<li>triples</li>
+<li>topic modeling</li>
+</ul></li>
+<li>validation:
+<ul>
+<li>are there meaningful differences between daily vs. bound
+speeches?</li>
+<li>validating scraped 2016-2024 data cleaning/processing against
+stanford 1873-2016 data cleaning/processing</li>
+</ul></li>
+</ul>
+</p>
+<div class="tocify-extend-page" data-unique="tocify-extend-page"
+style="height: 0;">
+
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
