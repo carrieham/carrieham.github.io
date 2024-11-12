@@ -1,0 +1,17 @@
+<tab:manual_stoplist>
+absent	adjourn	ask	can	chairman	committee	
+con	democrat	etc	gentleladies	gentlelady	gentleman	
+gentlemen	gentlewoman	gentlewomen	hereabout	hereafter	hereat	
+hereby	herein	hereinafter	hereinbefore	hereinto	hereof	
+hereon	hereto	heretofore	hereunder	hereunto	hereupon	
+herewith	month	mr	mrs	nai	nay	
+none	now	part	per	pro	republican	
+say	senator	shall	sir	speak	speaker	
+tell	thank	thereabout	thereafter	thereagainst	thereat	
+therebefore	therebeforn	thereby	therefor	therefore	therefrom	
+therein	thereinafter	thereof	thereon	thereto	theretofore	
+thereunder	thereunto	thereupon	therewith	therewithal	today	
+whereabouts	whereafter	whereas	whereat	whereby	wherefore	
+wherefrom	wherein	whereinto	whereof	whereon	whereto	
+whereunder	whereupon	wherever	wherewith	wherewithal	will	
+yea	yes	yield	

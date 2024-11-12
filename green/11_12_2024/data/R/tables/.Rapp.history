@@ -1,0 +1,2 @@
+load("/Users/chamilton/Documents/GitHub/green/data/R/tables/enviroTokens_earliest.Rda")
+load("/Users/chamilton/Documents/GitHub/green/data/R/tables/laborBigrams_earliest.Rda")
