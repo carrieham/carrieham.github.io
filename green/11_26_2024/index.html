@@ -66,13 +66,12 @@
 <h2>
 <span class="header-section-number">1.1</span> paper<a class="anchor" aria-label="anchor" href="#paper"><i class="fas fa-link"></i></a>
 </h2>
-<p>methods: how do different text mining approaches spotlight different historical trends/fluctuations/moments in labor-environmental (labor? environmental?) issues since the 1960s? (i.e., compare the methods)</p>
+<p>methods: how do different text mining approaches spotlight different historical trends/fluctuations/moments in environmental-labor history over the last 150 years?</p>
 <ul>
-<li>period distinctiveness (tf-ipf)</li>
-<li>textual averages (triples)</li>
-<li>convergence/divergence (topic models + word co-occurrence networks)</li>
+<li>compare (1) the methods and (2) the time-period intervals</li>
+<li>at progressively more granular time periods (25yr-5yr?), analyze text mining metrics together to (re)tell “history” of the environment</li>
+<li>focus on (1) enviro and (2) enviro-labor speeches</li>
 </ul>
-<p>(+ showing impact of different keyword choices)</p>
 </div>
 <div id="updates" class="section level2" number="1.2">
 <h2>
@@ -80,10 +79,17 @@
 </h2>
 <p><b>new updates:</b></p>
 <ul>
-<li>re-ran all prior analyses</li>
-<li>top bigrams by period</li>
-<li>word co-occurence networks</li>
-<li>topic modeling</li>
+<li>better keywords</li>
+<li>re-ran for full 1873-present span (vs. 1965-present)</li>
+<li>re-ran at progressively more granular time intervals for each metric</li>
+<li>nixed topic models (need dynamic topic models)</li>
+<li>word co-occurrence networks
+<ul>
+<li>words co-occurring with labor keywords in enviro speeches</li>
+<li>words co-occurring with enviro keywords in labor speeches</li>
+<li>words co-occurring with select labor + enviro keywords in enviro-labor speeches</li>
+</ul>
+</li>
 </ul>
 <p><b>old updates:</b></p>
 <ul>
@@ -99,7 +105,15 @@
 <h2>
 <span class="header-section-number">1.3</span> next steps<a class="anchor" aria-label="anchor" href="#next-steps"><i class="fas fa-link"></i></a>
 </h2>
-
+<ul>
+<li>
+<em>dynamic</em> topic modeling–in R? how are these different from structural topic models?</li>
+<li>5-yr time periods</li>
+<li>re-organize analysis to group by time period (i.e., compare bigram counts vs. tf-ipf vs. co-occurrence vs. etc. for 25-yr intervals, 20-yr intervals, 15-yr intervals, etc.)</li>
+<li>re-read Guldi book–additional metrics, strengths vs. weaknesses, data processing caveats, etc.</li>
+<li>…sentiment analysis?</li>
+<li>paper outline</li>
+</ul>
 </div>
 </div>
   <div class="chapter-nav">
