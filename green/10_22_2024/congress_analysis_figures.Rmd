@@ -1,0 +1,2249 @@
+---
+title: "CLC text mining"
+output:
+  html_document:
+    pandoc_args:
+    - +RTS
+    - "-M64G"
+    - "-RTS"
+    code_folding: hide
+    self_contained: no
+    df_print: paged
+    highlighter: haddock
+    toc: true
+    toc_float: true
+    css: styles.css
+    includes:
+      in_header: header.html
+---
+<p>
+
+<center><font size="3">`r Sys.Date()`</font></center>
+
+</p>
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+#quanteda_options(tokens_block_size = 50000)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(bookdown,
+       data.table,
+       DataTables,
+       dplyr, 
+       DT,
+       forcats,
+       ggrepel,
+       htmlwidgets,
+       lubridate,
+       plotly,
+       quanteda,
+       stopwords,
+       tictoc,
+       tidyverse, 
+       tidytext,
+       tokenizers,
+       vroom)
+
+library(reticulate)
+require(devtools)
+install_github("stephbuon/posextractr")
+library(posextractr)
+# posextract_install() #only run first time ever installing package
+# virtualenv_create("r-posextract", python="3.12")
+py_install(c("pandas", "spacy", "posextract","lark"), pip = TRUE)
+# system(command = "python3 -m spacy download en_core_web_sm")
+posextract_initialize()
+
+widget_file_size <- function(p) {
+  d <- tempdir()
+  withr::with_dir(d, htmlwidgets::saveWidget(p, "index.html"))
+  f <- file.path(d, "index.html")
+  mb <- round(file.info(f)$size / 1e6, 3)
+  message("File is: ", mb," MB")
+}
+
+create_dt <- function(x){
+  DT::datatable(x,rownames=FALSE) #filter='top')
+  # datatable(extensions = 'Buttons',
+  #           options = list(dom = 'lfrtipB',
+  #                          buttons = c('copy', 'csv', 'pdf'),
+  #                          lengthMenu = list(c(10,25,50,-1),
+  #                                            c(10,25,50,"All"))))
+}
+
+```
+
+### DATA
+```{r input data, include=FALSE, cache=TRUE, cache.lazy=FALSE}
+
+load(verbose=TRUE,"data/enviroLaborSpeeches_v1.Rda")
+# enviroLaborSpeeches_v1 <- enviroLaborSpeeches_v1 %>%
+#   as_tibble() %>%
+#   select(year,
+#          date,
+#          chamber,
+#          environment,
+#          labor,
+#          speech_id,
+#          speech,
+#          # last_name,
+#          # state,
+#          total_annual_speeches) %>%
+#   mutate(speech=str_remove(speech,"^of[:space:](Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming)"),
+#          speech= str_remove(speech,"^[^[:alpha:]]*")) ###***CH added
+# save(enviroLaborSpeeches_v1,file="data/enviroLaborSpeeches_v1.Rda")
+# # fwrite(enviroLaborSpeeches_v1,"data/enviroLaborSpeeches_v1.csv")
+
+load(verbose=TRUE,"data/enviroLaborSpeeches_v2.Rda")
+# enviroLaborSpeeches_v2 <- enviroLaborSpeeches_v2 %>%
+#   as_tibble() %>%
+#   select(year,
+#          date,
+#          chamber,
+#          environment,
+#          labor,
+#          speech_id,
+#          speech,
+#          # last_name,
+#          # state,
+#          total_annual_speeches) %>%
+#   mutate(speech=str_remove(speech,"^of[:space:](Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming)"),
+#          speech= str_remove(speech,"^[^[:alpha:]]*")) ###***CH added
+# save(enviroLaborSpeeches_v2,file="data/enviroLaborSpeeches_v2.Rda")
+# # fwrite(enviroLaborSpeeches_v2,"data/enviroLaborSpeeches_v2.csv")
+
+
+stopwords_iso <- stopwords("en", source = "stopwords-iso") 
+stopwords_manual <- c("absent","adjourn", "ask", "can", "chairman",
+                       "committee","con","democrat","etc","gentleladies",
+                       "gentlelady", "gentleman", "gentlemen", "gentlewoman",
+                       "gentlewomen","hereabout","hereafter","hereat", "hereby",
+                       "herein", "hereinafter", "hereinbefore", "hereinto", "hereof",
+                       "hereon", "hereto", "heretofore", "hereunder", "hereunto",
+                       "hereupon", "herewith", "month", "mr", "mrs", "nai", "nay",
+                       "none", "now", "part", "per", "pro", "republican",
+                       "say", "senator", "shall", "sir", "speak", "speaker",
+                       "tell", "thank", "thereabout", "thereafter", "thereagainst",
+                       "thereat", "therebefore", "therebeforn", "thereby", "therefor",
+                       "therefore", "therefrom", "therein", "thereinafter", "thereof",
+                       "thereon", "thereto", "theretofore", "thereunder", "thereunto",
+                       "thereupon", "therewith", "therewithal", "today", "whereabouts",
+                       "whereafter", "whereas", "whereat", "whereby","wherefore",
+                       "wherefrom", "wherein", "whereinto", "whereof", "whereon","whereto",
+                       "whereunder", "whereupon", "wherever", "wherewith", 
+                       "wherewithal", "will", "yea", "yes", "yield")
+
+stopwords_manual2 <- c("white house","white houses",
+                       "avenue","street","nw","northwest","suite",
+                       "number","numeric","sequence","sequences",
+                       "add","addition","additions","adding","added",
+                       "amend","amended","amendment","amendments","amending","amends",
+                       "america","american","americas",
+                       "bill","bills",
+                       "chapter","chapters",
+                       "code","codes",
+                       "country","countrys", 
+                       "congress","congressional",
+                       "district of columbia","district","districts",
+                       "enact","enacted","enacting","enacts",
+                       "federal", 
+                       "senate","senates", 
+                       "house of representatives","representative","representatives","the house",
+                       "insert","inserting","inserted","inserts",
+                       "law","laws",
+                       "legislation","legislative","legislator",
+                       "paragraph","paragraphs","sentence","sentences",
+                       "percent","percentage","percentages",
+                       "president","presidents","presidential", 
+                       "print","printing","printed","prints",
+                       "record","recording","recorded","records",
+                       "section","sections",
+                       "united states",
+                       "state","states",
+                       "subchapter","subchapters",
+                       "subsection","subsections",
+                       "supreme court","supreme courts","court","courts",
+                       "title","titles",
+                       "unanimous consent","consent","consenting",
+                       "united","u.s.","us",
+                       "urge","urging","urged","urges",
+                       "colleague","colleagues",
+                       "washington", "d.c.")
+
+stopwords <- c(stopwords_manual2,stopwords_manual,stopwords_iso)
+
+```
+
+```{r input tokens data, include=FALSE, cache=TRUE, cache.lazy=FALSE}
+
+load(verbose=TRUE,"data/R/enviroTokens_v1.Rda")
+load(verbose=TRUE,"data/R/enviroTokens_v2.Rda")
+
+load(verbose=TRUE,"data/R/enviroBigrams_v1.Rda")
+load(verbose=TRUE,"data/R/enviroBigrams_v2.Rda")
+
+load(verbose=TRUE,"data/R/laborTokens_v1.Rda")
+load(verbose=TRUE,"data/R/laborTokens_v2.Rda")
+
+load(verbose=TRUE,"data/R/laborBigrams_v1.Rda")
+load(verbose=TRUE,"data/R/laborBigrams_v2.Rda")
+
+load(verbose=TRUE,"data/R/enviroLaborTokens_v1.Rda")
+load(verbose=TRUE,"data/R/enviroLaborTokens_v2.Rda")
+
+load(verbose=TRUE,"data/R/enviroLaborBigrams_v1.Rda")
+load(verbose=TRUE,"data/R/enviroLaborBigrams_v2.Rda")
+
+```
+
+```{r enviro tokens v1, message=FALSE, results=FALSE, cache=TRUE}
+
+##### TOKENS #####
+tic()
+enviroTokens_v1 <- enviroLaborSpeeches_v1 %>%
+  filter(environment=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v1 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+#####SAVE FILE
+save(enviroTokens_v1,file="data/R/enviroTokens_v1.Rda")
+
+```
+
+```{r enviro tokens v2, message=FALSE, results=FALSE, cache=TRUE}
+
+##### TOKENS #####
+tic()
+enviroTokens_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(environment=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v2 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+#####SAVE FILE
+save(enviroTokens_v2,file="data/R/enviroTokens_v2.Rda")
+
+```
+
+```{r enviro bigrams v1, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+# ##### BIGRAMS #####
+tic()
+enviroBigrams_v1 <- enviroLaborSpeeches_v1 %>%
+  filter(environment=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v1 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+#
+# ##### SAVE FILE
+save(enviroBigrams_v1,file="data/R/enviroBigrams_v1.Rda")
+
+```
+
+```{r enviro bigrams v2, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+# ##### BIGRAMS #####
+tic()
+enviroBigrams_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(environment=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v2 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+#
+# ##### SAVE FILE
+save(enviroBigrams_v2,file="data/R/enviroBigrams_v2.Rda")
+
+```
+
+```{r labor tokens v1, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### TOKENS #####
+tic()
+laborTokens_v1 <- enviroLaborSpeeches_v1 %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v1 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(laborTokens_v1,file="data/R/laborTokens_v1.Rda")
+
+```
+
+```{r labor tokens v2, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### TOKENS #####
+tic()
+laborTokens_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v2 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(laborTokens_v2,file="data/R/laborTokens_v2.Rda")
+
+```
+
+```{r labor bigrams v1, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### BIGRAMS #####
+tic()
+laborBigrams_v1 <- enviroLaborSpeeches_v1 %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v1 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(laborBigrams_v1,file="data/R/laborBigrams_v1.Rda")
+
+```
+
+```{r labor bigrams v2, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### BIGRAMS #####
+tic()
+laborBigrams_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v2 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(laborBigrams_v2,file="data/R/laborBigrams_v2.Rda")
+
+```
+
+```{r enviroLabor tokens v1, message=FALSE, results=FALSE, cache=TRUE}
+
+##### TOKENS #####
+tic()
+enviroLaborTokens_v1 <- enviroLaborSpeeches_v1 %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v1 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(enviroLaborTokens_v1,file="data/R/enviroLaborTokens_v1.Rda")
+
+```
+
+```{r enviroLabor tokens v2, message=FALSE, results=FALSE, cache=TRUE}
+
+##### TOKENS #####
+tic()
+enviroLaborTokens_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v2 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(enviroLaborTokens_v2,file="data/R/enviroLaborTokens_v2.Rda")
+
+```
+
+```{r enviroLabor bigrams v1, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### BIGRAMS #####
+tic()
+enviroLaborBigrams_v1 <- enviroLaborSpeeches_v1 %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v1 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(enviroLaborBigrams_v1,file="data/R/enviroLaborBigrams_v1.Rda")
+
+```
+
+```{r enviroLabor bigrams v2, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### BIGRAMS #####
+tic()
+enviroLaborBigrams_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches_v2 %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(enviroLaborBigrams_v2,file="data/R/enviroLaborBigrams_v2.Rda")
+
+```
+
+### SPEECHES
+
+```{r all speeches over time v1, echo=FALSE, cache=TRUE}
+
+enviroSpeeches_byYear_v1 <- enviroLaborSpeeches_v1 %>%
+  filter(environment=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+laborSpeeches_byYear_v1 <- enviroLaborSpeeches_v1 %>%
+  filter(labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+enviroLaborSpeeches_byYear_v1 <- enviroLaborSpeeches_v1 %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+allSpeeches_byYear_v1 <- rbind(mutate(enviroSpeeches_byYear_v1,type="environment"),
+                            mutate(laborSpeeches_byYear_v1,type="labor"),
+                            mutate(enviroLaborSpeeches_byYear_v1,type="enviro-labor"))
+
+map_allSpeeches_prop_byYear_v1 <- ggplot() +
+geom_line(data=allSpeeches_byYear_v1,
+              aes(x=year,
+                  y=prop,
+                  group=3,
+                  color=type,
+                  text=paste("<b>",year,":</b> ",round(prop*100,1),"% of speeches",sep=""))) +
+  scale_color_manual(values=c("environment"="aquamarine4",
+                              "labor"="blueviolet",
+                              "enviro-labor"="darkslateblue")) +
+  guides(color=guide_legend(title = "")) +
+  scale_x_discrete(breaks = seq(1880, 2020, by = 10)) + 
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_allSpeeches_prop_byYear_v1, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         legend=list(xref="paper",
+                     x=0.5,xanchor='center',
+                     y=1,yanchor='top',
+                     orientation='h',
+                     traceorder="reversed",
+                     title=list(font=list(color="#32127a",family="IBM Plex Mono")),
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/speeches_prop_by_year_v1.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r all speeches over time v2, echo=FALSE, cache=TRUE}
+
+enviroSpeeches_byYear_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(environment=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+laborSpeeches_byYear_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+enviroLaborSpeeches_byYear_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+allSpeeches_byYear_v2 <- rbind(mutate(enviroSpeeches_byYear_v2,type="environment"),
+                            mutate(laborSpeeches_byYear_v2,type="labor"),
+                            mutate(enviroLaborSpeeches_byYear_v2,type="enviro-labor"))
+
+map_allSpeeches_prop_byYear_v2 <- ggplot() +
+geom_line(data=allSpeeches_byYear_v2,
+          # linetype="dashed",
+              aes(x=year,
+                  y=prop,
+                  group=3,
+                  color=type,
+                  text=paste("<b>",year,":</b> ",round(prop*100,1),"% of speeches",sep=""))) +
+  scale_color_manual(values=c("environment"="aquamarine4",
+                              "labor"="blueviolet",
+                              "enviro-labor"="darkslateblue")) +
+  guides(color=guide_legend(title = "")) +
+  scale_x_discrete(breaks = seq(1880, 2020, by = 10)) + 
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_allSpeeches_prop_byYear_v2, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         legend=list(xref="paper",
+                     x=0.5,xanchor='center',
+                     y=1,yanchor='top',
+                     orientation='h',
+                     traceorder="reversed",
+                     title=list(font=list(color="#32127a",family="IBM Plex Mono")),
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/speeches_prop_by_year_v2.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r enviro+labor speeches over time v2, echo=FALSE, cache=TRUE}
+
+enviroSpeeches_byYear_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(environment=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+laborSpeeches_byYear_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+enviro_labor_Speeches_byYear_v2 <- rbind(mutate(enviroSpeeches_byYear_v2,type="environment"),
+                            mutate(laborSpeeches_byYear_v2,type="labor"))
+
+map_enviro_labor_Speeches_prop_byYear_v2 <- ggplot() +
+geom_line(data=enviro_labor_Speeches_byYear_v2,
+          # linetype="dashed",
+              aes(x=year,
+                  y=prop,
+                  group=3,
+                  color=type,
+                  text=paste("<b>",year,":</b> ",round(prop*100,1),"% of speeches",sep=""))) +
+  scale_color_manual(values=c("environment"="aquamarine4",
+                              "labor"="blueviolet"))+
+                              # "enviro-labor"="darkslateblue")) +
+  guides(color=guide_legend(title = "")) +
+  scale_x_discrete(breaks = seq(1880, 2020, by = 10)) + 
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_enviro_labor_Speeches_prop_byYear_v2, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         legend=list(xref="paper",
+                     x=0.5,xanchor='center',
+                     y=1,yanchor='top',
+                     orientation='h',
+                     traceorder="reversed",
+                     title=list(font=list(color="#32127a",family="IBM Plex Mono")),
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/enviro_labor_speeches_prop_by_year_v2.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r enviroLabor speeches over time v2, echo=FALSE, cache=TRUE}
+
+enviroLaborSpeeches_byYear_v2 <- enviroLaborSpeeches_v2 %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  mutate(type="enviro-labor") %>%
+  arrange(desc(year))
+
+map_enviroLaborSpeeches_prop_byYear_v2 <- ggplot() +
+geom_line(data=enviroLaborSpeeches_byYear_v2,
+          # linetype="dashed",
+              aes(x=year,
+                  y=prop,
+                  group=3,
+                  color=type,
+                  text=paste("<b>",year,":</b> ",round(prop*100,1),"% of speeches",sep=""))) +
+  scale_color_manual(values=c("enviro-labor"="darkslateblue")) +
+  guides(color=guide_legend(title = "")) +
+  scale_x_discrete(breaks = seq(1880, 2020, by = 10)) + 
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_enviroLaborSpeeches_prop_byYear_v2, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         legend=list(xref="paper",
+                     x=0.5,xanchor='center',
+                     y=1,yanchor='top',
+                     orientation='h',
+                     traceorder="reversed",
+                     title=list(font=list(color="#32127a",family="IBM Plex Mono")),
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/enviroLabor_speeches_prop_by_year_v2.html", selfcontained = F, libdir = "lib")
+
+```
+
+### ANALYSIS: TOKENS
+#### token counts
+##### top 25 enviro tokens
+```{r enviro token counts v1, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+enviroTokens_top25_v1 <- enviroTokens_v1 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(laborTokens_top25_v1,file="data/R/tables/enviroTokens_top25_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroTokens_top25_v1.Rda")
+
+map_enviroTokens_top25_v1 <- ggplot() +
+    geom_col(data=enviroTokens_top25_v1,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             fill="aquamarine4") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_enviroTokens_top25_v1, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/enviro_tokens_top25_v1.html", selfcontained = F, libdir = "lib")
+```
+
+```{r enviro token counts v2, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+enviroTokens_top25_v2 <- enviroTokens_v2 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroTokens_top25_v2,file="data/R/tables/enviroTokens_top25_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroTokens_top25_v2.Rda")
+
+map_enviroTokens_top25_v2 <- ggplot() +
+    geom_col(data=enviroTokens_top25_v2,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             fill="aquamarine4") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_enviroTokens_top25_v2, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/enviro_tokens_top25_v2.html", selfcontained = F, libdir = "lib")
+```
+
+
+
+##### top 25 labor tokens
+```{r labor token counts v1, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+laborTokens_top25_v1 <- laborTokens_v1 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(laborTokens_top25_v1,file="data/R/tables/laborTokens_top25_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/laborTokens_top25_v1.Rda")
+
+map_laborTokens_top25_v1 <- ggplot() +
+    geom_col(data=laborTokens_top25_v1,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="blueviolet") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_laborTokens_top25_v1, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/labor_tokens_top25_v1.html", selfcontained = F, libdir = "lib")
+```
+
+```{r labor token counts v2, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+laborTokens_top25_v2 <- laborTokens_v2 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(laborTokens_top25_v2,file="data/R/tables/laborTokens_top25_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/laborTokens_top25_v2.Rda")
+
+map_laborTokens_top25_v2 <- ggplot() +
+    geom_col(data=laborTokens_top25_v2,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="blueviolet") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_laborTokens_top25_v2, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/labor_tokens_top25_v2.html", selfcontained = F, libdir = "lib")
+```
+
+##### top 25 enviro-labor tokens
+```{r enviroLabor token counts v1, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroLaborTokens_top25_v1 <- enviroLaborTokens_v1 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroLaborTokens_top25_v1,file="data/R/tables/enviroLaborTokens_top25_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLaborTokens_count.Rda")
+
+map_enviroLaborTokens_top25_v1 <- ggplot() +
+    geom_col(data=enviroLaborTokens_top25_v1,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="darkslateblue") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_enviroLaborTokens_top25_v1, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/enviroLabor_tokens_top25_v1.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r enviroLabor token counts v2, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroLaborTokens_top25_v2 <- enviroLaborTokens_v2 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroLaborTokens_top25_v2,file="data/R/tables/enviroLaborTokens_top25_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLaborTokens_count.Rda")
+
+map_enviroLaborTokens_top25_v2 <- ggplot() +
+    geom_col(data=enviroLaborTokens_top25_v2,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="darkslateblue") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_enviroLaborTokens_top25_v2, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/enviroLabor_tokens_top25_v2.html", selfcontained = F, libdir = "lib")
+
+```
+
+
+#### bigram counts
+##### top 25 enviro bigrams
+```{r enviro bigram counts v1, message=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroBigrams_top25_v1 <- enviroBigrams_v1 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroBigrams_top25_v1,file="data/R/tables/enviroBigrams_top25_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroBigrams_top25_v1.Rda")
+
+map_enviroBigrams_top25_v1 <- ggplot() +
+    geom_col(data=enviroBigrams_top25_v1,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             fill="aquamarine4") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+
+##### make interactive
+ggplotly(map_enviroBigrams_top25_v1, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/enviro_bigrams_top25_v1.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r enviro bigram counts v2, message=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroBigrams_top25_v2 <- enviroBigrams_v2 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroBigrams_top25_v2,file="data/R/tables/enviroBigrams_top25_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroBigrams_top25_v2.Rda")
+
+map_enviroBigrams_top25_v2 <- ggplot() +
+    geom_col(data=enviroBigrams_top25_v2,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             fill="aquamarine4") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+
+##### make interactive
+ggplotly(map_enviroBigrams_top25_v2, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/enviro_bigrams_top25_v2.html", selfcontained = F, libdir = "lib")
+
+```
+
+##### top 25 labor bigrams
+```{r labor bigram counts v1, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+laborBigrams_top25_v1 <- laborBigrams_v1 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(laborBigrams_top25_v1,file="data/R/tables/laborBigrams_top25_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/laborBigrams_top25_v1.Rda")
+
+map_laborBigrams_top25_v1 <- ggplot() +
+    geom_col(data=laborBigrams_top25_v1,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="blueviolet") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_laborBigrams_top25_v1, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/labor_bigrams_top25_v1.html", selfcontained = F, libdir = "lib")
+```
+
+```{r labor bigram counts v2, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+laborBigrams_top25_v2 <- laborBigrams_v2 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(laborBigrams_top25_v2,file="data/R/tables/laborBigrams_top25_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/laborBigrams_top25_v2.Rda")
+
+map_laborBigrams_top25_v2 <- ggplot() +
+    geom_col(data=laborBigrams_top25_v2,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="blueviolet") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_laborBigrams_top25_v2, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/labor_bigrams_top25_v2.html", selfcontained = F, libdir = "lib")
+```
+
+##### top 25 enviro-labor bigrams
+```{r enviroLabor bigram counts v1, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroLaborBigrams_top25_v1 <- enviroLaborBigrams_v1 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroLaborBigrams_top25_v1,file="data/R/tables/enviroLaborBigrams_top25_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLaborBigrams_count_v1.Rda")
+
+map_enviroLaborBigrams_top25_v1 <- ggplot() +
+    geom_col(data=enviroLaborBigrams_top25_v1,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="darkslateblue") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_enviroLaborBigrams_top25_v1, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/enviroLabor_bigrams_top25_v1.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r enviroLabor bigram counts v2, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroLaborBigrams_top25_v2 <- enviroLaborBigrams_v2 %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroLaborBigrams_top25_v2,file="data/R/tables/enviroLaborBigrams_top25_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLaborBigrams_count_v2.Rda")
+
+map_enviroLaborBigrams_top25_v2 <- ggplot() +
+    geom_col(data=enviroLaborBigrams_top25_v2,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="darkslateblue") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_enviroLaborBigrams_top25_v2, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/enviroLabor_bigrams_top25_v2.html", selfcontained = F, libdir = "lib")
+
+```
+
+
+#### tokens by year
+##### top 10 enviro tokens by year
+```{r enviro token counts by year v1, message=FALSE, cache=TRUE}
+
+enviro_tokens_by_year_v1 <- enviroTokens_v1 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviro_tokens_by_year_v1,file="data/R/tables/enviro_tokens_by_year_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviro_tokens_by_year_v1.Rda")
+
+```
+
+```{r enviro token counts by year v2, message=FALSE, cache=TRUE}
+
+enviro_tokens_by_year_v2 <- enviroTokens_v2 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviro_tokens_by_year_v2,file="data/R/tables/enviro_tokens_by_year_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviro_tokens_by_year_v2.Rda")
+
+```
+
+##### top 10 labor tokens by year
+```{r labor token counts by year v1, message=FALSE, cache=TRUE}
+
+labor_tokens_by_year_v1 <- laborTokens_v1 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+
+save(labor_tokens_by_year_v1,file="data/R/tables/labor_tokens_by_year_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/labor_tokens_by_year_v1.Rda")
+
+```
+
+```{r labor token counts by year v2, message=FALSE, cache=TRUE}
+
+labor_tokens_by_year_v2 <- laborTokens_v2 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+
+save(labor_tokens_by_year_v2,file="data/R/tables/labor_tokens_by_year_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/labor_tokens_by_year_v2.Rda")
+
+```
+
+##### top 10 enviroLabor tokens by year
+```{r enviroLabor token counts by year v1, message=FALSE, cache=TRUE}
+
+enviroLabor_tokens_by_year_v1 <- enviroLaborTokens_v1 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviroLabor_tokens_by_year_v1,file="data/R/tables/enviroLabor_tokens_by_year_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLabor_tokens_by_year_v1.Rda")
+
+```
+
+```{r enviroLabor token counts by year v2, message=FALSE, cache=TRUE}
+
+enviroLabor_tokens_by_year_v2 <- enviroLaborTokens_v2 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviroLabor_tokens_by_year_v2,file="data/R/tables/enviroLabor_tokens_by_year_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLabor_tokens_by_year_v2.Rda")
+
+```
+
+##### top 10 enviro bigrams by year
+```{r enviro bigram counts by year v1, message=FALSE, cache=TRUE}
+
+enviro_bigrams_by_year_v1 <- enviroBigrams_v1 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviro_bigrams_by_year_v1,file="data/R/tables/enviro_bigrams_by_year_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviro_bigrams_by_year_v1.Rda")
+
+```
+
+```{r enviro bigram counts by year v2, message=FALSE, cache=TRUE}
+
+enviro_bigrams_by_year_v2 <- enviroBigrams_v2 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviro_bigrams_by_year_v2,file="data/R/tables/enviro_bigrams_by_year_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviro_bigrams_by_year_v2.Rda")
+
+```
+
+##### top 10 labor bigrams by year
+```{r labor bigram counts by year v1, message=FALSE, cache=TRUE}
+
+labor_bigrams_by_year_v1 <- laborBigrams_v1 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(labor_bigrams_by_year_v1,file="data/R/tables/labor_bigrams_by_year_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/labor_bigrams_by_year_v1.Rda")
+
+```
+
+```{r labor bigram counts by year v2, message=FALSE, cache=TRUE}
+
+labor_bigrams_by_year_v2 <- laborBigrams_v2 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(labor_bigrams_by_year_v2,file="data/R/tables/labor_bigrams_by_year_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/labor_bigrams_by_year_v2.Rda")
+
+```
+
+##### top 10 enviroLabor bigrams by year
+```{r enviroLabor bigram counts by year v1, message=FALSE, cache=TRUE}
+
+enviroLabor_bigrams_by_year_v1 <- enviroLaborBigrams_v1 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviroLabor_bigrams_by_year_v1,file="data/R/tables/enviroLabor_bigrams_by_year_v1.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLabor_bigrams_by_year_v1.Rda")
+
+```
+
+```{r enviroLabor bigram counts by year v2, message=FALSE, cache=TRUE}
+
+enviroLabor_bigrams_by_year_v2 <- enviroLaborBigrams_v2 %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviroLabor_bigrams_by_year_v2,file="data/R/tables/enviroLabor_bigrams_by_year_v2.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLabor_bigrams_by_year_v2.Rda")
+
+```
+
+###ANALYSIS: PART II
+#### tp-ipf
+
+
+```{r enviro tf-ipf}
+
+# ARCHITECTURE:
+# a count of words per debate per speechdate is set up.
+# tf-idf is calculated based on relative co-occurrence.
+
+# the code cycles through big periods of years (5, 10, 20)
+# and attempts to show the difference between tf-idf measures and raw count
+
+# a second loop looks at smaller time periods (words relatively unique to a month, day ,etc.)
+
+##### ENVIRO-enviro #####
+description <- "figures/enviroBigrams-tfidf"
+years <- as.tibble(unique(enviroBigrams_v2$year))
+firstyear <- min(years$value)
+lastyear <- max(years$value)
+numyears <- nrow(years)
+
+enviroBigrams_count <- enviroBigrams_v2 %>%
+  group_by(year,term) %>%
+  count(term,wt=count) %>%
+  filter(n>3)
+
+# cycles through term counts by month, 6 month, year, etc.  
+for (yrs in c(2, 5, 10, 20)) {
+  
+  ### count tfidf with n years as "document"
+  print(paste0("counting tfidf by a ", yrs, "-year period"))
+  enviro_oneRowPerDocument <- enviroBigrams_count %>%
+    mutate(period = as.numeric(year) - as.numeric(year) %% yrs) %>%
+    group_by(period, term) %>%
+    dplyr::summarize(count = sum(n)) %>%
+    ungroup() %>%
+    mutate(id_number = period) %>%
+    filter(!is.na(period)) %>%
+    filter(!is.na(term)) %>%
+    filter(!is.na(id_number))
+  
+  enviro_tfidf <- enviro_oneRowPerDocument %>%
+    bind_tf_idf(term, id_number, count) %>%
+    arrange(desc(tf_idf))
+  
+  enviro_top_debates <- enviro_tfidf %>%
+    arrange(desc(tf_idf)) %>%
+    slice(seq_len(25)) 
+  
+  # top_n_debates <- top_debates %>%
+  #   slice(seq_len(10))
+  
+  enviro_distinguished_words_stacked <- enviro_top_debates %>%
+    ggplot(aes(x = period,
+               y = count,#tf_idf,
+               text = paste("<b>",term,"</b>",
+                            "<br>period: ",
+                            period,
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep=""),
+               label = term)) +
+    geom_col(fill="aquamarine4",aes(alpha=tf_idf)) +
+    guides(fill=FALSE) + #alpha=FALSE
+    geom_label_repel(
+      color = "#32127a",
+      fill="white",
+      size=3.5,
+      label.padding=unit(0.1,"lines"),
+      alpha=0.75,
+      family="IBM Plex Mono",
+      fontface = "bold",
+      force = 2,
+      label.size = 0.1,
+      position = position_stack(vjust = 0.5)) +
+    labs(title = paste0("top 25 distinguishing words in enviro speeches per ", yrs, "-yr period")) +
+    theme_minimal() +
+    theme(plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      legend.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+    
+  ggsave(paste0(description, "_stacked--", yrs, "yr.jpg"),
+         w=9.5,h=11,units = "in") #h=11,
+  
+  # bar chart of top tf-idf words per period
+  enviro_top_debates_per_unit <- enviro_tfidf %>%
+    group_by(period) %>%
+    arrange(desc(tf_idf)) %>%
+    slice(seq_len(10)) %>%
+    ungroup() 
+  
+  if (yrs==2) {
+      enviro_distinguished_words_facet <- ggplot(enviro_top_debates_per_unit,
+           aes(y = count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               # alpha=tf_idf,
+               text = paste("<b>",term,"</b>",
+                            # "<br>period: ",
+                            # period,
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep=""))) +
+    geom_col(fill="aquamarine4") +
+    facet_wrap(~period, scales = "free", ncol=2) +
+    scale_x_reordered() +
+    coord_flip() +
+    guides(fill=FALSE, color = FALSE, line = FALSE) +
+    labs(title = paste0("words that distinguished enviro speeches per ", yrs, "-yr period"),
+         # subtitle = paste0("differential attention is calculated by tf-idf, using temporal period (", yrs, " yr) as the 'document'"),
+         y = "count",
+         x = "keyword") +
+    theme_minimal() +
+    theme(#aspect.ratio=8/11,
+      plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+  
+  ggsave(paste0(description, "--", yrs, "yr.jpg"),
+          w =9.5, h=24, units = "in") #h=11,
+  }
+  
+  else {
+  enviro_distinguished_words_facet <- ggplot(enviro_top_debates_per_unit,
+           aes(y = count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               # alpha=tf_idf,
+               text = paste("<b>",term,"</b>",
+                            # "<br>period: ",
+                            # period,
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep=""))) +
+    geom_col(fill="aquamarine4") +
+    facet_wrap(~period, scales = "free", ncol=2) +
+    scale_x_reordered() +
+    coord_flip() +
+    guides(fill=FALSE, color = FALSE, line = FALSE) +
+    labs(title = paste0("words that distinguished enviro speeches per ", yrs, "-yr period"),
+         # subtitle = paste0("differential attention is calculated by tf-idf, using temporal period (", yrs, " yr) as the 'document'"),
+         y = "count",
+         x = "keyword") +
+    theme_minimal() +
+    theme(#aspect.ratio=8/11,
+      plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+  
+  ggsave(paste0(description, "--", yrs, "yr.jpg"),
+          w =9.5, h=11, units = "in") #h=11,
+  } 
+ 
+
+
+##### make interactive
+if (yrs==20) {
+  
+  ggplotly(enviro_distinguished_words_facet, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget(paste0(description,"--",yrs,"yr.html"),selfcontained = F)
+  
+}
+
+    
+  # # make interactive
+  # ggplotly(enviro_distinguished_words_stacked, 
+  #          tooltip="text", dynamicTicks = FALSE) %>%
+  #          # mode='lines+markers+text') %>%
+  # style(#mode="lines+markers",
+  #       hoverlabel=list(font=list(family="IBM Plex Mono",
+  #                                 size=11))) %>%
+  # layout(font=list(color="#32127a",family="IBM Plex Mono"),
+  #        xaxis=list(color="#32127a",
+  #                   linecolor="#32127a",
+  #                   tickfont=list(color="#32127a")),
+  #        yaxis=list(color="#32127a",
+  #                   linecolor="#32127a",
+  #                   tickfont=list(color="#32127a"))) %>%
+  # saveWidget(paste0(description, "_stacked--", yrs, "yr.html"),selfcontained = F)
+  #   
+}
+
+```
+
+```{r labor tf-ipf}
+
+# ARCHITECTURE:
+# a count of words per debate per speechdate is set up.
+# tf-idf is calculated based on relative co-occurrence.
+
+# the code cycles through big periods of years (5, 10, 20)
+# and attempts to show the difference between tf-idf measures and raw count
+
+# a second loop looks at smaller time periods (words relatively unique to a month, day ,etc.)
+
+##### ENVIRO-labor #####
+description <- "figures/laborBigrams-tfidf"
+years <- as.tibble(unique(laborBigrams_v2$year))
+firstyear <- min(years$value)
+lastyear <- max(years$value)
+numyears <- nrow(years)
+
+laborBigrams_count <- laborBigrams_v2 %>%
+  group_by(year,term) %>%
+  count(term,wt=count) %>%
+  filter(n>3)
+
+# cycles through term counts by month, 6 month, year, etc.  
+for (yrs in c(2, 5, 10, 20)) {
+  
+  ### count tfidf with n years as "document"
+  print(paste0("counting tfidf by a ", yrs, "-year period"))
+  labor_oneRowPerDocument <- laborBigrams_count %>%
+    mutate(period = as.numeric(year) - as.numeric(year) %% yrs) %>%
+    group_by(period, term) %>%
+    dplyr::summarize(count = sum(n)) %>%
+    ungroup() %>%
+    mutate(id_number = period) %>%
+    filter(!is.na(period)) %>%
+    filter(!is.na(term)) %>%
+    filter(!is.na(id_number))
+  
+  labor_tfidf <- labor_oneRowPerDocument %>%
+    bind_tf_idf(term, id_number, count) %>%
+    arrange(desc(tf_idf))
+  
+  labor_top_debates <- labor_tfidf %>%
+    arrange(desc(tf_idf)) %>%
+    slice(seq_len(25)) 
+  
+  # top_n_debates <- top_debates %>%
+  #   slice(seq_len(10))
+  
+  labor_distinguished_words_stacked <- labor_top_debates %>%
+    ggplot(aes(x = period,
+               y = count,#tf_idf,
+               text = paste("<b>",term,"</b>",
+                            "<br>period: ",
+                            period,
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep=""),
+               label = term)) +
+    geom_col(fill="blueviolet",aes(alpha=tf_idf)) +
+    guides(fill=FALSE) + #alpha=FALSE
+    geom_label_repel(
+      color = "#32127a",
+      fill="white",
+      size=3.5,
+      label.padding=unit(0.1,"lines"),
+      alpha=0.75,
+      family="IBM Plex Mono",
+      fontface = "bold",
+      force = 2,
+      label.size = 0.1,
+      position = position_stack(vjust = 0.5)) +
+    labs(title = paste0("top 25 distinguishing words in labor speeches per ", yrs, "-yr period")) +
+    theme_minimal() +
+    theme(plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      legend.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+    
+  ggsave(paste0(description, "_stacked--", yrs, "yr.jpg"),
+         w=9.5,h=11,units = "in") #h=11,
+  
+  # bar chart of top tf-idf words per period
+  labor_top_debates_per_unit <- labor_tfidf %>%
+    group_by(period) %>%
+    arrange(desc(tf_idf)) %>%
+    slice(seq_len(10)) %>%
+    ungroup() 
+  
+  if (yrs==2) {
+      labor_distinguished_words_facet <- ggplot(labor_top_debates_per_unit,
+           aes(y = count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               # alpha=tf_idf,
+               text = paste("<b>",term,"</b>",
+                            # "<br>period: ",
+                            # period,
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep=""))) +
+    geom_col(fill="blueviolet") +
+    facet_wrap(~period, scales = "free", ncol=2) +
+    scale_x_reordered() +
+    coord_flip() +
+    guides(fill=FALSE, color = FALSE, line = FALSE) +
+    labs(title = paste0("words that distinguished labor speeches per ", yrs, "-yr period"),
+         # subtitle = paste0("differential attention is calculated by tf-idf, using temporal period (", yrs, " yr) as the 'document'"),
+         y = "count",
+         x = "keyword") +
+    theme_minimal() +
+    theme(#aspect.ratio=8/11,
+      plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+  
+  ggsave(paste0(description, "--", yrs, "yr.jpg"),
+          w =9.5, h=24, units = "in") #h=11,
+  }
+  
+  else {
+  labor_distinguished_words_facet <- ggplot(labor_top_debates_per_unit,
+           aes(y = count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               # alpha=tf_idf,
+               text = paste("<b>",term,"</b>",
+                            # "<br>period: ",
+                            # period,
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep=""))) +
+    geom_col(fill="blueviolet") +
+    facet_wrap(~period, scales = "free", ncol=2) +
+    scale_x_reordered() +
+    coord_flip() +
+    guides(fill=FALSE, color = FALSE, line = FALSE) +
+    labs(title = paste0("words that distinguished labor speeches per ", yrs, "-yr period"),
+         # subtitle = paste0("differential attention is calculated by tf-idf, using temporal period (", yrs, " yr) as the 'document'"),
+         y = "count",
+         x = "keyword") +
+    theme_minimal() +
+    theme(#aspect.ratio=8/11,
+      plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+  
+  ggsave(paste0(description, "--", yrs, "yr.jpg"),
+          w =9.5, h=11, units = "in") #h=11,
+  } 
+ 
+
+
+##### make interactive
+if (yrs==20) {
+  
+  ggplotly(labor_distinguished_words_facet, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget(paste0(description,"--",yrs,"yr.html"),selfcontained = F)
+  
+}
+
+    
+  # # make interactive
+  # ggplotly(labor_distinguished_words_stacked, 
+  #          tooltip="text", dynamicTicks = FALSE) %>%
+  #          # mode='lines+markers+text') %>%
+  # style(#mode="lines+markers",
+  #       hoverlabel=list(font=list(family="IBM Plex Mono",
+  #                                 size=11))) %>%
+  # layout(font=list(color="#32127a",family="IBM Plex Mono"),
+  #        xaxis=list(color="#32127a",
+  #                   linecolor="#32127a",
+  #                   tickfont=list(color="#32127a")),
+  #        yaxis=list(color="#32127a",
+  #                   linecolor="#32127a",
+  #                   tickfont=list(color="#32127a"))) %>%
+  # saveWidget(paste0(description, "_stacked--", yrs, "yr.html"),selfcontained = F)
+  #   
+}
+
+```
+
+```{r enviroLabor tf-ipf}
+
+# ARCHITECTURE:
+# a count of words per debate per speechdate is set up.
+# tf-idf is calculated based on relative co-occurrence.
+
+# the code cycles through big periods of years (5, 10, 20)
+# and attempts to show the difference between tf-idf measures and raw count
+
+# a second loop looks at smaller time periods (words relatively unique to a month, day ,etc.)
+
+##### ENVIRO-enviroLabor #####
+description <- "figures/enviroLaborBigrams-tfidf"
+years <- as.tibble(unique(enviroLaborBigrams_v2$year))
+firstyear <- min(years$value)
+lastyear <- max(years$value)
+numyears <- nrow(years)
+
+enviroLaborBigrams_count <- enviroLaborBigrams_v2 %>%
+  group_by(year,term) %>%
+  count(term,wt=count) %>%
+  filter(n>3)
+
+# cycles through term counts by month, 6 month, year, etc.  
+for (yrs in c(2, 5, 10, 20)) {
+  
+  ### count tfidf with n years as "document"
+  print(paste0("counting tfidf by a ", yrs, "-year period"))
+  enviroLabor_oneRowPerDocument <- enviroLaborBigrams_count %>%
+    mutate(period = as.numeric(year) - as.numeric(year) %% yrs) %>%
+    group_by(period, term) %>%
+    dplyr::summarize(count = sum(n)) %>%
+    ungroup() %>%
+    mutate(id_number = period) %>%
+    filter(!is.na(period)) %>%
+    filter(!is.na(term)) %>%
+    filter(!is.na(id_number))
+  
+  enviroLabor_tfidf <- enviroLabor_oneRowPerDocument %>%
+    bind_tf_idf(term, id_number, count) %>%
+    arrange(desc(tf_idf))
+  
+  enviroLabor_top_debates <- enviroLabor_tfidf %>%
+    arrange(desc(tf_idf)) %>%
+    slice(seq_len(25)) 
+  
+  # top_n_debates <- top_debates %>%
+  #   slice(seq_len(10))
+  
+  enviroLabor_distinguished_words_stacked <- enviroLabor_top_debates %>%
+    ggplot(aes(x = period,
+               y = count,#tf_idf,
+               text = paste("<b>",term,"</b>",
+                            "<br>period: ",
+                            period,
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep=""),
+               label = term)) +
+    geom_col(fill="darkslateblue",aes(alpha=tf_idf)) +
+    guides(fill=FALSE) + #alpha=FALSE
+    geom_label_repel(
+      color = "#32127a",
+      fill="white",
+      size=3.5,
+      label.padding=unit(0.1,"lines"),
+      alpha=0.75,
+      family="IBM Plex Mono",
+      fontface = "bold",
+      force = 2,
+      label.size = 0.1,
+      position = position_stack(vjust = 0.5)) +
+    labs(title = paste0("top 25 distinguishing words in enviroLabor speeches per ", yrs, "-yr period")) +
+    theme_minimal() +
+    theme(plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      legend.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+    
+  ggsave(paste0(description, "_stacked--", yrs, "yr.jpg"),
+         w=9.5,h=11,units = "in") #h=11,
+  
+  # bar chart of top tf-idf words per period
+  enviroLabor_top_debates_per_unit <- enviroLabor_tfidf %>%
+    group_by(period) %>%
+    arrange(desc(tf_idf)) %>%
+    slice(seq_len(10)) %>%
+    ungroup() 
+  
+  if (yrs==2) {
+      enviroLabor_distinguished_words_facet <- ggplot(enviroLabor_top_debates_per_unit,
+           aes(y = count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               # alpha=tf_idf,
+               text = paste("<b>",term,"</b>",
+                            # "<br>period: ",
+                            # period,
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep=""))) +
+    geom_col(fill="darkslateblue") +
+    facet_wrap(~period, scales = "free", ncol=2) +
+    scale_x_reordered() +
+    coord_flip() +
+    guides(fill=FALSE, color = FALSE, line = FALSE) +
+    labs(title = paste0("words that distinguished enviroLabor speeches per ", yrs, "-yr period"),
+         # subtitle = paste0("differential attention is calculated by tf-idf, using temporal period (", yrs, " yr) as the 'document'"),
+         y = "count",
+         x = "keyword") +
+    theme_minimal() +
+    theme(#aspect.ratio=8/11,
+      plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+  
+  ggsave(paste0(description, "--", yrs, "yr.jpg"),
+          w =9.5, h=24, units = "in") #h=11,
+  }
+  
+  else {
+  enviroLabor_distinguished_words_facet <- ggplot(enviroLabor_top_debates_per_unit,
+           aes(y = count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               # alpha=tf_idf,
+               text = paste("<b>",term,"</b>",
+                            # "<br>period: ",
+                            # period,
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep=""))) +
+    geom_col(fill="darkslateblue") +
+    facet_wrap(~period, scales = "free", ncol=2) +
+    scale_x_reordered() +
+    coord_flip() +
+    guides(fill=FALSE, color = FALSE, line = FALSE) +
+    labs(title = paste0("words that distinguished enviroLabor speeches per ", yrs, "-yr period"),
+         # subtitle = paste0("differential attention is calculated by tf-idf, using temporal period (", yrs, " yr) as the 'document'"),
+         y = "count",
+         x = "keyword") +
+    theme_minimal() +
+    theme(#aspect.ratio=8/11,
+      plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+  
+  ggsave(paste0(description, "--", yrs, "yr.jpg"),
+          w =9.5, h=11, units = "in") #h=11,
+  } 
+ 
+
+
+##### make interactive
+if (yrs==20) {
+  
+  ggplotly(enviroLabor_distinguished_words_facet, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget(paste0(description,"--",yrs,"yr.html"),selfcontained = F)
+  
+}
+
+    
+  # # make interactive
+  # ggplotly(enviroLabor_distinguished_words_stacked, 
+  #          tooltip="text", dynamicTicks = FALSE) %>%
+  #          # mode='lines+markers+text') %>%
+  # style(#mode="lines+markers",
+  #       hoverlabel=list(font=list(family="IBM Plex Mono",
+  #                                 size=11))) %>%
+  # layout(font=list(color="#32127a",family="IBM Plex Mono"),
+  #        xaxis=list(color="#32127a",
+  #                   linecolor="#32127a",
+  #                   tickfont=list(color="#32127a")),
+  #        yaxis=list(color="#32127a",
+  #                   linecolor="#32127a",
+  #                   tickfont=list(color="#32127a"))) %>%
+  # saveWidget(paste0(description, "_stacked--", yrs, "yr.html"),selfcontained = F)
+  #   
+}
+
+```
+
+#### triples
+```{r extract triples, echo=FALSE}
+
+enviroSentences <- enviroLaborSpeeches_v1 %>%
+  filter(environment=="Yes") %>%
+  unnest_sentences(output=sentence,
+                   input=speech,
+                   strip_punct=TRUE,
+                   format="text",
+                   to_lower=TRUE,
+                   drop=TRUE)
+# enviroTriples_v1 <- extract_triples(enviroLaborSpeeches_v1$speech) #, combine_adj=TRUE, lemmatize=TRUE, add_aux=FALSE)
+enviroTriples_v1 <- extract_adj_noun_pairs(enviroLaborSpeeches_v1$speech,lemmatize=TRUE) #, combine_adj=TRUE, lemmatize=TRUE, add_aux=FALSE)
+
+
+# enviroTriples_v1 <- enviroLaborSpeeches_v1 %>%
+#   filter(environment=="Yes") %>%
+#   sample_n(20) %>%
+#   extract_triples(col=speech, lemmatize=TRUE)
+
+enviroTriples_v1 <- extract_triples(enviroSentences$sentence) #, combine_adj=TRUE, lemmatize=TRUE, add_aux=FALSE)
+
+
+enviroTriples_count_v1 <- enviroTriples_v1 %>%
+  count(triple) %>%
+  arrange(desc(n)) %>%
+
+extract_adj_noun_pairs()
+# extract_subj_verb_pairs()
+
+```
+
+

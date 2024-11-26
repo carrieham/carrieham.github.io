@@ -1,0 +1,1332 @@
+---
+title: "CLC text mining"
+output:
+  html_document:
+    pandoc_args:
+    - +RTS
+    - "-M64G"
+    - "-RTS"
+    code_folding: hide
+    self_contained: no
+    df_print: paged
+    highlighter: haddock
+    toc: true
+    toc_float: true
+    css: styles.css
+    includes:
+      in_header: header.html
+---
+
+<p>
+
+<center><font size="3">`r Sys.Date()`</font></center>
+
+</p>
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+#quanteda_options(tokens_block_size = 50000)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(bookdown,
+       data.table,
+       DataTables,
+       dplyr, 
+       DT,
+       htmltools,
+       htmlwidgets,
+       forcats,
+       plotly,
+       quanteda,
+       stopwords,
+       tictoc,
+       tidyverse, 
+       tidytext,
+       tokenizers,
+       vroom)
+
+widget_file_size <- function(p) {
+  d <- tempdir()
+  withr::with_dir(d, htmlwidgets::saveWidget(p, "index.html"))
+  f <- file.path(d, "index.html")
+  mb <- round(file.info(f)$size / 1e6, 3)
+  message("File is: ", mb," MB")
+}
+
+create_dt <- function(x){
+  DT::datatable(x,rownames=FALSE)
+}
+
+```
+
+### DATA
+```{r input data, include=FALSE, cache=TRUE, cache.lazy=FALSE}
+
+load("data/enviroLaborSpeeches.Rda")
+
+enviroLaborSpeeches <- enviroLaborSpeeches %>%
+  as_tibble() %>%
+  select(year,
+         date,
+         chamber,
+         environment,
+         labor,
+         speech_id,
+         speech,
+         last_name,
+         state,
+         total_annual_speeches) %>%
+  filter(year>=1900)
+
+# enviroLaborSpeeches <- vroom("data/enviroLaborSpeeches.csv",
+#                         show_col_types = FALSE) %>%
+#   as_tibble() %>%
+#   select(year,
+#          date,
+#          chamber,
+#          environment,
+#          labor,
+#          speech_id,
+#          speech,
+#          last_name,
+#          state,
+#          total_annual_speeches) %>%
+#   filter(year>=1900)
+
+stopwords_iso <- stopwords("en", source = "stopwords-iso") 
+stopwords_manual <- c("absent","adjourn", "ask", "can", "chairman",
+                       "committee","con","democrat","etc","gentleladies",
+                       "gentlelady", "gentleman", "gentlemen", "gentlewoman",
+                       "gentlewomen","hereabout","hereafter","hereat", "hereby",
+                       "herein", "hereinafter", "hereinbefore", "hereinto", "hereof",
+                       "hereon", "hereto", "heretofore", "hereunder", "hereunto",
+                       "hereupon", "herewith", "month", "mr", "mrs", "nai", "nay",
+                       "none", "now", "part", "per", "pro", "republican",
+                       "say", "senator", "shall", "sir", "speak", "speaker",
+                       "tell", "thank", "thereabout", "thereafter", "thereagainst",
+                       "thereat", "therebefore", "therebeforn", "thereby", "therefor",
+                       "therefore", "therefrom", "therein", "thereinafter", "thereof",
+                       "thereon", "thereto", "theretofore", "thereunder", "thereunto",
+                       "thereupon", "therewith", "therewithal", "today", "whereabouts",
+                       "whereafter", "whereas", "whereat", "whereby","wherefore",
+                       "wherefrom", "wherein", "whereinto", "whereof", "whereon","whereto",
+                       "whereunder", "whereupon", "wherever", "wherewith", 
+                       "wherewithal", "will", "yea", "yes", "yield")
+
+stopwords_manual2 <- c("amendment",
+                       "american",
+                       "america",
+                       "bill", 
+                       "country", 
+                       "congress",
+                       "district","columbia",
+                       "federal", 
+                       "senate", 
+                       "house","representatives", "representatives",
+                       "law",
+                       "legislation",
+                       "percent",
+                       "president", 
+                       "printed", "record",
+                       "state", 
+                       "states", 
+                       "supreme","court",
+                       "unanimous","consent",
+                       "united","states","u.s.","us","state",
+                       "urge","colleagues",
+                       "washington", "d.c.",
+                       "white","house")
+
+stopwords <- c(stopwords_manual2,stopwords_manual,stopwords_iso)
+
+# ENVIRO KEY WORDS 
+#oxford
+enviroVocab_oxford <- c("active travel", "air-source", "carbon capture", 
+                 "carbon footprint", "carbon", "climate change",
+                 "climate crisis", "climate emergency", "climate refugee", 
+                 "climate strikes", "CO2", "decoupling", "degrowth",
+                 "eco-anxiety", "ecocide", "ecosystem services", "emissions",
+                 "extreme weather", "extreme weather", "flood", 
+                 "food insecurity", "food miles", "global heating",
+                 "global warming", "greenhouse effect", "ground-source",
+                 "H2O", "kaitiakitanga", "mass extinction", "microgrid",
+                 "microplastic", "natural capital", "NOX", "overconsumption",
+                 "rain garden", "range anxiety", "retrofit", "single-use", 
+                 "smart charging", "superstorm", "sustainability",
+                 "tipping point", "unsustainable", "urban agriculture",
+                 "vertical farming", "water insecurity", "wildfire", "windmill") %>%
+  as_tibble()
+
+#added
+enviroVocab_manual <- c("environmental", "natural environment", "ecolog*", "electric vehicle*",
+                        "decarbonize", "natural resource*", "energy crisis", "renewable*") %>%
+  as_tibble()
+
+# LABOR KEY WORDS
+laborVocab <- c("labor","unions","wages","jobs","workers",
+                "apprenticeship","working conditions") %>%
+  as_tibble()
+
+```
+
+<p>
+<br>
+
+#### [1] environmental/labor speeches
+
+##### speeches source:
+
+<b>1873-2016:</b> [stanford hein project](https://data.stanford.edu/congress_text)
+
+-   download bound edition speeches (1873-2009)
+-   download daily edition speeches (1981-2016)
+-   remove bound/daily speech year overlap (I subset bound speeches to 1973-1981 and used full daily speech 1981-2016 data)
+-   subset to enviro/labor speeches
+
+<b>2016-2024:</b> [congress.gov](https://www.congress.gov/search?q=%7B%22source%22%3A%22congrecord%22%7D)
+
+-   daily edition speeches scraped
+-   scraping tool built using modification of Devin Judge-Lord's [congressionalrecord R package](https://judgelord.github.io/congressionalrecord/) functions
+-   3x steps:
+    -   download metadata
+    -   download htm files
+    -   convert to txt files
+-   process + clean speeches using methods comparable to stanford hein project
+    -   subset to enviro/labor speeches
+</p>
+
+<p>
+#### [2] environmental/labor keywords
+</p>
+
+<b>environmental keywords: oxford</b>
+<br>
+source: ['The language of climate change and environmental sustainability'](https://www.oed.com/discover/the-language-of-climate-change/?tl=true). Oxford English Dictionary.
+
+```{r enviro vocab oxford, echo=FALSE}
+enviroVocab_oxford
+```
+<br>
+
+<b>environmental keywords: additions</b>
+<br>
+source: me :)
+
+```{r enviro vocab manual, echo=FALSE}
+enviroVocab_manual
+```
+<br>
+</p>
+
+<b>labor keywords</b>
+<br>
+source: me :)
+
+```{r labor vocab, echo=FALSE}
+laborVocab
+```
+<br>
+</p>
+
+#### [3] stopwords
+
+<p>
+<b>stopwords: iso</b>
+<br>
+source: [stopwords R package](https://cran.r-project.org/web/packages/stopwords/readme/README.html)
+
+```{r stopwords iso, echo=FALSE}
+stopwords_iso %>%
+  as_tibble()
+```
+<br>
+</p>
+
+<b>stopwords: stanford project additions</b>
+<br>
+source: Gentzkow, M, J. Shapiro, & M. Taddy. 2018. [Congressional Record for the 43rd-114th Congresses: Parsed Speeches and Phrase Counts](https://data.stanford.edu/congress_text).
+
+```{r stopwords manual, echo=FALSE}
+stopwords_manual %>%
+  as_tibble()
+```
+<br>
+
+<b>stopwords: my additions</b>
+```{r stopwords manual2, echo=FALSE}
+stopwords_manual2 %>%
+  as_tibble()
+```
+<br>
+
+
+<p>
+### APPROACH
+
+#### steps:
+[1] join hein bound/daily speeches with desc metadata files
+
+[2] merge hein bound/daily speeches with desc metadata files
+
+[3] scrape congress.gov for 2016-2024
+
+[4] merge hein and congress.gov data for full 1873-2024 dataset
+
+[5] subset to speeches with (1) 1+ environmental keywords (<b>enviro speeches</b>), (2) 1+ labor keywords (<b>labor speeches</b>), and (3) 1+ environmental AND 1+ labor keywords (<b>enviro-labor speeches</b>)
+
+[6] tokenize + remove stop words
+</p>
+
+<br>
+
+#### speeches snapshot:
+
+</p>
+<p>
+<center>enviro speeches (sample of n=1 per year):</center>
+```{r enviro speeches, cache=TRUE}
+
+enviroLaborSpeeches %>%
+  filter(environment=="Yes" & is.na(labor)==TRUE) %>%
+  select(year,last_name,chamber,environment,labor,speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(desc(year)) 
+
+```
+<br>
+</p>
+
+<p>
+<center>labor speeches (sample of n=1 per year):</center>
+
+```{r labor speeches, cache=TRUE}
+
+enviroLaborSpeeches %>%
+  filter(is.na(environment)==TRUE & labor=="Yes") %>%
+  select(year,last_name,chamber,environment,labor,speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(desc(year)) 
+
+```
+<br>
+</p>
+
+<p>
+<center>enviro-labor speeches (sample of n=1 per year):</center>
+
+```{r enviroLabor speeches, cache=TRUE}
+
+enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  select(year,last_name,chamber,environment,labor,speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(desc(year)) 
+
+```
+<br>
+</p>
+
+#### token snapshot:
+
+##### enviro tokens
+
+```{r enviro tokens, eval=FALSE}
+
+##### ENVIRO TOKENS #####
+tic()
+enviroTokens <- enviroLaborSpeeches %>%
+  filter(environment=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,     
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>% 
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+
+```
+
+<center>earliest enviro tokens</center>
+
+```{r enviro earliest tokens, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroTokens_earliest.Rda")
+enviroTokens_earliest
+
+# tags$iframe(
+#   src = "enviro_tokens_table_earliest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<center>latest enviro tokens</center>
+
+```{r enviro latest tokens, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroTokens_latest.Rda")
+enviroTokens_latest
+
+# tags$iframe(
+#   src = "enviro_tokens_table_latest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<br>
+
+<p>
+
+##### enviro bigrams
+
+```{r enviro bigrams, eval=FALSE}
+
+##### ENVIRO BIGRAMS #####
+enviroBigrams <- enviroLaborSpeeches %>%
+  filter(environment=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+
+```
+
+<center>earliest enviro bigrams</center>
+
+```{r enviro earliest bigrams, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroBigrams_earliest.Rda")
+enviroBigrams_earliest
+
+# tags$iframe(
+#   src = "enviro_bigrams_table_earliest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<center>latest enviro bigrams</center>
+
+```{r enviro latest bigrams, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroBigrams_latest.Rda")
+enviroBigrams_latest
+
+# tags$iframe(
+#   src = "enviro_bigrams_table_latest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### enviro triples
+
+```{r enviro triples, eval=FALSE}
+
+##### ENVIRO TRIPLES #####
+enviroTriples <- enviroLaborSpeeches %>%
+  filter(environment=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=3) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+
+```
+
+<center>earliest enviro triples</center>
+
+```{r enviro earliest triples, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroTriples_earliest.Rda")
+enviroTriples_earliest
+
+# tags$iframe(
+#   src = "enviro_triples_table_earliest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<center>latest enviro triples</center>
+
+```{r enviro latest triples, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroTriples_latest.Rda")
+enviroTriples_latest
+
+# tags$iframe(
+#   src = "enviro_triples_table_latest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### labor tokens
+
+```{r labor tokens, eval=FALSE}
+
+##### LABOR TOKENS #####
+laborTokens <- enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,     
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>% 
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+
+```
+
+<center>earliest labor tokens</center>
+
+```{r labor earliest tokens, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/laborTokens_earliest.Rda")
+laborTokens_earliest
+
+```
+
+<center>latest labor tokens</center>
+
+```{r labor latest tokens, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/laborTokens_latest.Rda")
+laborTokens_latest
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### labor bigrams
+
+```{r labor bigrams, eval=FALSE}
+
+##### LABOR BIGRAMS #####
+laborBigrams <- enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+
+```
+
+<center>earliest labor bigrams</center>
+
+```{r labor earliest bigrams, echo=FALSE, cache=TRUE}
+
+# load("data/R/tables/laborBigrams_earliest.Rda")
+# laborBigrams_earliest
+
+```
+
+<center>latest labor bigrams</center>
+
+```{r labor latest bigrams, echo=FALSE, cache=TRUE}
+
+# load("data/R/tables/laborBigrams_latest.Rda")
+# laborBigrams_latest
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### labor triples
+
+```{r labor triples, eval=FALSE}
+
+##### LABOR TRIPLES #####
+laborTriples <- enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=3) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+
+```
+
+<center>earliest labor triples</center>
+
+```{r labor earliest triples, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/laborTriples_earliest.Rda")
+laborTriples_earliest
+
+# tags$iframe(
+#   src = "labor_triples_table_earliest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<center>latest labor triples</center>
+
+```{r labor latest triples, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/laborTriples_latest.Rda")
+laborTriples_latest
+
+# tags$iframe(
+#   src = "labor_triples_table_latest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### enviro-labor tokens
+
+```{r enviroLabor tokens, eval=FALSE}
+
+##### ENVIRO-LABOR TOKENS #####
+enviroLaborTokens <- enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,     
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>% 
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+
+```
+
+<center>earliest enviro-labor tokens</center>
+
+```{r enviroLabor earliest tokens, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroLaborTokens_earliest.Rda")
+enviroLaborTokens_earliest
+
+# tags$iframe(
+#   src = "enviroLabor_tokens_table_earliest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<center>latest enviro-labor tokens</center>
+
+```{r enviroLabor latest tokens, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroLaborTokens_latest.Rda")
+enviroLaborTokens_latest
+
+# tags$iframe(
+#   src = "enviroLabor_tokens_table_latest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### enviro-labor bigrams
+
+```{r enviroLabor bigrams, eval=FALSE}
+
+##### ENVIRO-LABOR BIGRAMS #####
+enviroLaborBigrams <- enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+
+```
+
+<center>earliest enviro-labor bigrams</center>
+
+```{r enviroLabor earliest bigrams, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroLaborBigrams_earliest.Rda")
+enviroLaborBigrams_earliest
+
+# tags$iframe(
+#   src = "enviroLabor_bigrams_table_earliest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<center>latest enviro-labor bigrams</center>
+
+```{r enviroLabor latest bigrams, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroLaborBigrams_latest.Rda")
+enviroLaborBigrams_latest
+
+# tags$iframe(
+#   src = "enviroLabor_bigrams_table_latest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### enviro-labor triples
+
+```{r enviroLabor triples, eval=FALSE}
+
+##### ENVIRO-LABOR TRIPLES #####
+enviroLaborTriples <- enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=3) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+
+```
+
+<center>earliest enviro-labor triples</center>
+
+```{r enviroLabor earliest triples, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroLaborTriples_earliest.Rda")
+enviroLaborTriples_earliest
+
+# tags$iframe(
+#   src = "enviroLabor_triples_table_earliest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+
+<center>latest enviro-labor triples</center>
+
+```{r enviroLabor latest triples, echo=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroLaborTriples_latest.Rda")
+enviroLaborTriples_latest
+
+# tags$iframe(
+#   src = "enviroLabor_triples_table_latest.html", 
+#   scrolling = "no", 
+#   frameBorder = "0",
+#   height=550,
+#   width="100%"
+# )
+
+```
+<br>
+</p>
+<p>
+### ANALYSIS: SPEECHES
+
+##### environmental speeches per year:
+
+<center>counts</center>
+
+```{r envt speech counts, fig.width = 5, echo=FALSE, warning=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "enviro_speeches_by_year.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>proportions</center>
+
+```{r envt speech proportions, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "enviro_speeches_prop_by_year.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+##### labor speeches per year:
+
+<center>counts</center>
+
+```{r labor speech counts, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "labor_speeches_by_year.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>proportions</center>
+
+```{r labor speech proportions, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "labor_speeches_prop_by_year.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+##### enviro-labor speeches per year:
+
+<center>counts</center>
+
+```{r enviro-labor speech counts, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "enviroLabor_speeches_by_year.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>proportions</center>
+
+```{r enviroLabor speech proportions, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "enviroLabor_speeches_prop_by_year.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+##### all speeches per year:
+
+```{r all speeches over time, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "speeches_prop_by_year.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+<br>
+</p>
+
+<p>
+### ANALYSIS: TOKENS
+
+#### token counts:
+
+##### top 25 tokens
+
+<center>enviro</center>
+
+```{r enviro token counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+tags$iframe(
+  src = "enviro_tokens.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>labor</center>
+
+```{r labor token counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+tags$iframe(
+  src = "labor_tokens.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>enviro-labor</center>
+
+```{r enviroLabor token counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+tags$iframe(
+  src = "enviroLabor_tokens.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+##### top 25 bigrams
+
+<center>enviro</center>
+
+```{r enviro bigram counts, echo=FALSE, message=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+tags$iframe(
+  src = "enviro_bigrams.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>labor</center>
+
+```{r labor bigram counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+tags$iframe(
+  src = "labor_bigrams.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>enviro-labor</center>
+
+```{r enviroLabor bigram counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+tags$iframe(
+  src = "enviroLabor_bigrams.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+##### top 25 triples
+
+<center>enviro</center>
+
+```{r enviro triple counts, echo=FALSE, message=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+tags$iframe(
+  src = "enviro_triples.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>labor</center>
+
+```{r labor triple counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+tags$iframe(
+  src = "labor_triples.html",
+  scrolling = "no",
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>enviro-labor</center>
+
+```{r enviroLabor triple counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+tags$iframe(
+  src = "enviroLabor_triples.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+</p>
+
+<p>
+#### token counts by year:
+
+##### top 10 tokens by year
+
+<center>enviro</center>
+
+```{r enviro token counts by year, echo=FALSE, message=FALSE, cache=TRUE}
+
+load("data/R/tables/enviro_tokens_by_year.Rda")
+enviro_tokens_by_year
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+<center>labor</center>
+
+```{r labor token counts by year, echo=FALSE, message=FALSE, cache=TRUE}
+
+load("data/R/tables/labor_tokens_by_year.Rda")
+labor_tokens_by_year
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+<center>enviro-labor</center>
+
+```{r enviroLabor token counts by year, echo=FALSE, message=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroLabor_tokens_by_year.Rda")
+enviroLabor_tokens_by_year
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### top 10 bigrams by year
+
+<center>enviro</center>
+
+```{r enviro bigram counts by year, echo=FALSE, message=FALSE, cache=TRUE}
+
+load("data/R/tables/enviro_bigrams_by_year.Rda")
+enviro_bigrams_by_year
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+<center>labor</center>
+
+```{r labor bigram counts by year, echo=FALSE, message=FALSE, cache=TRUE}
+
+load("data/R/tables/labor_bigrams_by_year.Rda")
+labor_bigrams_by_year
+```
+
+<br>
+
+</p>
+
+<p>
+
+<center>enviro-labor</center>
+
+```{r enviroLabor bigram counts by year, echo=FALSE, message=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroLabor_bigrams_by_year.Rda")
+enviroLabor_bigrams_by_year
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### top 10 triples by year
+
+<center>enviro</center>
+
+```{r enviro triple counts by year, echo=FALSE, message=FALSE, cache=TRUE}
+
+load("data/R/tables/enviro_triples_by_year.Rda")
+enviro_triples_by_year
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+<center>labor</center>
+
+```{r labor triple counts by year, echo=FALSE, message=FALSE, cache=TRUE}
+
+load("data/R/tables/labor_triples_by_year.Rda")
+labor_triples_by_year
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+<center>enviro-labor</center>
+
+```{r enviroLabor triple counts by year, echo=FALSE, message=FALSE, cache=TRUE}
+
+load("data/R/tables/enviroLabor_triples_by_year.Rda")
+enviroLabor_triples_by_year
+
+```
+<br>
+</p>
+
+<p>
+### NEXT STEPS
+
+#### to do:
+-   rerun code to incorporate 1873-1900 speech data (i filtered to only speeches since 1900 as i was workshopping code to speed my scripts--should now add them back now that everything works)
+-   finish processing 2016-2024 data
+-   incorporate 2016-2024 data
+-   tidy/prep final enviro-speeches dataset for CLC grant output
+-   [proceed with analysis](https://docs.google.com/document/d/1pAXtBV-WpRaYYLwQW25AvHJXMci2JB3oQkoYA8tedkc/edit), following Guldi 2023. start with term frequency-inverse document frequency (tf-idf) approach.
+
+#### open ?'s:
+-   final enviro/labor keywords?
+-   stopwords?
+-   to stem or not to stem?
+-   are there meaningful differences between daily vs. bound speeches?
+-   validating scraped 2016-2024 data cleaning/processing against stanford 1873-2016 data cleaning/processing?
+</p>
+
+::: {.tocify-extend-page data-unique="tocify-extend-page" style="height: 0;"}
+:::

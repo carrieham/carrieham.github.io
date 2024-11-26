@@ -1,0 +1,267 @@
+---
+title: "CLC presentation"
+output:
+  html_document:
+    pandoc_args:
+    - +RTS
+    - "-M64G"
+    - "-RTS"
+    code_folding: hide
+    self_contained: no
+    df_print: paged
+    highlighter: haddock
+    toc: true
+    toc_float: true
+    css: styles.css
+    includes:
+      in_header: header.html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r enviroLabor bigram counts by year v2, message=FALSE, cache=TRUE}
+
+load("data/R/enviroLaborBigrams_v2.Rda")
+
+bad_syntax <- vroom("data/vocabulary/master_list.txt",delim="|") %>%
+  rename("classify" = "_classify") %>%
+  filter(classify != "vocab") %>%
+  mutate(phrase=str_replace_all(phrase," ","_"))
+
+enviroLaborBigrams_v2 <- enviroLaborBigrams_v2 %>%
+  filter(year<=2019) %>%
+  filter(!(term %in% bad_syntax$phrase))
+
+enviroLabor_bigrams_by_year_v2 <- enviroLaborBigrams_v2 %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  group_by(period) %>%
+  count(term,wt=count) %>%
+  # filter(!(term %in% bad_syntax$phrase)) %>%
+  top_n(20) %>%
+  arrange(desc(n))
+save(enviroLabor_bigrams_by_year_v2,file="data/R/tables/enviroLabor_bigrams_by_year_v2.Rda")
+               
+map_enviroLaborBigrams_clc <- ggplot() +
+  geom_col(data=enviroLabor_bigrams_by_year_v2,
+           aes(x=reorder_within(term,n,period),y=n),
+               fill="blueviolet") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(#title = paste0("words that distinguished enviroLabor speeches per ", yrs, "-yr period"),
+    # subtitle = paste0("differential attention is calculated by tf-idf, using temporal period (", yrs, " yr) as the 'document'"),
+    x = "",
+    y = "count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+  ggsave("figures/enviroLaborBigrams_clc.png",w =10, h=6, dpi=600, units = "in") #h=11,
+
+
+  
+  
+  
+  enviroLaborBigrams_count <- enviroLaborBigrams_v2 %>%
+  group_by(year,term) %>%
+  count(term,wt=count) %>%
+  filter(n>3)
+  
+    enviroLabor_oneRowPerDocument <- enviroLaborBigrams_count %>%
+    mutate(period = as.numeric(year) - as.numeric(year) %% 2) %>%
+    group_by(period, term) %>%
+    dplyr::summarize(count = sum(n)) %>%
+    ungroup() %>%
+    mutate(id_number = period) %>%
+    filter(!is.na(period)) %>%
+    filter(!is.na(term)) %>%
+    filter(!is.na(id_number))
+  
+  enviroLabor_tfidf <- enviroLabor_oneRowPerDocument %>%
+    bind_tf_idf(term, id_number, count) %>%
+    arrange(desc(tf_idf))
+  
+    enviroLabor_top_debates_per_unit <- enviroLabor_tfidf %>%
+    group_by(period) %>%
+    arrange(desc(tf_idf)) %>%
+    slice(seq_len(20)) %>%
+    ungroup() 
+  
+   map_enviroLaborBigrams_tp_ipf_clc <- ggplot(enviroLabor_top_debates_per_unit,
+           aes(y = count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum))) +
+    geom_col(fill="blueviolet") +
+    facet_wrap(~period, scales = "free", ncol=2) +
+    scale_x_reordered() +
+    coord_flip() +
+    guides(fill=FALSE, color = FALSE, line = FALSE) +
+    labs(#title = paste0("words that distinguished enviroLabor speeches per ", yrs, "-yr period"),
+         # subtitle = paste0("differential attention is calculated by tf-idf, using temporal period (", yrs, " yr) as the 'document'"),
+         y = "count",
+         x = "") +
+    theme_minimal() +
+    theme(#aspect.ratio=8/11,
+      plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+   
+     ggsave("figures/enviroLaborBigrams_tp_ipf_clc.jpg",w =10, h=30, units = "in") #h=11,
+
+# ggplotly(map_enviroLaborBigrams_top25, tooltip="text", dynamicTicks = FALSE) %>%
+#   style(hoverlabel=list(font=list(family="IBM Plex Mono",
+#                                   size=11))) %>%
+#   layout(font=list(color="#32127a",family="IBM Plex Mono"),
+#          xaxis=list(color="#32127a",
+#                     linecolor="#32127a",
+#                     tickfont=list(color="#32127a")),
+#          yaxis=list(color="#32127a",
+#                     linecolor="#32127a",
+#                     tickfont=list(color="#32127a"))) %>%
+#   saveWidget("figures/enviroLabor_bigrams_clc.html",selfcontained = F)
+  
+
+
+# load(verbose=TRUE,file="data/R/tables/enviroLabor_bigrams_by_year_v2.Rda")
+
+```
+
+```{r labor bigram counts by year v2, message=FALSE, cache=TRUE}
+
+load("data/R/laborBigrams_v2.Rda")
+
+bad_syntax <- vroom("data/vocabulary/master_list.txt",delim="|") %>%
+  rename("classify" = "_classify") %>%
+  filter(classify != "vocab") %>%
+  mutate(phrase=str_replace_all(phrase," ","_"))
+
+
+laborBigrams_v2 <- laborBigrams_v2 %>%
+  filter(year<=2019) %>%
+  filter(!(term %in% bad_syntax$phrase))
+
+labor_bigrams_by_year_v2 <- laborBigrams_v2 %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  group_by(period) %>%
+  count(term,wt=count) %>%
+  # filter(!(term %in% bad_syntax$phrase)) %>%
+  top_n(20) %>%
+  arrange(desc(n))
+save(labor_bigrams_by_year_v2,file="data/R/tables/labor_bigrams_by_year_v2.Rda")
+               
+map_laborBigrams_clc <- ggplot() +
+  geom_col(data=labor_bigrams_by_year_v2,
+           aes(x=reorder_within(term,n,period),y=n),
+               fill="blueviolet") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(#title = paste0("words that distinguished labor speeches per ", yrs, "-yr period"),
+    # subtitle = paste0("differential attention is calculated by tf-idf, using temporal period (", yrs, " yr) as the 'document'"),
+    x = "",
+    y = "count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+  ggsave("figures/laborBigrams_clc.jpg",w =10, h=6, units = "in") #h=11,
+
+
+  
+  
+  
+  laborBigrams_count <- laborBigrams_v2 %>%
+  group_by(year,term) %>%
+  count(term,wt=count) %>%
+  filter(n>3)
+  
+    labor_oneRowPerDocument <- laborBigrams_count %>%
+    mutate(period = as.numeric(year) - as.numeric(year) %% 5) %>%
+    group_by(period, term) %>%
+    dplyr::summarize(count = sum(n)) %>%
+    ungroup() %>%
+    mutate(id_number = period) %>%
+    filter(!is.na(period)) %>%
+    filter(!is.na(term)) %>%
+    filter(!is.na(id_number))
+  
+  labor_tfidf <- labor_oneRowPerDocument %>%
+    bind_tf_idf(term, id_number, count) %>%
+    arrange(desc(tf_idf))
+  
+    labor_top_debates_per_unit <- labor_tfidf %>%
+    group_by(period) %>%
+    arrange(desc(tf_idf)) %>%
+    slice(seq_len(20)) %>%
+    ungroup() 
+  
+   map_laborBigrams_tp_ipf_clc <- ggplot(labor_top_debates_per_unit,
+           aes(y = count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum))) +
+    geom_col(fill="blueviolet") +
+    facet_wrap(~period, scales = "free", ncol=3) +
+    scale_x_reordered() +
+    coord_flip() +
+    guides(fill=FALSE, color = FALSE, line = FALSE) +
+    labs(#title = paste0("words that distinguished labor speeches per ", yrs, "-yr period"),
+         # subtitle = paste0("differential attention is calculated by tf-idf, using temporal period (", yrs, " yr) as the 'document'"),
+         y = "count",
+         x = "") +
+    theme_minimal() +
+    theme(#aspect.ratio=8/11,
+      plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+      axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+      axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+      axis.line=element_line(color="#32127a"),
+      axis.ticks=element_line(color="#32127a"),
+      strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank())
+   
+     ggsave("figures/laborBigrams_tp_ipf_clc.jpg",w =10, h=10, units = "in") #h=11,
+
+# ggplotly(map_laborBigrams_top25, tooltip="text", dynamicTicks = FALSE) %>%
+#   style(hoverlabel=list(font=list(family="IBM Plex Mono",
+#                                   size=11))) %>%
+#   layout(font=list(color="#32127a",family="IBM Plex Mono"),
+#          xaxis=list(color="#32127a",
+#                     linecolor="#32127a",
+#                     tickfont=list(color="#32127a")),
+#          yaxis=list(color="#32127a",
+#                     linecolor="#32127a",
+#                     tickfont=list(color="#32127a"))) %>%
+#   saveWidget("figures/labor_bigrams_clc.html",selfcontained = F)
+  
+
+
+# load(verbose=TRUE,file="data/R/tables/labor_bigrams_by_year_v2.Rda")
+
+```

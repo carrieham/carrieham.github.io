@@ -1,0 +1,486 @@
+---
+title: "CLC text mining"
+output:
+  html_document:
+    pandoc_args:
+    - +RTS
+    - "-M64G"
+    - "-RTS"
+    self_contained: no
+    df_print: paged
+    highlighter: haddock
+    toc: true
+    toc_float: true
+    css: styles.css
+    includes:
+      in_header: header.html
+---
+
+<p>
+
+<center><font size="3">`r Sys.Date()`</font></center>
+
+</p>
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+#quanteda_options(tokens_block_size = 50000)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(bookdown,
+       data.table,
+       DataTables,
+       dplyr, 
+       DT,
+       htmltools,
+       htmlwidgets,
+       forcats,
+       plotly,
+       quanteda,
+       stopwords,
+       tictoc,
+       tidyverse, 
+       tidytext,
+       tokenizers,
+       vroom)
+
+```
+
+### PAPER
+
+methods: how do different text mining approaches spotlight different historical trends/fluctuations/moments in labor-environmental (labor? environmental?) issues since the 1960s? (i.e., compare the methods)
+
+-   period distinctiveness (tf-ipf)
+-   textual averages (triples)
+-   convergence/divergence (topic models + word co-occurrence networks)
+
+### UPDATES
+-   re-ran all prior analyses
+-   top bigrams by period
+-   word co-occurence networks
+-   topic modeling
+
+</p>
+
+```{r input data, include=FALSE, cache=TRUE, cache.lazy=FALSE}
+
+# load("data/enviroLaborSpeeches.Rda")
+# enviroLaborSpeeches <- enviroLaborSpeeches %>%
+#   as_tibble() %>%
+#   select(year,
+#          date,
+#          chamber,
+#          environment,
+#          labor,
+#          speech_id,
+#          speech,
+#          total_annual_speeches)
+
+enviroKeywords <- c("environmental") %>%
+  as_tibble()
+
+laborKeywords <- c("labor") %>%
+  as_tibble()
+
+hein_enviroKeywords <- "data/phrase_clusters/keywords.txt" %>%
+  vroom(delim="|") %>%
+  filter(topic=="environment") %>%
+  select(phrase) %>%
+  rename(keyword=phrase)
+
+hein_enviroExcluded <- "data/phrase_clusters/false_matches.txt" %>%
+  vroom(delim="|") %>%
+  filter(topic=="environment") %>%
+  select(phrase) %>%
+  rename(excluded_phrase=phrase)
+
+hein_enviroIncluded <- "data/phrase_clusters/topic_phrases.txt" %>%
+  vroom(delim="|") %>%
+  filter(topic=="environment") %>%
+  select(phrase) %>%
+  rename(topic_phrase=phrase)
+
+hein_laborKeywords <- "data/phrase_clusters/keywords.txt" %>%
+  vroom(delim="|") %>%
+  filter(topic=="labor") %>%
+  select(phrase) %>%
+  rename(keyword=phrase)
+
+hein_laborExcluded <- "data/phrase_clusters/false_matches.txt" %>%
+  vroom(delim="|") %>%
+  filter(topic=="labor") %>%
+  select(phrase) %>%
+  rename(excluded_phrase=phrase)
+
+hein_laborIncluded <- "data/phrase_clusters/topic_phrases.txt" %>%
+  vroom(delim="|") %>%
+  filter(topic=="labor") %>%
+  select(phrase) %>%
+  rename(topic_phrase=phrase)
+
+hein_badSyntax <- "data/vocabulary/master_list.txt" %>%
+  vroom(delim="|") %>%
+  rename("classify" = "_classify") %>%
+  filter(classify != "vocab") %>%
+  mutate(phrase=str_replace_all(phrase," ","_"))
+
+```
+
+### ADDITIONAL PROCESSING
+
+#### steps
+-   cross-checked hein 2016 vs. my scraped 2016 speeches. 
+-   tracked down "remain_sept" bigram popping up in later years--related to budgetary language included in the full text of bills/amendments read out loud in congress; this kind of "speech" was excluded from the hein 1973-2016 dataset. i'm working on a way to exclude them from 2016-2024 data.
+-   re-scraped code to extract section headers and compared the speeches present in my scraped 2016 speeches but absent from hein 2016 speeches. 
+-   removed speeches meeting following conditions:
+    -   speaker is:
+        -   The PRESIDING OFFICER
+        -   The SPEAKER
+        -   The SPEAKER Pro Tempore
+        -   The CHAIR
+        -   The Acting CHAIR
+  -   speech begins with:
+        -   “for himself”
+        -   “for herself”
+        -   “for Mr”
+        -   “for Mrs”
+        -   “for Ms”
+        -   “from the Committee on”
+        -   “for the Committee on”
+        -   “Committee on”
+        -   “was allowed to speak”
+        -   “asked and was given”
+        -   “presented”
+        -   “submitted the following”
+        -   “submitted an amendment”
+        -   “S. Res. [:digit:]+
+        -   “H. Res. [:digit:]+
+        -   “S. [:digit:]+”
+        -   “H.R. [:digit:]+”
+        -   “addressed the Chair”
+
+#### next steps:
+
+after above processing, there are significantly more speeches in earlier (hein data) years that recent years. i suspect this is because (1) there are a good number of typos due to OCR in earliest years (e.g., "Tihe SPEAKER" instead of "The SPEAKER") and (2) earlier speeches contain a lot of very, very short, extraneous speeches/exchanges that for some reason are not in more recent Congressional Record speeches (e.g., "Yes."). i plan to:
+
+-   correct the most common/prevalent typos in earlier speeches
+-   filter speeches to be > 10(?) words
+
+#### all speeches: 
+...
+```{r speeches over time all, echo=FALSE, cache=TRUE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/all_speeches_prop_by_year.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+### KEYWORDS
+
+<br>
+</p>
+#### environmental keyword
+
+```{r enviro keywords , echo=FALSE}
+enviroKeywords
+```
+<br>
+</p>
+
+#### labor keyword
+
+```{r labor keywords , echo=FALSE}
+laborKeywords
+```
+<br>
+</p>
+
+#### hein topic: environmental
+<b>keywords:</b>
+
+```{r hein enviro keywords, echo=FALSE}
+hein_enviroKeywords
+```
+
+<b>included phrases:</b>
+```{r hein included enviro phrases, echo=FALSE}
+hein_enviroIncluded
+```
+
+<b>excluded phrases:</b>
+```{r hein excluded enviro phrases, echo=FALSE}
+hein_enviroExcluded
+```
+<br>
+</p>
+
+#### hein topic: labor
+<b>keywords:</b>
+
+```{r hein labor keywords, echo=FALSE}
+hein_laborKeywords
+```
+
+<b>included phrases:</b>
+```{r hein included labor phrases, echo=FALSE}
+hein_laborIncluded
+```
+
+<b>excluded phrases:</b>
+```{r hein excluded labor phrases, echo=FALSE}
+hein_laborExcluded
+```
+<br>
+</p>
+
+### SPEECHES
+
+#### all speeches: 
+
+```{r speeches over time , echo=FALSE, cache=TRUE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/enviroLabor_speeches_prop_by_year.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<p>
+<center>enviro speeches  (sample of n=1 per year):</center>
+...
+```{r enviro  speeches, echo=FALSE, cache=TRUE, eval=FALSE}
+
+enviroLaborSpeeches %>%
+  filter(environment=="Yes" & is.na(labor)==TRUE) %>%
+  select(year,chamber,environment,labor,speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(year)
+
+```
+<br>
+</p>
+
+<p>
+<center>labor speeches  (sample of n=1 per year):</center>
+...
+```{r labor  speeches, echo=FALSE, cache=TRUE, eval=FALSE}
+
+enviroLaborSpeeches %>%
+  filter(is.na(environment)==TRUE & labor=="Yes") %>%
+  select(year,chamber,environment,labor,speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(year)
+
+```
+<br>
+</p>
+
+<p>
+<center>enviro-labor speeches  (sample of n=1 per year):</center>
+...
+```{r enviroLabor  speeches, echo=FALSE, cache=TRUE, eval=FALSE}
+
+enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  select(year,chamber,environment,labor,speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(year)
+
+```
+<br>
+</p>
+
+### TOKENS
+#### top 25 bigrams:
+
+<center>enviro </center>
+...
+```{r enviro  bigram counts, echo=FALSE, message=FALSE, cache=FALSE, cache.lazy = FALSE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/enviro_bigrams_top25_.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>labor </center>
+...
+```{r labor  bigram counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/labor_bigrams_top25_.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<center>enviro-labor </center>
+...
+```{r enviroLabor  bigram counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/enviroLabor_bigrams_top25_.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+</p>
+
+<p>
+
+#### tokens by year 
+
+##### top 20 enviro tokens per 20-year period (since 1900)
+...
+```{r enviro bigram counts by year 20, echo=FALSE, message=FALSE, cache=TRUE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/enviro_bigrams_top25_20yr.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<br>
+
+</p>
+
+<p>
+##### top 20 labor tokens per 20-year period (since 1900)
+...
+```{r labor bigram counts by year 20, echo=FALSE, message=FALSE, cache=TRUE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/labor_bigrams_top25_20yr.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<br>
+
+</p>
+
+<p>
+##### top 20 enviroLabor tokens per 20-year period (since 1900)
+...
+```{r enviroLabor bigram counts by year 20, echo=FALSE, message=FALSE, cache=TRUE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/enviroLabor_bigrams_top25_20yr.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<br>
+</p>
+<p>
+
+##### top 20 enviro tokens per 10-year period (since 1960)
+...
+```{r enviro  bigram counts by year, echo=FALSE, message=FALSE, cache=TRUE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/enviro_bigrams_top25_10yr.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### top 20 labor tokens per 10-year period (since 1960)
+...
+```{r labor bigram counts by year, echo=FALSE, message=FALSE, cache=TRUE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/labor_bigrams_top25_10yr.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+##### top 20 enviro-labor tokens per 10-year period (since 1960)
+...
+```{r enviro-labor bigram counts by year, echo=FALSE, message=FALSE, cache=TRUE, eval=FALSE}
+
+tags$iframe(
+  src = "figures/enviroLabor_bigrams_top25_10yr.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=500,
+  width="100%"
+)
+
+```
+
+<br>
+
+</p>
+
+<p>
+
+### NEXT STEPS
+-   analysis:
+    -   triples
+    -   topic modeling 
+-   validation:
+    -   are there meaningful differences between daily vs. bound speeches?
+    -   validating scraped 2016-2024 data cleaning/processing against stanford 1873-2016 data cleaning/processing
+</p>
+
+::: {.tocify-extend-page data-unique="tocify-extend-page" style="height: 0;"}
+:::

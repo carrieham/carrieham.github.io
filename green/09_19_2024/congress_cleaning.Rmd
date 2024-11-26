@@ -1,0 +1,308 @@
+---
+title: "congress_manual"
+author: "Carrie Hamilton"
+date: "2024-07-22"
+output: html_document
+---
+
+########need to combine and summarize full speech dataset, to find proportion from each year that are environmental speeches
+
+########need to investigate why daily_descr has more entries than daily_speeches
+########need to investigate why bound_descr has more entries than bound_speeches
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+p_load(tidyverse, congress, httr, federalregister, readxl, xml2, sparklyr, vroom, stopwords, data.table, tictoc)
+
+```
+
+
+```{r dictionaries, echo=FALSE}
+
+# KEY WORDS
+enviroVocab <- read_csv("data/enviro_keywords_ai.csv")
+laborVocab <- read_csv("data/labor_keywords_ai.csv")
+
+enviroVocabString <- enviroVocab %>%
+  pull(enviroKeyword) %>%
+  paste(collapse = "|") %>%
+  str_replace_all(" ","[:blank:]")
+
+laborVocabString <- laborVocab %>%
+  pull(laborKeyword) %>%
+  paste(collapse = "|") %>%
+  str_replace_all(" ","[:blank:]") %>%
+  str_replace_all("\\\\b","\\b")
+
+# # ENVIRO KEY WORDS
+# enviroVocab_oxford <- c("active travel", "air-source", "carbon capture", 
+#                  "carbon footprint", "carbon", "climate change",
+#                  "climate crisis", "climate emergency", "climate refugee", 
+#                  "climate strikes", "CO2", "decoupling", "degrowth",
+#                  "eco-anxiety", "ecocide", "ecosystem services", "emissions",
+#                  "extreme weather", "extreme weather", "flood", 
+#                  "food insecurity", "food miles", "global heating",
+#                  "global warming", "greenhouse effect", "ground-source",
+#                  "H2O", "kaitiakitanga", "mass extinction", "microgrid",
+#                  "microplastic", "natural capital", "NOX", "overconsumption",
+#                  "rain garden", "range anxiety", "retrofit", "single-use", 
+#                  "smart charging", "superstorm", "sustainability",
+#                  "tipping point", "unsustainable", "urban agriculture",
+#                  "vertical farming", "water insecurity", "wildfire", "windmill")
+# 
+# enviroVocab_manual <- c("environmental", "natural environment", "ecolog", "electric vehicle",
+#                         "decarbonize", "natural resource*", "energy crisis", "renewable")
+# 
+# enviroVocab <- c(enviroVocab_oxford,enviroVocab_manual)
+# 
+# enviroVocabString <- enviroVocab %>%
+#   paste(collapse = "|") %>%
+#   str_replace_all(" ","[:blank:]")
+# 
+# # LABOR KEY WORDS
+# laborVocab <- c("labor","unions","jobs","worker","working american","working class")
+#                 #"apprenticeship","working conditions","wages")
+# 
+# laborVocabString <- laborVocab %>%
+#   paste(collapse = "|") %>%
+#   str_replace_all(" ","[:blank:]")
+# 
+# # OUTPUT
+# as_tibble(enviroVocab)
+# as_tibble(laborVocab)
+# 
+# # CLEAN WORKSPACE
+# rm(enviroVocab_oxford,enviroVocab_manual)
+
+```
+
+```{r daily data, echo=FALSE, warning=FALSE, message=FALSE}
+#1/5/1981-9/9/2016
+
+# INPUT FILES INTO R
+daily_speechesFiles <- list.files(path="data/hein-daily/speeches",full.names=TRUE)
+daily_descrFiles <- list.files(path="data/hein-daily/descr",full.names=TRUE)
+daily_speechesFiles_update <- list.files(path="dataUpdates/data/txt_by_cr",full.names=TRUE)
+
+
+# MERGE FILES
+daily_speeches_old <- daily_speechesFiles %>%
+  vroom(delim="|")
+daily_descr_old <- daily_descrFiles %>%
+  vroom(delim="|")
+daily_speeches_update <- daily_speechesFiles_update %>%
+  vroom(delim="|") %>%
+  filter(is.na(process)==TRUE) %>%
+  select(-page,-process) %>%
+  mutate(year=substr(date,1,4)) 
+
+# COMBINE DESC + SPEECHES
+daily_full_old <- daily_speeches_old %>%
+  left_join(daily_descr_old) %>%
+  select(speech_id,
+         speech,
+         chamber,
+         date,
+         speaker,
+         file) %>%
+  mutate(year=substr(date,1,4)) %>%
+  filter(year!="2016") 
+
+
+# COMBINE HEIN + UPDATED SPEECHES, COUNTS
+daily_full <- daily_full_old %>%
+  rbind(daily_speeches_update) %>%
+  group_by(year) %>%
+  mutate(total_annual_speeches=n()) %>%
+  ungroup() %>%
+  as.data.table()
+
+#3841362
+
+# CLEAN WORKSPACE
+rm(daily_speeches_old,daily_descr_old,daily_speeches_update,daily_full_old)
+gc()
+
+# OUTPUT
+# write_csv(daily_full,"data/hein-daily/daily_full.csv")
+head(daily_full)
+
+# CLEAN WORKSPACE
+# rm(daily_full)
+
+```
+
+```{r bound data, echo=FALSE, warning=FALSE, message=FALSE}
+#3/4/1983-12/22/2010
+
+# INPUT FILES INTO R
+bound_speechesFiles <- list.files(path="data/hein-bound/speeches",full.names=TRUE)
+bound_descrFiles <- list.files(path="data/hein-bound/descr",full.names=TRUE)
+# bound_byspeakerFiles <- list.files(path="data/hein-bound/byspeaker",full.names=TRUE)
+# bound_bypartyFiles <- list.files(path="data/hein-bound/byparty",full.names=TRUE)
+# bound_SpeakerMapFiles <- list.files(path="data/hein-bound/SpeakerMap",full.names=TRUE)
+
+# MERGE FILES
+bound_speeches <- bound_speechesFiles %>%
+  vroom(delim="|")
+bound_descr <- bound_descrFiles %>%
+  vroom(delim="|")
+
+# COMBINE DESC + SPEECHES
+bound_full <- bound_speeches %>%
+  left_join(bound_descr) %>%
+  select(speech_id,
+         speech,
+         chamber,
+         date,
+         speaker,
+         file) %>%
+  mutate(year=substr(date,1,4)) %>%
+  filter(year<=1980) %>%
+  group_by(year) %>%
+  mutate(total_annual_speeches=n()) %>%
+  ungroup() %>%
+  as.data.table()
+  # filter(grepl(enviroVocabString, speech, ignore.case = TRUE))
+#13594354
+
+# CLEAN WORKSPACE
+rm(bound_speeches,bound_descr)
+gc()
+
+# OUTPUT
+# write_csv(bound_full,"data/hein-bound/bound_full.csv")
+head(bound_full)
+
+# CLEAN WORKSPACE
+# rm(bound_full)
+
+```
+
+```{r subset enviro, echo=FALSE, warning=FALSE, message=FALSE}
+
+# SUBSET TO ENVIRO SPEECHES
+Sys.time()
+tic()
+daily_full_enviro <- daily_full %>%
+  filter(speech %ilike% enviroVocabString) 
+toc()
+# old keywords: 91,651
+# new keywords: 212,482
+# new keywords #2: 203,362
+
+Sys.time()
+tic()
+bound_full_enviro <- bound_full %>%
+  filter(speech %ilike% enviroVocabString) 
+toc()
+# old keywords: 74,269
+# new keywords: 435,539
+# new keywords #2: 426,345
+```
+
+```{r merge enviro, echo=FALSE, warning=FALSE, message=FALSE}
+
+# MERGE ENVIRO
+tic()
+enviroSpeeches <- rbind(bound_full_enviro,
+                        daily_full_enviro) %>%
+  mutate(environment="Yes")
+
+# OUTPUT
+save(enviroSpeeches,file="data/enviroSpeeches.Rda")
+toc()
+```
+
+```{r subset labor, echo=FALSE, warning=FALSE, message=FALSE}
+
+# SUBSET TO LABOR SPEECHES
+tic()
+Sys.time()
+daily_full_labor <- daily_full %>%
+  filter(speech %ilike% laborVocabString) 
+# old keywords: 330,241
+# new keywords: 367,447
+# new keywords #2: 367,126
+toc()
+
+Sys.time()
+tic()
+bound_full_labor <- bound_full %>%
+  filter(speech %ilike% laborVocabString) 
+# old keywords: 375,851
+# new keywords: 551,942
+# new keywords #2: 551,942
+toc()
+
+```
+
+```{r merge labor, echo=FALSE, warning=FALSE, message=FALSE}
+
+# MERGE LABOR
+Sys.time()
+tic()
+laborSpeeches <- rbind(bound_full_labor,
+                       daily_full_labor) %>%
+  mutate(labor="Yes")
+toc()
+
+
+# OUTPUT
+save(laborSpeeches,file="data/laborSpeeches.Rda")
+
+```
+
+```{r merge all, echo=FALSE, warning=FALSE, message=FALSE}
+
+# MERGE ALL
+Sys.time()
+tic()
+enviroLaborSpeeches <- full_join(enviroSpeeches,laborSpeeches)
+toc()
+
+
+# OUTPUT
+save(enviroLaborSpeeches,file="data/enviroLaborSpeeches.Rda")
+fwrite(enviroLaborSpeeches,"data/enviroLaborSpeeches.csv")
+
+```
+
+```{r ARCHIVE}
+
+# # MERGE DAILY + BOUND ENVIRO SPEECHES
+# tic()
+# enviroSpeeches <- rbind(bound_full_enviro,daily_full_enviro) %>%
+#   mutate(environment="Yes")
+# toc()
+# # old keywords: 165920
+# # new keywords:
+# # new keywords #2: 
+# 
+# # MERGE DAILY + BOUND LABOR SPEECHES
+# tic()
+# laborSpeeches <- rbind(bound_full_labor,daily_full_labor) %>%
+#   mutate(labor="Yes")
+# toc()
+# # old keywords: 706092
+# # new keywords:
+# # new keywords #2: 
+# 
+# # MERGE ALL
+# tic()
+# enviroLaborSpeeches <- full_join(enviroSpeeches,laborSpeeches)
+# toc()
+# # old keywords: 820908
+# # new keywords:
+# # new keywords #2: 
+# 
+# # OUTPUT
+# save(enviroLaborSpeeches,file="data/enviroLaborSpeeches.Rda")
+# fwrite(enviroLaborSpeeches,"data/enviroLaborSpeeches.csv")
+
+```
+

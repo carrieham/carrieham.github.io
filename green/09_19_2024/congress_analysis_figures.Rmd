@@ -1,0 +1,1578 @@
+---
+title: "CLC text mining"
+output:
+  html_document:
+    pandoc_args:
+    - +RTS
+    - "-M64G"
+    - "-RTS"
+    code_folding: hide
+    self_contained: no
+    df_print: paged
+    highlighter: haddock
+    toc: true
+    toc_float: true
+    css: styles.css
+    includes:
+      in_header: header.html
+---
+<p>
+
+<center><font size="3">`r Sys.Date()`</font></center>
+
+</p>
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+#quanteda_options(tokens_block_size = 50000)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(verbose=TRUE,bookdown,
+       data.table,
+       DataTables,
+       dplyr, 
+       DT,
+       htmlwidgets,
+       forcats,
+       plotly,
+       quanteda,
+       stopwords,
+       tictoc,
+       tidyverse, 
+       tidytext,
+       tokenizers,
+       vroom)
+
+widget_file_size <- function(p) {
+  d <- tempdir()
+  withr::with_dir(d, htmlwidgets::saveWidget(p, "index.html"))
+  f <- file.path(d, "index.html")
+  mb <- round(file.info(f)$size / 1e6, 3)
+  message("File is: ", mb," MB")
+}
+
+create_dt <- function(x){
+  DT::datatable(x,rownames=FALSE) #filter='top')
+  # datatable(extensions = 'Buttons',
+  #           options = list(dom = 'lfrtipB',
+  #                          buttons = c('copy', 'csv', 'pdf'),
+  #                          lengthMenu = list(c(10,25,50,-1),
+  #                                            c(10,25,50,"All"))))
+}
+
+```
+
+### DATA
+```{r input data, include=FALSE, cache=TRUE, cache.lazy=FALSE}
+
+load(verbose=TRUE,"data/enviroLaborSpeeches.Rda")
+
+# enviroLaborSpeeches <- vroom("data/enviroLaborSpeeches.csv",
+#                         show_col_types = FALSE) %>%
+enviroLaborSpeeches <- enviroLaborSpeeches %>%
+  as_tibble() %>%
+  select(year,
+         date,
+         chamber,
+         environment,
+         labor,
+         speech_id,
+         speech,
+         last_name,
+         state,
+         total_annual_speeches) #%>%
+  # filter(year>=1900) #%>%
+  # mutate(speech=str_to_lower(speech))
+
+
+
+stopwords_iso <- stopwords("en", source = "stopwords-iso") 
+stopwords_manual <- c("absent","adjourn", "ask", "can", "chairman",
+                       "committee","con","democrat","etc","gentleladies",
+                       "gentlelady", "gentleman", "gentlemen", "gentlewoman",
+                       "gentlewomen","hereabout","hereafter","hereat", "hereby",
+                       "herein", "hereinafter", "hereinbefore", "hereinto", "hereof",
+                       "hereon", "hereto", "heretofore", "hereunder", "hereunto",
+                       "hereupon", "herewith", "month", "mr", "mrs", "nai", "nay",
+                       "none", "now", "part", "per", "pro", "republican",
+                       "say", "senator", "shall", "sir", "speak", "speaker",
+                       "tell", "thank", "thereabout", "thereafter", "thereagainst",
+                       "thereat", "therebefore", "therebeforn", "thereby", "therefor",
+                       "therefore", "therefrom", "therein", "thereinafter", "thereof",
+                       "thereon", "thereto", "theretofore", "thereunder", "thereunto",
+                       "thereupon", "therewith", "therewithal", "today", "whereabouts",
+                       "whereafter", "whereas", "whereat", "whereby","wherefore",
+                       "wherefrom", "wherein", "whereinto", "whereof", "whereon","whereto",
+                       "whereunder", "whereupon", "wherever", "wherewith", 
+                       "wherewithal", "will", "yea", "yes", "yield")
+
+stopwords_manual2 <- c("amendment",
+                       "american",
+                       "america",
+                       "bill", 
+                       "country", 
+                       "congress",
+                       "district","columbia",
+                       "federal", 
+                       "senate", 
+                       "house","representatives", "representatives",
+                       "law",
+                       "legislation",
+                       "percent",
+                       "president", 
+                       "printed", "record",
+                       "state", 
+                       "states", 
+                       "supreme","court",
+                       "unanimous","consent",
+                       "united","states","u.s.","us","state",
+                       "urge","colleagues",
+                       "washington", "d.c.",
+                       "white","house")
+
+stopwords <- c(stopwords_manual2,stopwords_manual,stopwords_iso)
+
+# ENVIRO KEY WORDS
+enviroVocab_oxford <- c("active travel", "air-source", "carbon capture", 
+                 "carbon footprint", "carbon", "climate change",
+                 "climate crisis", "climate emergency", "climate refugee", 
+                 "climate strikes", "CO2", "decoupling", "degrowth",
+                 "eco-anxiety", "ecocide", "ecosystem services", "emissions",
+                 "extreme weather", "extreme weather", "flood", 
+                 "food insecurity", "food miles", "global heating",
+                 "global warming", "greenhouse effect", "ground-source",
+                 "H2O", "kaitiakitanga", "mass extinction", "microgrid",
+                 "microplastic", "natural capital", "NOX", "overconsumption",
+                 "rain garden", "range anxiety", "retrofit", "single-use", 
+                 "smart charging", "superstorm", "sustainability",
+                 "tipping point", "unsustainable", "urban agriculture",
+                 "vertical farming", "water insecurity", "wildfire", "windmill")
+
+enviroVocab_manual <- c("environmental", "natural environment", "ecolog", "electric vehicle",
+                        "decarbonize", "natural resource*", "energy crisis", "renewable")
+
+enviroVocab <- c(enviroVocab_oxford,enviroVocab_manual) %>%
+  as_tibble()
+
+# LABOR KEY WORDS
+laborVocab <- c("labor","unions","jobs","worker","working american","working class") %>%
+  as_tibble()
+                #"apprenticeship","working conditions","wages")
+```
+
+#### [1] environmental/labor speeches
+1873-2016: [stanford hein project](https://data.stanford.edu/congress_text).
++   download bound edition speeches (1873-198?)
++   download daily edition speeches (1981-2016)
++   subset to enviro/labor speeches
+
+2016-2024: [congress.gov](https://www.congress.gov/search?q=%7B%22source%22%3A%22congrecord%22%7D)
++   daily edition speeches scraped
++   scraping tool built using modification of Devin Judge-Lord's [congressionalrecord R package](https://judgelord.github.io/congressionalrecord/) functions
++   3x steps:
+    +   download metadata
+    +   download htm files
+    +   convert to txt files
++   process + clean speeches using methods comparable to stanford hein project
++   subset to enviro/labor speeches
+
+##### enviro speeches (sample of n=1 per year):
+```{r, echo=FALSE, cache=TRUE}
+
+# enviroLaborSpeeches %>%
+#   filter(environment=="Yes") %>%
+#   select(year,environment,labor,last_name,chamber,speech) %>%
+#   group_by(year) %>%
+#   sample_n(1) %>%
+#   arrange(desc(year)) %>%
+#   create_dt()
+
+rowCallback <- c(
+  "function(row, data){",
+  "  $('td:eq(5)',row).attr('title', data[6])",
+  "  }"  
+)
+
+enviroLaborSpeeches %>%
+  filter(environment=="Yes") %>%
+  mutate(speech_text = speech %>% str_sub(0,30) %>% str_c("...")) %>%
+  select(year,environment,labor,last_name,speech_text,speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(desc(year)) %>%
+  datatable(rownames=FALSE,
+            options = list(columnDefs = list(list(targets=6, visible=FALSE)),
+                           rowCallback = JS(rowCallback))) %>%
+  saveWidget("enviro_speeches.html", selfcontained = F, libdir = "lib") 
+
+
+```
+
+##### labor speeches (sample of n=1 per year):
+```{r, echo=FALSE, cache=TRUE}
+
+# enviroLaborSpeeches %>%
+#   filter(labor=="Yes") %>%
+#   select(year,environment,labor,last_name,chamber,speech) %>%
+#   group_by(year) %>%
+#   sample_n(1) %>%
+#   arrange(desc(year)) %>%
+#   create_dt()
+
+rowCallback <- c(
+  "function(row, data){",
+  "  $('td:eq(5)',row).attr('title', data[6])",
+  "  }"  
+)
+
+enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  mutate(speech_text = speech %>% str_sub(0,30) %>% str_c("...")) %>%
+  select(year,environment,labor,last_name,speech_text,speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(desc(year)) %>%
+  datatable(rownames=FALSE,
+            options = list(columnDefs = list(list(targets=6, visible=FALSE)),
+                           rowCallback = JS(rowCallback))) %>%
+  saveWidget("labor_speeches.html", selfcontained = F, libdir = "lib") 
+
+```
+
+##### enviroLabor speeches (sample of n=1 per year):
+```{r, echo=FALSE, cache=TRUE}
+
+# enviroLaborSpeeches %>%
+#   filter(environment=="Yes" & labor=="Yes") %>%
+#   select(year,environment,labor,last_name,chamber,speech) %>%
+#   group_by(year) %>%
+#   sample_n(1) %>%
+#   arrange(desc(year)) %>%
+#   create_dt()
+
+rowCallback <- c(
+  "function(row, data){",
+  "  $('td:eq(5)',row).attr('title', data[6])",
+  "  }"  
+)
+
+enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  mutate(speech_text = speech %>% str_sub(0,30) %>% str_c("...")) %>%
+  select(year,environment,labor,last_name,speech_text,speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(desc(year)) %>%
+  datatable(rownames=FALSE,
+            options = list(columnDefs = list(list(targets=6, visible=FALSE)),
+                           rowCallback = JS(rowCallback))) %>%
+  saveWidget("enviroLabor_speeches.html", selfcontained = F, libdir = "lib") 
+
+```
+
+#### [2] environmental/labor keywords
+##### environmental keywords: oxford
+source: ['The language of climate change and environmental sustainability'](https://www.oed.com/discover/the-language-of-climate-change/?tl=true) (Oxford English Dictionary)
+```{r enviro vocab oxford, echo=FALSE}
+enviroVocab_oxford
+```
+
+##### environmental keywords: my additions
+```{r enviro vocab manual, echo=FALSE}
+enviroVocab_manual
+```
+
+##### labor keywords (my compilation)
+```{r labor vocab, echo=FALSE}
+laborVocab
+```
+
+#### [3] stopwords
+##### stopwords: iso
+source: [stopwords R package](https://cran.r-project.org/web/packages/stopwords/readme/README.html)
+```{r stopwords iso, echo=FALSE}
+stopwords_iso %>%
+  as_tibble()
+```
+
+##### stopwords: stanford project additions
+source: Gentzkow, M, J. Shapiro, & M. Taddy. 2018. [Congressional Record for the 43rd-114th Congresses: Parsed Speeches and Phrase Counts](https://data.stanford.edu/congress_text).
+```{r stopwords manual, echo=FALSE}
+stopwords_manual %>%
+  as_tibble()
+```
+
+##### stopwords: my additions
+```{r stopwords manual2, echo=FALSE}
+stopwords_manual2 %>%
+  as_tibble()
+```
+
+### APPROACH
+#### [1] join hein bound/daily speeches with desc metadata files
+
+#### [2] merge hein bound/daily speeches with desc metadata files
+
+#### [3] scrape congress.gov for 2016-2024
+
+#### [4] merge hein and congress.gov data for full 1873-2024 dataset
+
+#### [5] subset to speeches with at least one environmental or labor keyword
+
+#### [6] tokenize + remove stop words
+##### create tokens
+
+```{r enviro tokens, message=FALSE, results=FALSE, cache=TRUE}
+
+# ##### TOKENS #####
+tic()
+enviroTokens <- enviroLaborSpeeches %>%
+  filter(environment=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+#
+# #####SAVE FILE
+save(enviroTokens,file="data/R/enviroTokens.Rda")
+
+##### LOAD FILE
+# load(verbose=TRUE,"data/R/enviroTokens.Rda")
+
+# ##### EARLIEST + LATEST TOKENS #####
+enviroTokens_earliest <- enviroTokens %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(year,desc(count)) %>%
+  head(n=50)
+save(enviroTokens_earliest,file="data/R/tables/enviroTokens_earliest.Rda")
+enviroTokens_latest <- enviroTokens %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(desc(year),desc(count)) %>%
+  head(n=50)
+save(enviroTokens_latest,file="data/R/tables/enviroTokens_latest.Rda")
+
+```
+
+```{r enviro bigrams, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+# ##### BIGRAMS #####
+tic()
+enviroBigrams <- enviroLaborSpeeches %>%
+  filter(environment=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+#
+# ##### SAVE FILE
+save(enviroBigrams,file="data/R/enviroBigrams.Rda")
+
+##### LOAD FILE
+# load(verbose=TRUE,"data/R/enviroBigrams.Rda")
+
+##### EARLIEST + LATEST BIGRAMS #####
+enviroBigrams_earliest <- enviroBigrams %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(year,desc(count)) %>%
+  head(n=50)
+save(enviroBigrams_earliest,file="data/R/tables/enviroBigrams_earliest.Rda")
+enviroBigrams_latest <- enviroBigrams %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(desc(year),desc(count)) %>%
+  head(n=50)
+save(enviroBigrams_latest,file="data/R/tables/enviroBigrams_latest.Rda")
+
+```
+
+```{r enviro triples, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### TRIPLES #####
+tic()
+enviroTriples <- enviroLaborSpeeches %>%
+  filter(environment=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=3) %>% #CREATE TRIPLES
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+#
+# ##### SAVE FILE
+save(enviroTriples,file="data/R/enviroTriples.Rda")
+
+##### LOAD FILE
+# load(verbose=TRUE,"data/R/enviroTriples.Rda")
+
+##### EARLIEST + LATEST TRIPLES #####
+enviroTriples_earliest <- enviroTriples %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(year,desc(count)) %>%
+  head(n=50)
+save(enviroTriples_earliest,file="data/R/tables/enviroTriples_earliest.Rda")
+enviroTriples_latest <- enviroTriples %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(desc(year),desc(count)) %>%
+  head(n=50)
+save(enviroTriples_latest,file="data/R/tables/enviroTriples_latest.Rda")
+
+
+```
+
+```{r labor tokens, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### TOKENS #####
+tic()
+laborTokens <- enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(laborTokens,file="data/R/laborTokens.Rda")
+
+##### LOAD FILE
+# load(verbose=TRUE,"data/R/laborTokens.Rda")
+
+##### EARLIEST + LATEST TOKENS #####
+laborTokens_earliest <- laborTokens %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(year,desc(count)) %>%
+  head(n=50)
+save(laborTokens_earliest,file="data/R/tables/laborTokens_earliest.Rda")
+laborTokens_latest <- laborTokens %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(desc(year),desc(count)) %>%
+  head(n=50)
+save(laborTokens_latest,file="data/R/tables/laborTokens_latest.Rda")
+
+```
+
+```{r labor bigrams, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### BIGRAMS #####
+tic()
+laborBigrams <- enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(laborBigrams,file="data/R/laborBigrams.Rda")
+
+##### LOAD FILE
+# load(verbose=TRUE,"data/R/laborBigrams.Rda")
+
+##### EARLIEST + LATEST BIGRAMS #####
+laborBigrams_earliest_table <- laborBigrams %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(year,desc(count)) %>%
+  head(n=50)
+save(laborBigrams_earliest_table,file="data/R/tables/laborBigrams_earliest.Rda")
+laborBigrams_latest_table <- laborBigrams %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(desc(year),desc(count)) %>%
+  head(n=50)
+save(laborBigrams_latest_table,file="data/R/tables/laborBigrams_latest.Rda")
+
+```
+
+```{r labor triples, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### TRIPLES #####
+tic()
+laborTriples <- enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=3) %>% #CREATE TRIPLES
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(laborTriples,file="data/R/laborTriples.Rda")
+
+##### LOAD FILE
+# load(verbose=TRUE,"data/R/laborTriples.Rda")
+
+##### EARLIEST + LATEST TRIPLES #####
+laborTriples_earliest <- laborTriples %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(year,desc(count)) %>%
+  head(n=50)
+save(laborTriples_earliest,file="data/R/tables/laborTriples_earliest.Rda")
+laborTriples_latest <- laborTriples %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(desc(year),desc(count)) %>%
+  head(n=50)
+save(laborTriples_latest,file="data/R/tables/laborTriples_latest.Rda")
+
+```
+
+```{r enviroLabor tokens, message=FALSE, results=FALSE, cache=TRUE}
+
+##### TOKENS #####
+tic()
+enviroLaborTokens <- enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE,
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         verbose=TRUE,
+         xptr=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(enviroLaborTokens,file="data/R/enviroLaborTokens.Rda")
+
+##### LOAD FILE
+# load(verbose=TRUE,"data/R/enviroLaborTokens.Rda")
+
+##### EARLIEST + LATEST TOKENS #####
+enviroLaborTokens_earliest <- enviroLaborTokens %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(year,desc(count)) %>%
+  head(n=50)
+save(enviroLaborTokens_earliest,file="data/R/tables/enviroLaborTokens_earliest.Rda")
+enviroLaborTokens_latest <- enviroLaborTokens %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(desc(year),desc(count)) %>%
+  head(n=50)
+save(enviroLaborTokens_latest,file="data/R/tables/enviroLaborTokens_latest.Rda")
+
+```
+
+```{r enviroLabor bigrams, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### BIGRAMS #####
+tic()
+enviroLaborBigrams <- enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(enviroLaborBigrams,file="data/R/enviroLaborBigrams.Rda")
+
+##### LOAD FILE
+# load(verbose=TRUE,"data/R/enviroLaborBigrams.Rda")
+
+##### EARLIEST + LATEST BIGRAMS #####
+enviroLaborBigrams_earliest <- enviroLaborBigrams %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(year,desc(count)) %>%
+  head(n=50)
+save(enviroLaborBigrams_earliest,file="data/R/tables/enviroLaborBigrams_earliest.Rda")
+enviroLaborBigrams_latest <- enviroLaborBigrams %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(desc(year),desc(count)) %>%
+  head(n=50)
+save(enviroLaborBigrams_latest,file="data/R/tables/enviroLaborBigrams_latest.Rda")
+
+```
+
+```{r enviroLabor triples, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE}
+
+##### TRIPLES #####
+tic()
+enviroLaborTriples <- enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  tokens_ngrams(n=3) %>% #CREATE TRIPLES
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+#####SAVE FILE
+save(enviroLaborTriples,file="data/R/enviroLaborTriples.Rda")
+
+##### LOAD FILE
+# load(verbose=TRUE,"data/R/enviroLaborTriples.Rda")
+
+##### EARLIEST + LATEST TRIPLES#####
+enviroLaborTriples_earliest <- enviroLaborTriples %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(year,desc(count)) %>%
+  head(n=50)
+save(enviroLaborTriples_earliest,file="data/R/tables/enviroLaborTriples_earliest.Rda")
+enviroLaborTriples_latest <- enviroLaborTriples %>%
+  select(year,speech_id,term,count,environment,labor) %>%
+  arrange(desc(year),desc(count)) %>%
+  head(n=50)
+save(enviroLaborTriples_latest,file="data/R/tables/enviroLaborTriples_latest.Rda")
+
+```
+
+### ANALYSIS: SPEECHES
+##### environmental speeches per year:
+```{r envt speech counts, echo=FALSE, cache=TRUE}
+
+enviroSpeeches_byYear <- enviroLaborSpeeches %>%
+  filter(environment=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+map_enviroSpeeches_byYear <- ggplot() +
+    geom_col(data=enviroSpeeches_byYear,
+             aes(x=year,y=n,
+                 text=paste("<b>",year,":</b> ",n," speeches",sep="")),
+             fill="aquamarine4") +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_enviroSpeeches_byYear, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("enviro_speeches_by_year.html", selfcontained = F, libdir = "lib")
+```
+
+```{r envt speech proportions, echo=FALSE, cache=TRUE}
+
+map_enviroSpeeches_prop_byYear <- ggplot() +
+    geom_col(data=enviroSpeeches_byYear,
+             aes(x=year,y=prop,
+                 text=paste("<b>",year,":</b> ",round(prop*100,1),"% of speeches",sep="")),
+             fill="aquamarine4") +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_enviroSpeeches_prop_byYear, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("enviro_speeches_prop_by_year.html", selfcontained = F, libdir = "lib")
+
+```
+
+##### labor speeches per year:
+```{r labor speech counts, echo=FALSE, cache=TRUE}
+
+laborSpeeches_byYear <- enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+map_laborSpeeches_byYear <- ggplot() +
+    geom_col(data=laborSpeeches_byYear,
+             aes(x=year,y=n,
+                 text=paste("<b>",year,":</b> ",n," speeches",sep="")),
+             fill="darkslateblue") +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_laborSpeeches_byYear, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("labor_speeches_by_year.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r labor speech proportions, echo=FALSE, cache=TRUE}
+
+map_laborSpeeches_prop_byYear <- ggplot() +
+    geom_col(data=laborSpeeches_byYear,
+             aes(x=year,y=prop,
+                 text=paste("<b>",year,":</b> ",round(prop*100,1),"% of speeches",sep="")),
+             fill="darkslateblue") +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_laborSpeeches_prop_byYear, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("labor_speeches_prop_by_year.html", selfcontained = F, libdir = "lib")
+
+```
+
+##### enviro-labor speeches per year:
+```{r enviro-labor speech counts, echo=FALSE, cache=TRUE}
+
+enviroLaborSpeeches_byYear <- enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+map_enviroLaborSpeeches_byYear <- ggplot() +
+    geom_col(data=enviroLaborSpeeches_byYear,
+             aes(x=year,y=n,
+                 text=paste("<b>",year,":</b> ",n," speeches",sep="")),
+             fill="blueviolet") +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_enviroLaborSpeeches_byYear, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("enviroLabor_speeches_by_year.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r enviroLabor speech proportions, echo=FALSE, cache=TRUE}
+
+enviroLaborSpeeches_prop_byYear <- enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(prop=n()/total_annual_speeches) %>%
+  arrange(desc(year))
+
+map_enviroLaborSpeeches_prop_byYear <- ggplot() +
+    geom_col(data=enviroLaborSpeeches_byYear,
+             aes(x=year,y=prop,
+                 text=paste("<b>",year,":</b> ",round(prop*100,1),"% of speeches",sep="")),
+             fill="blueviolet") +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_enviroLaborSpeeches_prop_byYear, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+ saveWidget("enviroLabor_speeches_prop_by_year.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r all speeches over time, echo=FALSE, cache=TRUE}
+
+allSpeeches_byYear <- rbind(mutate(enviroSpeeches_byYear,type="environment"),
+                            mutate(laborSpeeches_byYear,type="labor"),
+                            mutate(enviroLaborSpeeches_byYear,type="enviro-labor"))
+map_allSpeeches_prop_byYear <- ggplot() +
+    geom_line(data=allSpeeches_byYear,
+              aes(x=year,
+                  y=prop,
+                  group=3,
+                  color=type,
+                  text=paste("<b>",year,":</b> ",round(prop*100,1),"% of speeches",sep=""))) +
+  scale_color_manual(values=c("environment"="aquamarine4",
+                              "labor"="darkslateblue",
+                              "enviro-labor"="blueviolet")) +
+    guides(color=guide_legend(title = "")) +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_allSpeeches_prop_byYear, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         legend=list(xref="paper",
+                     x=0.5,xanchor='center',
+                     y=1,yanchor='top',
+                     orientation='h',
+                     traceorder="reversed",
+                     title=list(font=list(color="#32127a",family="IBM Plex Mono")),
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("speeches_prop_by_year.html", selfcontained = F, libdir = "lib")
+
+```
+
+
+### ANALYSIS: TOKENS
+#### token counts
+##### top 25 enviro tokens
+```{r enviro token counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+enviroTokens_count <- enviroTokens %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroTokens_count,file="data/R/tables/enviroTokens_count.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroTokens_count.Rda")
+
+map_enviroTokens_count <- ggplot() +
+    geom_col(data=enviroTokens_count,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             fill="aquamarine4") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_enviroTokens_count, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("enviro_tokens.html", selfcontained = F, libdir = "lib")
+```
+
+##### top 25 labor tokens
+```{r labor token counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+laborTokens_count <- laborTokens %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(laborTokens_count,file="data/R/tables/laborTokens_count.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/laborTokens_count.Rda")
+
+map_laborTokens_count <- ggplot() +
+    geom_col(data=laborTokens_count,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="darkslateblue") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_laborTokens_count, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("labor_tokens.html", selfcontained = F, libdir = "lib")
+```
+
+##### top 25 enviro-labor tokens
+```{r enviroLabor token counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroLaborTokens_count <- enviroLaborTokens %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroLaborTokens_count,file="data/R/tables/enviroLaborTokens_count.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLaborTokens_count.Rda")
+
+map_enviroLaborTokens_count <- ggplot() +
+    geom_col(data=enviroLaborTokens_count,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="blueviolet") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_enviroLaborTokens_count, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("enviroLabor_tokens.html", selfcontained = F, libdir = "lib")
+
+```
+
+
+#### bigram counts
+##### top 25 enviro bigrams
+```{r enviro bigram counts, message=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroBigrams_count <- enviroBigrams %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroBigrams_count,file="data/R/tables/enviroBigrams_count.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroBigrams_count.Rda")
+
+map_enviroBigrams_count <- ggplot() +
+    geom_col(data=enviroBigrams_count,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             fill="aquamarine4") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+
+##### make interactive
+ggplotly(map_enviroBigrams_count, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("enviro_bigrams.html", selfcontained = F, libdir = "lib")
+
+```
+
+##### top 25 labor bigrams
+```{r labor bigram counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+laborBigrams_count <- laborBigrams %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(laborBigrams_count,file="data/R/tables/laborBigrams_count.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/laborBigrams_count.Rda")
+
+map_laborBigrams_count <- ggplot() +
+    geom_col(data=laborBigrams_count,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="darkslateblue") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_laborBigrams_count, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("labor_bigrams.html", selfcontained = F, libdir = "lib")
+```
+
+##### top 25 enviro-labor bigrams
+```{r enviroLabor bigram counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroLaborBigrams_count <- enviroLaborBigrams %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroLaborBigrams_count,file="data/R/tables/enviroLaborBigrams_count.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLaborBigrams_count.Rda")
+
+map_enviroLaborBigrams_count <- ggplot() +
+    geom_col(data=enviroLaborBigrams_count,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="blueviolet") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_enviroLaborBigrams_count, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("enviroLabor_bigrams.html", selfcontained = F, libdir = "lib")
+
+```
+
+
+#### triple counts
+##### top 25 enviro triples
+```{r enviro triple counts, message=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroTriples_count <- enviroTriples %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroTriples_count,file="data/R/tables/enviroTriples_count.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroTriples_count.Rda")
+
+map_enviroTriples_count <- ggplot() +
+    geom_col(data=enviroTriples_count,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             fill="aquamarine4") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+
+##### make interactive
+ggplotly(map_enviroTriples_count, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("enviro_triples.html", selfcontained = F, libdir = "lib")
+
+```
+
+##### top 25 labor triples
+```{r labor triple counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+laborTriples_count <- laborTriples %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(laborTriples_count,file="data/R/tables/laborTriples_count.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/laborTriples_count.Rda")
+
+map_laborTriples_count <- ggplot() +
+    geom_col(data=laborTriples_count,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             #fill="lightslateblue") +
+             fill="darkslateblue") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_laborTriples_count, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("labor_triples.html", selfcontained = F, libdir = "lib")
+
+```
+
+##### top 25 enviro-labor triples
+```{r enviroLabor triple counts, echo=FALSE, cache=FALSE, cache.lazy = FALSE}
+
+enviroLaborTriples_count <- enviroLaborTriples %>%
+  as_tibble() %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(enviroLaborTriples_count,file="data/R/tables/enviroLaborTriples_count.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLaborTriples_count.Rda")
+
+map_enviroLaborTriples_count <- ggplot() +
+    geom_col(data=enviroLaborTriples_count,
+             aes(x=fct_reorder(term,n),
+                 y=n,
+                 text=paste("<b>",term,":</b> ",n,sep="")),
+             #color="blueviolet",
+             fill="blueviolet") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+##### make interactive
+ggplotly(map_enviroLaborTriples_count, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  partial_bundle() %>%
+  saveWidget("enviroLabor_triples.html", selfcontained = F, libdir = "lib")
+
+```
+
+
+#### tokens by year
+##### top 10 enviro tokens by year
+```{r enviro token counts by year, message=FALSE, cache=TRUE}
+
+enviro_tokens_by_year <- enviroTokens %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviro_tokens_by_year,file="data/R/tables/enviro_tokens_by_year.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviro_tokens_by_year.Rda")
+
+```
+
+##### top 10 labor tokens by year
+```{r labor token counts by year, message=FALSE, cache=TRUE}
+
+labor_tokens_by_year <- laborTokens %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+
+save(labor_tokens_by_year,file="data/R/tables/labor_tokens_by_year.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/labor_tokens_by_year.Rda")
+
+```
+
+##### top 10 enviroLabor tokens by year
+```{r enviroLabor token counts by year, message=FALSE, cache=TRUE}
+
+enviroLabor_tokens_by_year <- enviroLaborTokens %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviroLabor_tokens_by_year,file="data/R/tables/enviroLabor_tokens_by_year.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLabor_tokens_by_year.Rda")
+
+```
+
+##### top 10 enviro bigrams by year
+```{r enviro bigram counts by year, message=FALSE, cache=TRUE}
+
+enviro_bigrams_by_year <- enviroBigrams %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviro_bigrams_by_year,file="data/R/tables/enviro_bigrams_by_year.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviro_bigrams_by_year.Rda")
+
+```
+
+##### top 10 labor bigrams by year
+```{r labor bigram counts by year, message=FALSE, cache=TRUE}
+
+labor_bigrams_by_year <- laborBigrams %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(labor_bigrams_by_year,file="data/R/tables/labor_bigrams_by_year.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/labor_bigrams_by_year.Rda")
+
+```
+
+##### top 10 enviroLabor bigrams by year
+```{r enviroLabor bigram counts by year, message=FALSE, cache=TRUE}
+
+enviroLabor_bigrams_by_year <- enviroLaborBigrams %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviroLabor_bigrams_by_year,file="data/R/tables/enviroLabor_bigrams_by_year.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLabor_bigrams_by_year.Rda")
+
+```
+
+##### top 10 enviro triples by year
+```{r enviro triple counts by year, message=FALSE, cache=TRUE}
+
+enviro_triples_by_year <- enviroTriples %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviro_triples_by_year,file="data/R/tables/enviro_triples_by_year.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviro_triples_by_year.Rda")
+```
+
+##### top 10 labor triples by year
+```{r labor triple counts by year, message=FALSE, cache=TRUE}
+
+labor_triples_by_year <- laborTriples %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(labor_triples_by_year,file="data/R/tables/labor_triples_by_year.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/labor_triples_by_year.Rda")
+
+```
+
+##### top 10 enviroLabor triples by year
+```{r enviroLabor triple counts by year, message=FALSE, cache=TRUE}
+
+enviroLabor_triples_by_year <- enviroLaborTriples %>%
+  group_by(year) %>%
+  count(term,wt=count) %>%
+  top_n(10) %>%
+  arrange(desc(year),desc(n))
+save(enviroLabor_triples_by_year,file="data/R/tables/enviroLabor_triples_by_year.Rda")
+
+# load(verbose=TRUE,file="data/R/tables/enviroLabor_triples_by_year.Rda")
+
+```

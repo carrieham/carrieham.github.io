@@ -1,0 +1,480 @@
+---
+title: "congress_manual"
+author: "Carrie Hamilton"
+date: "2024-07-22"
+output: html_document
+---
+
+########need to combine and summarize full speech dataset, to find proportion from each year that are environmental speeches
+
+########need to investigate why daily_descr has more entries than daily_speeches
+########need to investigate why bound_descr has more entries than bound_speeches
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+p_load(tidyverse, congress, httr, federalregister, readxl, xml2, sparklyr, vroom, stopwords, data.table, tictoc, stringi)
+
+```
+
+```{r dictionaries, echo=FALSE}
+
+enviroVocab <- c("environmental")
+laborVocab <- c("\\blabor\\b")
+
+enviroVocabString <- enviroVocab %>%
+  paste(collapse = "|") %>%
+  str_replace_all(" ","[:blank:]")
+laborVocabString <- laborVocab %>%
+  paste(collapse = "|") %>%
+  str_replace_all(" ","[:blank:]")
+
+```
+
+```{r daily data update, echo=FALSE}
+
+# INPUT FILES INTO R
+daily_speechesFiles_update <- list.files(path="dataUpdates/data/txt_by_cr",full.names=TRUE)
+
+# MERGE FILES
+daily_speeches_update <- daily_speechesFiles_update %>%
+  vroom(delim="|") %>%
+  filter(is.na(process)==TRUE) %>%
+  # filter(!(header %ilike% "TEXT OF AMENDMENT|TEXT OF SENATE AMENDMENT")) %>%
+  select(-page) %>% #process
+  mutate(year=substr(date,1,4)) %>%
+  mutate(speech=str_remove(speech,"^of[:space:](Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming)"),
+         speech= str_remove(speech,"^[^[:alpha:]]*")) ###***CH added
+
+daily_114_desc <- "data/hein-daily/descr/descr_114.txt" %>%
+  vroom(delim="|")
+
+daily_114_old_enviro <- "data/hein-daily/speeches/speeches_114.txt" %>%
+  vroom(delim="|") %>%
+  left_join(daily_114_desc) %>%
+  filter(str_detect(date,"^2016")) %>%
+  mutate(year=substr(date,1,4)) %>%
+  select(speech_id,year,date,chamber,speaker,speech) %>%
+  filter(speech %ilike% enviroVocabString) %>%
+  # filter(is.na(process)==TRUE) %>%
+  # select(-page) %>% #process
+  write_csv("daily_114_old_enviro.csv")
+
+daily_114_new_enviro <- "dataUpdates/data/txt_by_cr/speeches_114.txt" %>%
+  vroom(delim="|") %>%
+  # filter(is.na(process)==TRUE) %>%
+  filter(date<="2016-09-09") %>%
+  filter(!(header %ilike% "TEXT OF AMENDMENT|TEXT OF SENATE AMENDMENT")) %>%
+  select(speech_id,year,date,chamber,process,header,speaker,speech) %>% #process
+  mutate(year=substr(date,1,4)) %>%
+  filter(speech %ilike% enviroVocabString) %>%
+  write_csv("daily_114_new_enviro.csv")
+
+daily_114_old_labor <- "data/hein-daily/speeches/speeches_114.txt" %>%
+  vroom(delim="|") %>%
+  left_join(daily_114_desc) %>%
+  filter(str_detect(date,"^2016")) %>%
+  mutate(year=substr(date,1,4)) %>%
+  select(speech_id,year,date,chamber,speaker,speech) %>%
+  filter(speech %ilike% laborVocabString) %>%
+  # filter(is.na(process)==TRUE) %>%
+  # select(-page) %>% #process
+  write_csv("daily_114_old_labor.csv")
+
+daily_114_new_labor<- "dataUpdates/data/txt_by_cr/speeches_114.txt" %>%
+  vroom(delim="|") %>%
+  # filter(is.na(process)==TRUE) %>%
+  filter(date<="2016-09-09") %>%
+  filter(!(header %ilike% "TEXT OF AMENDMENT|TEXT OF SENATE AMENDMENT")) %>%
+  select(speech_id,year,date,chamber,process,header,speaker,speech) %>% #process
+  mutate(year=substr(date,1,4)) %>%
+  filter(speech %ilike% laborVocabString) %>%
+  write_csv("daily_114_new_labor.csv")
+
+```
+
+```{r daily data, echo=FALSE, warning=FALSE, message=FALSE}
+#1/5/1981-9/9/2016
+
+# INPUT FILES INTO R
+daily_speechesFiles <- list.files(path="data/hein-daily/speeches",full.names=TRUE)
+daily_descrFiles <- list.files(path="data/hein-daily/descr",full.names=TRUE)
+daily_speechesFiles_update <- list.files(path="dataUpdates/data/txt_by_cr",full.names=TRUE)
+
+# MERGE FILES
+daily_speeches_old <- daily_speechesFiles %>%
+  vroom(delim="|") 
+daily_descr_old <- daily_descrFiles %>%
+  vroom(delim="|")
+daily_full_update <- daily_speechesFiles_update %>%
+  vroom(delim="|") %>%
+  filter(is.na(process)==TRUE) %>%
+  # filter(!(header %ilike% "TEXT OF AMENDMENT|TEXT OF SENATE AMENDMENT")) %>%
+  select(-page,-process,-header) %>% #process
+  mutate(date=str_remove_all(as.character(date),"-"),
+         year=as.numeric(substr(date,1,4))) %>%
+  mutate(speech=str_remove(speech,"^of[:space:](Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming)"))
+         #speech= str_remove(speech,"^[^[:alpha:]]*")) ###***CH added
+
+# COMBINE DESC + SPEECHES
+daily_full_old <- daily_speeches_old %>%
+  left_join(daily_descr_old) %>%
+  select(speech_id,
+         chamber,
+         date,
+         speaker,
+         file,
+         speech) %>%
+  # mutate(process=NA) %>%
+  mutate(year=as.numeric(substr(date,1,4))) %>%
+  filter(year>2010) %>%
+  filter(year<2015)
+  # filter(year>="1960" & year<="2015")
+
+Sys.time()
+tic()
+# COMBINE HEIN + UPDATED SPEECHES, COUNTS
+# old: 4,391,586
+# newer: 3,355,255
+# 3,282,997
+daily_full <- daily_full_old %>%
+  rbind(daily_full_update) %>%
+  filter(chamber!="E" & chamber!="None") %>%
+  mutate(congress=as.numeric(round((year - 2001.1)/2)) + 107) %>%
+  mutate(#speaker=str_replace_all(speaker, "[^[:alpha:]]"," "),
+         speaker=str_squish(speaker),
+         # speaker=str_remove_all(speaker,"\\.|\\*"),
+         # speaker=str_replace_all(speaker," - | -"," "),
+         speaker=str_replace_all(speaker,"^Tihe|^Tile|^Tfe|^Tbe|^Tee|^Tfie|^Tfle|^Tae|^Thbe|^Thie|^Thle|^Thne|^Thte|^Tiae|^Tice|^Tie|^Tife|^Tine|^Time|^Tire|^Tise|^Tite|^Tjhe|^Tjle|^Tke|^Tkie|^Tle|^Tlfe|^Tlhe|^Tlie|^Tlje|^Tlme|^Tlre|^Tlte|^Tme|^Tne|^Toe|^Tpe|^Tpie|^Tre|^Trhe|^Trie|^Tse|^Tte|^Ttie|^Ttle|^Ttme|^Tue|^Tuhe|^Tule|^Txe|^Tfhe|^Thee|^Thre|^Tge|^Thr|^Thae|^Thue|^Tphe|^True|^Taie|^Tlle|^Tthe|^The","The "),
+         speaker=str_squish(speaker),
+         # speaker=str_remove(speaker,"^(Mr|Mrs|Ms|Miss|HON|Aar|Abr|abr|abs|Adr|ADr|adr|ADS|Aer|AEr|Afr|afr|Agr|Ahr|Air|AIr|Alr|Ar|ar|ber|Hr|HR|hr|Ilr|ILr|ilr|ILR|iMr|iMs|iMrs|IMr|IMs|IMrs|Ir|IR|ir|lfr|Lfr|Ifr|Lir|LIR|lir|LMr|LMs|LMrs|lMr|lMs|lMrs|Maf|MAf|MAfp|MAfr|Mafr|Maer|MAN|Man|MAr|MAR|Mdr|MDr|Mer|MEr||Mfr|MFr|Mhor|Mhr|MHr|Mi|MI|Mir|MIr|Mjr|Ml|Mlr|MNir|Mor)(\\.|:| )"),
+         speaker=str_remove(speaker," of .+"),
+         speaker=str_squish(speaker)) %>%
+  mutate(speech=str_squish(speech)) %>%
+  # filter(str_detect(speaker,"^[:upper:]")) %>%
+  # filter(str_detect(speech,"^[:alnum:]")) %>%
+  filter(!(speaker %ilike% "^The .*|SPEAKER|PRESIDENT|CHAIRIAN|CHAIRMAN|^CHAIR|PRESIDING OFFICER|SERGEANT")) %>% 
+  # mutate(speech = str_remove_all(speech,"(The|the) (Clerk|clerk|Chief Clerk|ChiefClerk|Acting Secretary|Secretary) read.*")) %>%
+  filter(!(str_detect(speech,"^for (him|her)self|^for (Mr|Mrs|Ms)|^(from|for) the Committee on|^Committee on"))) %>%
+  filter(!(str_detect(speech,"^was allowed to speak|^asked and was given|^appeared|^moves|^presented|^proposed|^submitted|^addressed the Chair|assumed the Chair"))) %>%
+  filter(!(str_detect(speech,"The result of the vote was announced as above recorded|(The result was announced)(yeas|--yeas)"))) %>%
+  filter(!(str_detect(speech,"^(S|H|H\\.J)\\. Res\\. [:digit:]+|^(S\\.|H\\.R\\.) [:digit:]+|^Amendment"))) %>%
+  mutate(speech = str_remove_all(speech,"(The text of the|the text of the) (bill|amendment|resolution|Senate amendment|House amendment).*(is as follows|was ordered).*")) %>%
+  mutate(word_count = map(speech, \(speech) stri_stats_latex(speech)[4]),
+         word_count = as.numeric(str_extract(word_count,"[:digit:]+"))) %>%
+  filter(word_count>=50) %>%
+  group_by(year) %>%
+  mutate(total_annual_speeches=n()) %>%
+  ungroup() %>%
+  select(speech_id,chamber,congress,year,date,speaker,speech,word_count,total_annual_speeches) %>%
+  as.data.table()
+
+test1 <- daily_full %>%
+  filter(str_detect(speech,"^[^[:upper:]]"))
+test2 <- daily_full %>%
+  filter(str_detect(speaker,"^[^[:upper:]]"))
+# [Date]. REPORT OF EXPENDITURES FOR OFFICIAL FOREIGN TRAVEL
+# als FDIC
+# air U S
+# ner UCLA
+# AR SFC
+# AR SGT
+# AR EODCS (starts with "AR ")
+# bers GSA
+# CBS, CBS CNN, CBS FOX, CCHS, 
+
+
+
+#Mr. COSTA?
+
+  #"The text of the Senate amendment is as follows"
+  #"The text of the Senate amendment to House amendment is as follows"
+  #"The text of the bill/amendment" (11520170803364)
+  #"the text of the bill was ordered"
+  #"(The result was announced)(yeas|--yeas).*"
+  #The Acting Secretary vs. the Clerk?
+  
+  
+  
+  #"The clerk read..."
+  #The Clerk read the title..."
+  #"I submit the following materials"
+  #"The materials are as follows"
+  #"I/insert the following" (11620200730470) "amendment no. 151 offered by ms. barragan of california Pg 369. line 16..."
+  #"the following amendment" / "I ask unanimous consent to include in the Record" (11820240305667)
+  
+
+  #EXPLANATORY STATEMENT (11520170308326)
+
+
+#3,841,362 #2,835,629 #2,084,075 #2,083,213
+x <- daily_full %>% 
+  # select(year,total_annual_speeches) %>%
+  select(congress,total_annual_speeches) %>%
+  distinct() %>%
+  group_by(congress) %>%
+  summarize(n_speeches=sum(total_annual_speeches))
+x2 <- daily_full %>% #33200 #30512 #30800 #29251 #25326 #23460
+  select(speaker) %>%
+  distinct()
+x3 <- daily_full %>%
+  select(congress,speaker) %>%
+  distinct() %>%
+  group_by(congress) %>%
+  summarize(n_speakers=n())
+
+toc()
+
+# CLEAN WORKSPACE
+rm(daily_speeches_old,daily_descr_old)
+gc()
+
+# OUTPUT
+# write_csv(daily_full,"data/hein-daily/daily_full.csv")
+
+# CLEAN WORKSPACE
+# rm(daily_full)
+
+```
+
+```{r bound data, echo=FALSE, warning=FALSE, message=FALSE}
+#3/4/1983-12/22/2010
+
+# INPUT FILES INTO R
+bound_speechesFiles <- list.files(path="data/hein-bound/speeches",full.names=TRUE)
+bound_descrFiles <- list.files(path="data/hein-bound/descr",full.names=TRUE)
+# bound_byspeakerFiles <- list.files(path="data/hein-bound/byspeaker",full.names=TRUE)
+# bound_bypartyFiles <- list.files(path="data/hein-bound/byparty",full.names=TRUE)
+# bound_SpeakerMapFiles <- list.files(path="data/hein-bound/SpeakerMap",full.names=TRUE)
+
+# MERGE FILES
+bound_speeches <- bound_speechesFiles %>%
+  vroom(delim="|")
+bound_descr <- bound_descrFiles %>%
+  vroom(delim="|") 
+
+Sys.time()
+tic()
+# COMBINE DESC + SPEECHES
+bound_full <- bound_speeches %>%
+  left_join(bound_descr) %>%
+  select(speech_id,
+         speech,
+         chamber,
+         date,
+         speaker,
+         file) %>%
+  filter(chamber!="E" & chamber!="None") %>%
+  mutate(year=as.numeric(substr(date,1,4))) %>%
+  mutate(congress=as.numeric(round((year - 2001.1)/2)) + 107) %>%
+  mutate(speaker=str_replace_all(speaker, "[^[:alpha:]]"," "),
+         speaker=str_squish(speaker),
+         # speaker=str_remove_all(speaker,"\\.|\\*"),
+         # speaker=str_replace_all(speaker," - | -"," "),
+         speaker=str_replace_all(speaker,"^Tihe|^Tile|^Tfe|^Tbe|^Tee|^Tfie|^Tfle|^Tae|^Thbe|^Thie|^Thle|^Thne|^Thte|^Tiae|^Tice|^Tie|^Tife|^Tine|^Time|^Tire|^Tise|^Tite|^Tjhe|^Tjle|^Tke|^Tkie|^Tle|^Tlfe|^Tlhe|^Tlie|^Tlje|^Tlme|^Tlre|^Tlte|^Tme|^Tne|^Toe|^Tpe|^Tpie|^Tre|^Trhe|^Trie|^Tse|^Tte|^Ttie|^Ttle|^Ttme|^Tue|^Tuhe|^Tule|^Txe|^Tfhe|^Thee|^Thre|^Tge|^Thr|^Thae|^Thue|^Tphe|^True|^Taie|^Tlle|^Tthe|^The","The "),
+         speaker=str_squish(speaker),
+         speaker=str_remove(speaker,"^(Mr|Mrs|Ms|Miss|HON|Aar|Abr|abr|abs|Adr|ADr|adr|ADS|Aer|AEr|Afr|afr|Agr|Ahr|Air|AIr|Alr|Ar|ar|ber|Hr|HR|hr|Ilr|ILr|ilr|ILR|iMr|iMs|iMrs|IMr|IMs|IMrs|Ir|IR|ir|lfr|Lfr|Ifr|Lir|LIR|lir|LMr|LMs|LMrs|lMr|lMs|lMrs|Maf|MAf|MAfp|MAfr|Mafr|Maer|MAN|Man|MAr|MAR|Mdr|MDr|Mer|MEr||Mfr|MFr|Mhor|Mhr|MHr|Mi|MI|Mir|MIr|Mjr|Ml|Mlr|MNir|Mor)(\\.|:| )"),
+         speaker=str_remove(speaker," of .+"),
+         speaker=str_squish(speaker)) %>%
+  filter(!(speaker %ilike% "^The .*|SPEAKER|PRESIDENT|CHAIRIAN|CHAIRMAN|^CHAIR|PRESIDING OFFICER|SERGEANT|HONG KONG")) %>% 
+  mutate(speech = str_remove_all(speech,"(The Clerk read as follows|The text of the amendment is as follows).*")) %>%
+  filter(!(str_detect(speech,"^for (him|her)self|^for (Mr|Mrs|Ms)|^(from|for) the Committee on|^Committee on"))) %>%
+  filter(!(str_detect(speech,"^was allowed to speak|^asked and was given|^presented|^submitted|^addressed the Chair|assumed the Chair"))) %>%
+  filter(!(str_detect(speech,"The result of the vote was announced as above recorded"))) %>%
+  filter(!(str_detect(speech,"^(S|H)\\. Res\\. [:digit:]+|^(S\\.|H\\.R\\.) [:digit:]+"))) %>%
+  # filter(!(str_detect(speech,"^and$"))) %>%
+  mutate(word_count = map(speech, \(speech) stri_stats_latex(speech)[4]),
+         word_count = as.numeric(str_extract(word_count,"[:digit:]+"))) %>%
+  filter(word_count>=50) %>%
+  group_by(year) %>%
+  mutate(total_annual_speeches=n()) %>%
+  ungroup() %>%
+  select(speech_id,chamber,congress,year,date,speaker,speech,word_count,total_annual_speeches) %>%
+  as.data.table()
+
+#13,594,354 #8,260,722 #9,320,549
+
+y <- bound_full %>% 
+  # select(year,total_annual_speeches) %>%
+  select(congress,total_annual_speeches) %>%
+  distinct() %>%
+  group_by(congress) %>%
+  summarize(n_speeches=sum(total_annual_speeches))
+y2 <- bound_full %>% 
+  select(speaker) %>%
+  distinct()
+y3 <- bound_full %>%
+  select(congress,speaker) %>%
+  distinct() %>%
+  group_by(congress) %>%
+  summarize(n_speakers=n())
+
+toc()
+
+# CLEAN WORKSPACE
+rm(bound_speeches,bound_descr)
+gc()
+
+# OUTPUT
+# write_csv(bound_full,"data/hein-bound/bound_full.csv")
+
+# CLEAN WORKSPACE
+# rm(bound_full)
+
+```
+
+```{r}
+
+# #####ENVIRO#####
+# Sys.time()
+# tic()
+# daily_enviroSpeeches <- daily_full %>%
+#   # filter(grepl("environmental", speech)) 
+#   filter(speech %ilike% enviroVocabString) %>% #71487
+#   mutate(environment="Yes")
+#     # old keywords: 91,651
+#     # new keywords: 212,482
+#     # new keywords2: 203,362
+#     # v1 keywords: 3777
+#     # v2 keywords: 60107 / 71487?
+# toc()
+# 
+# Sys.time()
+# tic()
+# bound_enviroSpeeches <- bound_full %>%
+#   # filter(grepl("environmental", speech)) 
+#   filter(speech %ilike% enviroVocabString) %>% #71487
+#   mutate(environment="Yes")
+#     # old keywords: 91,651
+#     # new keywords: 212,482
+#     # new keywords2: 203,362
+#     # v1 keywords: 3777
+#     # v2 keywords: 60107 / 71487?
+# toc()
+# 
+# 
+# a1 <- daily_enviroSpeeches %>% 
+#   group_by(year) %>%
+#   summarize(n_speakers=n())  
+# 
+# a2 <- bound_enviroSpeeches %>% 
+#   group_by(year) %>%
+#   summarize(n_speakers=n()) 
+
+```
+
+```{r filter and merge, echo=FALSE} 
+
+full <- rbind(bound_full,daily_full)
+
+#####ENVIRO#####
+Sys.time()
+tic()
+enviroSpeeches <- full %>%
+  # filter(grepl("environmental", speech)) 
+  filter(speech %ilike% enviroVocabString) %>% #71487
+  mutate(environment="Yes")
+    # old keywords: 91,651
+    # new keywords: 212,482
+    # new keywords2: 203,362
+    # v1 keywords: 3777
+    # v2 keywords: 60107 / 71487?
+toc()
+
+#####LABOR#####
+Sys.time()
+tic()
+laborSpeeches <- full %>%
+  # filter(grepl("\\blabor\\b", speech))
+  filter(speech %ilike% laborVocabString) %>%
+  mutate(labor="Yes")
+    # old keywords: 330,241
+    # new keywords: 367,447
+    # new keywords2: 367,126
+    # v1 keywords: #908
+    # v2 keywords: #128422 / #45990?
+toc()
+
+
+# 
+# 
+# 
+# 
+# 
+# #DAILY
+# daily_full_enviro <- daily_full %>%
+#   # filter(grepl("environmental", speech)) 
+#   filter(speech %ilike% enviroVocabString) #71487
+#     # old keywords: 91,651
+#     # new keywords: 212,482
+#     # new keywords2: 203,362
+#     # v1 keywords: 3777
+#     # v2 keywords: 60107 / 71487?
+# 
+# #BOUND
+# bound_full_enviro <- bound_full %>%
+#   # filter(grepl("environmental", speech)) 
+#   filter(speech %ilike% enviroVocabString)
+#     # old keywords: 74,269
+#     # new keywords: 435,539
+#     # new keywords2: 426,345
+#     # v1 keywords: 1668
+#     # v2 keywords: 21084 / 26282?
+# 
+# #MERGE
+# enviroSpeeches <- rbind(bound_full_enviro,daily_full_enviro) %>%
+#   mutate(environment="Yes")
+# toc()
+# 
+# 
+# 
+# #####LABOR#####
+# Sys.time()
+# tic()
+# 
+# #DAILY
+# daily_full_labor <- daily_full %>%
+#   # filter(grepl("\\blabor\\b", speech))
+#   filter(speech %ilike% laborVocabString)
+#     # old keywords: 330,241
+#     # new keywords: 367,447
+#     # new keywords2: 367,126
+#     # v1 keywords: #908
+#     # v2 keywords: #128422 / #45990?
+# 
+# #BOUND
+# bound_full_labor <- bound_full %>%
+#   # filter(grepl("\\blabor\\b", speech))
+#   filter(speech %ilike% laborVocabString)
+#     # old keywords: 375,851
+#     # new keywords: 551,942
+#     # new keywords2: 551,942
+#     # v1 keywords: #1009
+#     # v2 keywords: #100395
+# 
+# #MERGE
+# laborSpeeches <- rbind(bound_full_labor,daily_full_labor) %>%
+#   mutate(labor="Yes")
+# toc()
+
+```
+
+```{r merge all, echo=FALSE}
+
+#####MERGE ALL#####
+enviroLaborSpeeches <- full_join(enviroSpeeches,laborSpeeches)
+save(enviroLaborSpeeches,file="data/enviroLaborSpeeches.Rda")
+write_delim(enviroLaborSpeeches,file="data/enviroLaborSpeeches.txt",delim="|")
+# fwrite(enviroLaborSpeeches,"data/enviroLaborSpeeches.csv")
+
+z <- enviroLaborSpeeches %>%
+  group_by(year) %>%
+  summarize(n_speeches=n(),
+            avg_word_count=mean(word_count))
+save(z,file="data/R/speechesOverTime.Rda")
+
+```
+
