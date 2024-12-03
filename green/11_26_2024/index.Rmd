@@ -1,0 +1,97 @@
+--- 
+title: "CLC text mining"
+author: "Carrie Hamilton"
+site: bookdown::bookdown_site
+output: 
+  bookdown::bs4_book:
+    theme:
+      primary: "#669999"
+      bg: "#FFF"
+      fg: "#32127a"
+      base_font:
+        google: IBM Plex Mono 
+      heading_font:
+        google: IBM Plex Mono    
+    df_print: paged
+    highlighter: haddock
+    css: styles.css
+    includes:
+      in_header: header.html
+
+---
+
+# INTRO
+
+## paper
+
+methods: how do different text mining approaches spotlight different historical trends/fluctuations/moments in environmental-labor history over the last 150 years? 
+
+-   compare (1) the methods and (2) the time-period intervals
+-   at progressively more granular time periods (maybe: 25yr-->15yr-->5yr?), analyze text mining metrics together to (re)tell "history" of the environment
+-   focus on (1) enviro and (2) enviro-labor speeches
+
+## updates
+
+<b>new updates:</b>
+
+-   better keywords
+-   re-ran for full 1873-present span (vs. 1965-present)
+-   re-ran at progressively more granular time intervals for each metric
+-   nixed topic models (need dynamic topic models)
+-   word co-occurrence networks 
+    -   words co-occurring with labor keywords in enviro speeches
+    -   words co-occurring with enviro keywords in labor speeches
+    -   words co-occurring with select labor + enviro keywords in enviro-labor speeches
+
+<b>old updates:</b>
+
+-   [11.12.2024](https://carrieham.com/green/11_12_2024/congress_analysis.html)
+-   [10.29.2024](https://carrieham.com/green/10_29_2024/congress_analysis.html)
+-   [clc presentation](https://docs.google.com/presentation/d/1pxNu46ObGVL0M1YyESZgl6qajdTQmLb_auOjtcf_y-E/edit?usp=sharing)
+-   [10.22.2024](https://carrieham.com/green/10_22_2024/congress_analysis.html)
+-   [10.07.2024](https://carrieham.com/green/10_07_2024/congress_analysis.html)
+-   [09.19.2024](https://www.carrieham.com/green/09_19_2024/congress_analysis.html)
+
+## next steps
+
+-   *dynamic* topic modeling--in R? how are these different from structural topic models?
+-   5-yr time periods
+-   re-organize analysis to group by time period (i.e., compare bigram counts vs. tf-ipf vs. co-occurrence vs. etc. for 25-yr intervals, 20-yr intervals, 15-yr intervals, etc.)
+-   re-read Guldi book--additional metrics, strengths vs. weaknesses, data processing caveats, etc.
+-   paper outline
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(htmltools.preserve.raw = FALSE)
+#quanteda_options(tokens_block_size = 50000)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(bookdown,
+       knitr,
+       data.table,
+       DataTables,
+       dplyr, 
+       DT,
+       forcats,
+       ggrepel,
+       htmlwidgets,
+       htmltools,
+       lubridate,
+       plotly,
+       quanteda,
+       stopwords,
+       tictoc,
+       tidyverse, 
+       tidytext,
+       tokenizers,
+       vroom,
+       widyr,
+       ggraph,
+       igraph,
+       topicmodels)
+
+```
+

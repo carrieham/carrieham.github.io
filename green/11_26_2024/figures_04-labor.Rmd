@@ -1,0 +1,3413 @@
+# LABOR
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+#quanteda_options(tokens_block_size = 50000)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(bookdown,
+       data.table,
+       DataTables,
+       dplyr, 
+       DT,
+       forcats,
+       ggrepel,
+       htmlwidgets,
+       lubridate,
+       plotly,
+       quanteda,
+       stopwords,
+       tictoc,
+       tidyverse, 
+       tidytext,
+       tokenizers,
+       vroom,
+       widyr,
+       ggraph,
+       igraph,
+       topicmodels)
+
+```
+
+### DATA
+```{r input data, include=FALSE, cache=TRUE, cache.lazy=FALSE}
+# #### DATA
+# load(verbose=TRUE,"data/enviroLaborSpeeches.Rda")
+
+stopwords_iso <- stopwords("en", source = "stopwords-iso") 
+stopwords_manual <- c("absent","adjourn", "ask", "can", "chairman",
+                       "committee","con","democrat","etc","gentleladies",
+                       "gentlelady", "gentleman", "gentlemen", "gentlewoman",
+                       "gentlewomen","hereabout","hereafter","hereat", "hereby",
+                       "herein", "hereinafter", "hereinbefore", "hereinto", "hereof",
+                       "hereon", "hereto", "heretofore", "hereunder", "hereunto",
+                       "hereupon", "herewith", "month", "mr", "mrs", "nai", "nay",
+                       "none", "now", "part", "per", "pro", "republican",
+                       "say", "senator", "shall", "sir", "speak", "speaker",
+                       "tell", "thank", "thereabout", "thereafter", "thereagainst",
+                       "thereat", "therebefore", "therebeforn", "thereby", "therefor",
+                       "therefore", "therefrom", "therein", "thereinafter", "thereof",
+                       "thereon", "thereto", "theretofore", "thereunder", "thereunto",
+                       "thereupon", "therewith", "therewithal", "today", "whereabouts",
+                       "whereafter", "whereas", "whereat", "whereby","wherefore",
+                       "wherefrom", "wherein", "whereinto", "whereof", "whereon","whereto",
+                       "whereunder", "whereupon", "wherever", "wherewith", 
+                       "wherewithal", "will", "yea", "yes", "yield")
+
+stopwords_manual2 <- c("white house","white houses",
+                       "avenue","street","nw","northwest","suite",
+                       "number","numeric","sequence","sequences",
+                       "add","addition","additions","adding","added",
+                       "amend","amended","amendment","amendments","amending","amends",
+                       "america","american","americas",
+                       "bill","bills",
+                       "chapter","chapters",
+                       "code","codes",
+                       "country","countrys", 
+                       "congress","congressional",
+                       "district of columbia","district","districts",
+                       "enact","enacted","enacting","enacts",
+                       "federal", 
+                       "senate","senates", 
+                       "house of representatives","representative","representatives","the house",
+                       "insert","inserting","inserted","inserts",
+                       "law","laws",
+                       "legislation","legislative","legislator",
+                       "paragraph","paragraphs","sentence","sentences",
+                       "percent","percentage","percentages",
+                       "president","presidents","presidential", 
+                       "print","printing","printed","prints",
+                       "record","recording","recorded","records",
+                       "section","sections",
+                       "united states",
+                       "state","states",
+                       "subchapter","subchapters",
+                       "subsection","subsections",
+                       "supreme court","supreme courts","court","courts",
+                       "title","titles",
+                       "unanimous consent","consent","consenting",
+                       "united","u.s.","us",
+                       "urge","urging","urged","urges",
+                       "colleague","colleagues",
+                       "washington", "d.c.")
+
+stopwords <- c(stopwords_manual2,stopwords_manual,stopwords_iso)
+
+bad_syntax <- vroom("data/vocabulary/master_list.txt",delim="|") %>%
+  rename("classify" = "_classify") %>%
+  filter(classify != "vocab") %>%
+  mutate(phrase=str_replace_all(phrase," ","_"))
+
+bad_syntax_manual <- c("llc_york",
+                       "york_trump",
+                       "remain_expend",
+                       "corp_york",
+                       "dt_mark",
+                       "llc_trump",
+                       "subparagraph_strike",
+                       "unoblig_balanc",
+                       "include_transfer",
+                       "fiscal_fiscal",
+                       "pre_submiss",
+                       "preced_divis",
+                       "preced_proviso",
+                       "corp_trump",
+                       "york_dt",
+                       "dt_mark",
+                       "manag_corp",
+                       "hous_dc",
+                       "dc_hon")
+
+```
+
+```{r input tokens data, include=FALSE, cache=TRUE, cache.lazy=FALSE}
+#### INPUT TOKENS
+
+load(verbose=TRUE,"data/R/laborTokens.Rda")
+
+load(verbose=TRUE,"data/R/laborBigrams.Rda")
+
+```
+
+```{r labor bigrams, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE, eval=FALSE}
+
+# ##### BIGRAMS #####
+tic()
+laborBigrams <- enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=FALSE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  tokens_remove("\\p{P}", valuetype = "regex", #REMOVE PUNCT
+                padding=TRUE, #REPLACE W/ EMPTY STRINGS
+                verbose=TRUE) %>%
+  # tokens_remove(stopwords, #REMOVE STOP WORDS BEFORE TRIPLES CREATED
+  #               padding=FALSE,
+  #               verbose=TRUE) %>%
+  tokens_ngrams(n=2) %>% #CREATE BIGRAMS
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  filter(!(term %in% bad_syntax$phrase)) %>%
+  filter(!(term %in% bad_syntax_manual)) %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+
+toc()
+#
+# ##### SAVE FILE
+save(laborBigrams,file="data/R/laborBigrams.Rda")
+
+```
+
+```{r labor tokens, message=FALSE, results=FALSE, cache=TRUE, lazy.cache=FALSE, eval=FALSE}
+
+##### TOKENS #####
+tic()
+laborTokens <- enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  corpus(docid_field="speech_id",
+         text_field="speech") %>%
+  tokenize_word_stems(stopwords=stopwords) %>%
+  tokens(remove_punct=TRUE, #CREATE TOKEN OBJECT
+         split_tags=TRUE,
+         split_elisions=TRUE,
+         remove_symbols=TRUE,
+         remove_numbers=TRUE,
+         remove_separators=TRUE,
+         padding=FALSE,
+         xptr=TRUE,
+         verbose=TRUE) %>%
+  dfm() %>% #CREATE DOC-TERM MATRIX
+  tidy() %>%
+  mutate(speech_id=as.double(document)) %>%
+  left_join(enviroLaborSpeeches %>% select(year,date,speech_id,environment,labor),by=join_by(speech_id==speech_id)) %>%
+  as_tibble()
+toc()
+
+##### SAVE FILE
+save(laborTokens,file="data/R/laborTokens.Rda")
+
+```
+
+
+## BIGRAM COUNTS 
+
+##### pre- vs. post-war
+```{r top labor bigrams pre- vs. post-war, message=FALSE, cache=TRUE}
+
+labor_bigrams_pre_vs_post_war <- laborBigrams %>%
+  filter(!(term %in% bad_syntax$phrase)) %>%
+  mutate(period = case_when(year >= 1875 & year <= 1945 ~ "1875-1945",
+                            year > 1945 ~ "1946-present")) %>%
+  group_by(period) %>%
+  count(term,wt=count) %>%
+  top_n(35) %>%
+  arrange(desc(n))
+save(labor_bigrams_pre_vs_post_war,file="data/R/tables/laborBigrams_pre_vs_post_war.Rda")
+
+
+#### pre-war
+top_labor_bigrams_pre_war <- ggplot() +
+  geom_col(data=filter(labor_bigrams_pre_vs_post_war,period=="1875-1945"),
+           aes(x=reorder_within(term,n,period),y=n),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title="1875-1945",x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_labor_bigrams_pre_war, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_labor_bigrams_pre_war.html",selfcontained = F, libdir = "lib")
+
+
+#### post-war
+top_labor_bigrams_post_war <- ggplot() +
+  geom_col(data=filter(labor_bigrams_pre_vs_post_war,period=="1946-present"),
+           aes(x=reorder_within(term,n,period),y=n),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title="1946-present",x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_labor_bigrams_post_war, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_labor_bigrams_post_war.html",selfcontained = F, libdir = "lib")
+
+```
+
+##### 25-year period 
+```{r top labor bigrams by year 25-yr period, message=FALSE, cache=TRUE}
+
+labor_bigrams_by_year_25yr <- laborBigrams %>%
+  filter(!(term %in% bad_syntax$phrase)) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  group_by(period) %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(labor_bigrams_by_year_25yr,file="data/R/tables/laborBigrams_by_25yrs.Rda")
+
+
+#### 1875 & 1900
+top_laborBigrams_25yr_1875_1900 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_25yr,period==1875 | period==1900),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_25yr_1875_1900, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_25yr_1875_1900.html",selfcontained = F, libdir = "lib")
+
+
+#### 1925 & 1950
+top_laborBigrams_25yr_1925_1950 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_25yr,period==1925 | period==1950),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_25yr_1925_1950, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_25yr_1925_1950.html",selfcontained = F, libdir = "lib")
+
+
+#### 1975 & 2000
+top_laborBigrams_25yr_1975_2000 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_25yr,period==1975 | period==2000),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_25yr_1975_2000, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_25yr_1975_2000.html",selfcontained = F, libdir = "lib")
+
+```
+
+##### 20-year period 
+```{r top labor bigrams by year 20-yr period, message=FALSE, cache=TRUE}
+
+labor_bigrams_by_year_20yr <- laborBigrams %>%
+  filter(year>=1900 & year<=2019) %>%
+  filter(!(term %in% bad_syntax$phrase)) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 20) %>%
+  group_by(period) %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(labor_bigrams_by_year_20yr,file="data/R/tables/laborBigrams_by_20yrs.Rda")
+
+
+#### 1900 & 1920
+top_laborBigrams_20yr_1900_1920 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_20yr,period==1900 | period==1920),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_20yr_1900_1920, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_20yr_1900_1920.html",selfcontained = F, libdir = "lib")
+
+
+#### 1940 & 1960
+top_laborBigrams_20yr_1940_1960 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_20yr,period==1940 | period==1960),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_20yr_1940_1960, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_20yr_1940_1960.html",selfcontained = F, libdir = "lib")
+
+
+#### 1980 & 2000
+top_laborBigrams_20yr_1980_2000 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_20yr,period==1980 | period==2000),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_20yr_1980_2000, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_20yr_1980_2000.html",selfcontained = F, libdir = "lib")
+
+```
+
+##### 15-year period 
+```{r top labor bigrams by year 15-yr period, message=FALSE, cache=TRUE}
+
+labor_bigrams_by_year_15yr <- laborBigrams %>%
+  filter(year>=1905) %>%
+  filter(!(term %in% bad_syntax$phrase)) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 15) %>%
+  group_by(period) %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(labor_bigrams_by_year_15yr,file="data/R/tables/laborBigrams_by_15yrs.Rda")
+  
+
+
+#### 1905 & 1920
+top_laborBigrams_15yr_1905_1920 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_15yr,period==1905 | period==1920),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_15yr_1905_1920, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_15yr_1905_1920.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 1935 & 1950
+top_laborBigrams_15yr_1935_1950 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_15yr,period==1935 | period==1950),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_15yr_1935_1950, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_15yr_1935_1950.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 1965 & 1980
+top_laborBigrams_15yr_1965_1980 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_15yr,period==1965 | period==1980),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_15yr_1965_1980, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_15yr_1965_1980.html",selfcontained = F, libdir = "lib")
+
+
+#### 1995 & 2010
+top_laborBigrams_15yr_1995_2010 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_15yr,period==1995 | period==2010),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_15yr_1995_2010, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_15yr_1995_2010.html",selfcontained = F, libdir = "lib")
+
+```
+
+##### 10-year period 
+```{r top labor bigrams by year 10-yr period, message=FALSE, cache=TRUE}
+
+labor_bigrams_by_year_10yr <- laborBigrams %>%
+  filter(year>=1890) %>%
+  filter(!(term %in% bad_syntax$phrase)) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  group_by(period) %>%
+  count(term,wt=count) %>%
+  top_n(25) %>%
+  arrange(desc(n))
+save(labor_bigrams_by_year_10yr,file="data/R/tables/laborBigrams_by_10yrs.Rda")
+  
+
+
+#### 1890 & 1900
+top_laborBigrams_10yr_1890_1900 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_10yr,period==1890 | period==1900),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1890_1900, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_10yr_1890_1900.html",selfcontained = F, libdir = "lib")
+
+
+
+
+#### 1910 & 1920
+top_laborBigrams_10yr_1910_1920 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_10yr,period==1910 | period==1920),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1910_1920, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_10yr_1910_1920.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 1930 & 1940
+top_laborBigrams_10yr_1930_1940 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_10yr,period==1930 | period==1940),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1930_1940, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_10yr_1930_1940.html",selfcontained = F, libdir = "lib")
+
+
+#### 1950 & 1960
+top_laborBigrams_10yr_1950_1960 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_10yr,period==1950 | period==1960),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1950_1960, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_10yr_1950_1960.html",selfcontained = F, libdir = "lib")
+
+
+#### 1970 & 1980
+top_laborBigrams_10yr_1970_1980 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_10yr,period==1970 | period==1980),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1970_1980, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_10yr_1970_1980.html",selfcontained = F, libdir = "lib")
+
+#### 1990 & 2000
+top_laborBigrams_10yr_1990_2000 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_10yr,period==1990 | period==2000),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1990_2000, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_10yr_1990_2000.html",selfcontained = F, libdir = "lib")
+
+
+#### 2010 & 2020
+top_laborBigrams_10yr_2010_2020 <- ggplot() +
+  geom_col(data=filter(labor_bigrams_by_year_10yr,period==2010 | period==2020),
+           aes(x=reorder_within(term,n,period),
+               y=n,
+               text=paste("<b>",term,":</b> ",n,sep="")),
+               fill="blue") +
+  coord_flip() +
+  scale_x_reordered() +
+  facet_wrap(~period, scales = "free", ncol=3) +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(x="",y="count") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_2010_2020, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/top_laborBigrams_10yr_2010_2020.html",selfcontained = F, libdir = "lib")
+
+
+```
+
+
+
+## TF-IPF
+
+```{r SETUP labor tf-ipf}
+
+laborBigrams_count <- laborBigrams %>%
+  group_by(year,term) %>%
+  count(term,wt=count) %>%
+  filter(n>25)
+
+# laborTokens_count <- laborTokens %>%
+#   group_by(year,term) %>%
+#   count(term,wt=count) %>%
+#   filter(n>25)
+
+```
+
+##### pre vs. post-war
+```{r labor bigrams tf-ipf pre- vs. post-war period}
+
+##### LABOR #####
+
+labor_oneRowPerDocument_pre_vs_post_war <- laborBigrams_count %>%
+  mutate(period = case_when(year >= 1875 & year <= 1945 ~ "1875-1945",
+                            year > 1945 ~ "1946-present")) %>%
+  group_by(period, term) %>%
+  dplyr::summarize(count = sum(n)) %>%
+  ungroup() %>%
+  mutate(id_number = period) %>%
+  filter(!is.na(period)) %>%
+  filter(!is.na(term)) %>%
+  filter(!is.na(id_number))
+
+labor_tfidf_pre_vs_post_war <- labor_oneRowPerDocument_pre_vs_post_war %>%
+  bind_tf_idf(term, id_number, count) %>%
+  group_by(period) %>%
+  arrange(desc(tf_idf)) %>%
+  slice(seq_len(25)) %>%
+  ungroup() 
+
+#### pre- vs. post-war
+top_laborBigrams_pre_vs_post_war <- ggplot() +
+  geom_col(data=labor_tfidf_pre_vs_post_war,
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_pre_vs_post_war, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_pre_vs_post_war.html",selfcontained = F, libdir = "lib")
+
+```
+
+##### 25-year period 
+```{r labor bigrams tf-ipf per 25-yr period}
+
+##### LABOR #####
+
+labor_oneRowPerDocument_25yr <- laborBigrams_count %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  group_by(period, term) %>%
+  dplyr::summarize(count = sum(n)) %>%
+  ungroup() %>%
+  mutate(id_number = period) %>%
+  filter(!is.na(period)) %>%
+  filter(!is.na(term)) %>%
+  filter(!is.na(id_number))
+
+labor_tfidf_25yr <- labor_oneRowPerDocument_25yr %>%
+  bind_tf_idf(term, id_number, count) %>%
+  group_by(period) %>%
+  arrange(desc(tf_idf)) %>%
+  slice(seq_len(25)) %>%
+  ungroup() 
+
+
+#### 1875 & 1900
+top_laborBigrams_25yr_1875_1900 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_25yr,period==1875 | period==1900),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_25yr_1875_1900, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_25yr_1875_1900.html",selfcontained = F, libdir = "lib")
+
+
+#### 1925 & 1950
+top_laborBigrams_25yr_1925_1950 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_25yr,period==1925 | period==1950),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_25yr_1925_1950, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_25yr_1925_1950.html",selfcontained = F, libdir = "lib")
+
+
+#### 1975 & 2000
+top_laborBigrams_25yr_1975_2000 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_25yr,period==1975 | period==2000),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_25yr_1975_2000, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_25yr_1975_2000.html",selfcontained = F, libdir = "lib")
+
+```
+
+##### 20-year period
+```{r labor bigrams tf-ipf per 20-yr period}
+
+##### LABOR #####
+
+labor_oneRowPerDocument_20yr <- laborBigrams_count %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 20) %>%
+  group_by(period, term) %>%
+  dplyr::summarize(count = sum(n)) %>%
+  ungroup() %>%
+  mutate(id_number = period) %>%
+  filter(!is.na(period)) %>%
+  filter(!is.na(term)) %>%
+  filter(!is.na(id_number))
+
+labor_tfidf_20yr <- labor_oneRowPerDocument_20yr %>%
+  bind_tf_idf(term, id_number, count) %>%
+  group_by(period) %>%
+  arrange(desc(tf_idf)) %>%
+  slice(seq_len(25)) %>%
+  ungroup() 
+
+
+#### 1900 & 1920
+top_laborBigrams_20yr_1900_1920 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_20yr,period==1900 | period==1920),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_20yr_1900_1920, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_20yr_1900_1920.html",selfcontained = F, libdir = "lib")
+
+
+#### 1940 & 1960
+top_laborBigrams_20yr_1940_1960 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_20yr,period==1940 | period==1960),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_20yr_1940_1960, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_20yr_1940_1960.html",selfcontained = F, libdir = "lib")
+
+
+#### 1980 & 2000
+top_laborBigrams_20yr_1980_2000 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_20yr,period==1980 | period==2000),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_20yr_1980_2000, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_20yr_1980_2000.html",selfcontained = F, libdir = "lib")
+
+```
+
+##### 15-year period 
+```{r labor bigrams tf-ipf per 15-yr period}
+
+##### LABOR #####
+
+labor_oneRowPerDocument_15yr <- laborBigrams_count %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 15) %>%
+  group_by(period, term) %>%
+  dplyr::summarize(count = sum(n)) %>%
+  ungroup() %>%
+  mutate(id_number = period) %>%
+  filter(!is.na(period)) %>%
+  filter(!is.na(term)) %>%
+  filter(!is.na(id_number))
+
+labor_tfidf_15yr <- labor_oneRowPerDocument_15yr %>%
+  bind_tf_idf(term, id_number, count) %>%
+  group_by(period) %>%
+  arrange(desc(tf_idf)) %>%
+  slice(seq_len(25)) %>%
+  ungroup() 
+
+
+#### 1875 & 1890
+top_laborBigrams_15yr_1875_1890 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_15yr,period==1875 | period==1890),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_15yr_1875_1890, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_15yr_1875_1890.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 1905 & 1920
+top_laborBigrams_15yr_1905_1920 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_15yr,period==1905 | period==1920),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_15yr_1905_1920, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_15yr_1905_1920.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 1935 & 1950
+top_laborBigrams_15yr_1935_1950 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_15yr,period==1935 | period==1950),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_15yr_1935_1950, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_15yr_1935_1950.html",selfcontained = F, libdir = "lib")
+
+
+#### 1965 & 1980
+top_laborBigrams_15yr_1965_1980 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_15yr,period==1965 | period==1980),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_15yr_1965_1980, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_15yr_1965_1980.html",selfcontained = F, libdir = "lib")
+
+
+#### 1995 & 2010
+top_laborBigrams_15yr_1995_2010 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_15yr,period==1995 | period==2010),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_15yr_1995_2010, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_15yr_1995_2010.html",selfcontained = F, libdir = "lib")
+
+
+```
+
+##### 10-year period 
+```{r labor bigrams tf-ipf per 10-yr period}
+
+##### LABOR #####
+
+labor_oneRowPerDocument_10yr <- laborBigrams_count %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  group_by(period, term) %>%
+  dplyr::summarize(count = sum(n)) %>%
+  ungroup() %>%
+  mutate(id_number = period) %>%
+  filter(!is.na(period)) %>%
+  filter(!is.na(term)) %>%
+  filter(!is.na(id_number))
+
+labor_tfidf_10yr <- labor_oneRowPerDocument_10yr %>%
+  bind_tf_idf(term, id_number, count) %>%
+  group_by(period) %>%
+  arrange(desc(tf_idf)) %>%
+  slice(seq_len(25)) %>%
+  ungroup() 
+
+
+#### 1890 & 1900
+top_laborBigrams_10yr_1890_1900 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_10yr,period==1890 | period==1900),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1890_1900, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_10yr_1890_1900.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 1910 & 1920
+top_laborBigrams_10yr_1910_1920 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_10yr,period==1910 | period==1920),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1910_1920, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_10yr_1910_1920.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 1930 & 1940
+top_laborBigrams_10yr_1930_1940 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_10yr,period==1930 | period==1940),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1930_1940, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_10yr_1930_1940.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 1950 & 1960
+top_laborBigrams_10yr_1950_1960 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_10yr,period==1950 | period==1960),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1950_1960, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_10yr_1950_1960.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 1970 & 1980
+top_laborBigrams_10yr_1970_1980 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_10yr,period==1970 | period==1980),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1970_1980, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_10yr_1970_1980.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 1990 & 2000
+top_laborBigrams_10yr_1990_2000 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_10yr,period==1990 | period==2000),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_1990_2000, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_10yr_1990_2000.html",selfcontained = F, libdir = "lib")
+
+
+
+#### 2010 & 2020
+top_laborBigrams_10yr_2010_2020 <- ggplot() +
+  geom_col(data=filter(labor_tfidf_10yr,period==2010 | period==2020),
+           aes(y=count,
+               x = reorder_within(term, 
+                                  count, 
+                                  period, 
+                                  fun = sum),
+               text = paste("<b>",term,"</b>",
+                            "<br>count: ",
+                            count,
+                            "<br>tf_idf: ",
+                            signif(tf_idf,2),
+                            sep="")),
+           fill="blue") +
+  facet_wrap(~period, scales = "free", ncol=2) +
+  scale_x_reordered() +
+  coord_flip() +
+  guides(fill=FALSE, color = FALSE, line = FALSE) +
+  labs(title = "",
+       y = "count",
+       x = "") +
+  theme_minimal() +
+  theme(#aspect.ratio=8/11,
+    plot.title=element_text(family="IBM Plex Mono",color="#32127a",hjust=0.5,size=12,face="bold"),
+    axis.title=element_text(family="IBM Plex Mono",color="#32127a"),
+    axis.text=element_text(family="IBM Plex Mono",color="#32127a"),#,size=10),
+    axis.line=element_line(color="#32127a"),
+    axis.ticks=element_line(color="#32127a"),
+    strip.text=element_text(family="IBM Plex Mono",color="#32127a",face="bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggplotly(top_laborBigrams_10yr_2010_2020, tooltip="text", dynamicTicks = FALSE) %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a"))) %>%
+  saveWidget("congress_bookdown/figures/tfipf_laborBigrams_10yr_2010_2020.html",selfcontained = F, libdir = "lib")
+
+
+```
+
+
+## CO-OCCURRENCE NETWORKS
+
+#### tokens
+
+```{r SET-UP co-occurrence with labor keywords, include=FALSE}
+
+enviroVocab_simple <- c("^environ",
+                        "^ecolog",
+                        "^ecosyst",
+                        # "^natur",
+                        #"^conserv",
+                        #"^reclam",
+                        "^pollut",
+                        "^wildlif",
+                        "^wilder")
+
+#### keyword string
+enviroVocabString_simple <- enviroVocab_simple %>%
+  paste(collapse = "|") %>%
+  str_replace_all(" ","[:blank:]")
+
+
+
+
+enviroBigramVocab_simple <- c("^environ","_environ",
+                        "^ecolog","_ecolog",
+                        "^ecosyst","_ecosyst",
+                        # "^natur","_natur",
+                        #"^conserv",
+                        #"^reclam",
+                        "^pollut","_pollut",
+                        "^wildlif","_wildlif",
+                        "^wilder","_wilder")
+
+enviroBigramVocabString_simple <- enviroBigramVocab_simple %>%
+  paste(collapse = "|") %>%
+  str_replace_all(" ","[:blank:]")
+
+```
+
+##### 25-yr period:
+```{r labor token co-occurence with enviro per 25-yr period}
+
+
+#### 1875
+laborTokens_wordPairs_corr_25yr_1875 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==1875) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_25yr_1875_labor <- laborTokens_wordPairs_corr_25yr_1875 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  arrange(-correlation) %>%
+  slice_max(correlation,n=85)
+  # group_by(item1) %>%
+  # slice_max(correlation,n=30) %>%
+  # ungroup() %>%
+  
+
+set.seed(2016)
+laborTokens_wordPairs_corr_25yr_1875_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_25yr_1875_enviro.jpg") #h=11,
+
+
+
+#### 1900
+laborTokens_wordPairs_corr_25yr_1900 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==1900) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_25yr_1900_labor <- laborTokens_wordPairs_corr_25yr_1900 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  arrange(-correlation) %>%
+  slice_max(correlation,n=85)
+  # group_by(item1) %>%
+  # slice_max(correlation,n=30) %>%
+  # ungroup() %>%
+
+set.seed(2016)
+laborTokens_wordPairs_corr_25yr_1900_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_25yr_1900_enviro.jpg") #h=11,
+
+
+
+#### 1925
+laborTokens_wordPairs_corr_25yr_1925 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==1925) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_25yr_1925_labor <- laborTokens_wordPairs_corr_25yr_1925 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  arrange(-correlation) %>%
+  slice_max(correlation,n=85)
+  # group_by(item1) %>%
+  # slice_max(correlation,n=30) %>%
+  # ungroup() %>%
+
+set.seed(2016)
+laborTokens_wordPairs_corr_25yr_1925_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_25yr_1925_enviro.jpg") #h=11,
+
+
+
+#### 1950
+laborTokens_wordPairs_corr_25yr_1950 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==1950) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_25yr_1950_labor <- laborTokens_wordPairs_corr_25yr_1950 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  arrange(-correlation) %>%
+  slice_max(correlation,n=85)
+  # group_by(item1) %>%
+  # slice_max(correlation,n=30) %>%
+  # ungroup() %>%
+
+set.seed(2016)
+laborTokens_wordPairs_corr_25yr_1950_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_25yr_1950_enviro.jpg") #h=11,
+
+
+
+#### 1975
+laborTokens_wordPairs_corr_25yr_1975 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==1975) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_25yr_1975_labor <- laborTokens_wordPairs_corr_25yr_1975 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  arrange(-correlation) %>%
+  slice_max(correlation,n=85)
+  # group_by(item1) %>%
+  # slice_max(correlation,n=30) %>%
+  # ungroup() %>%
+
+set.seed(2016)
+laborTokens_wordPairs_corr_25yr_1975_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_25yr_1975_enviro.jpg") #h=11,
+
+
+
+
+#### 2000
+laborTokens_wordPairs_corr_25yr_2000 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==2000) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_25yr_2000_labor <- laborTokens_wordPairs_corr_25yr_2000 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  arrange(-correlation) %>%
+  slice_max(correlation,n=85)
+  # group_by(item1) %>%
+  # slice_max(correlation,n=30) %>%
+  # ungroup() %>%
+
+set.seed(2016)
+laborTokens_wordPairs_corr_25yr_2000_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_25yr_2000_enviro.jpg") #h=11,
+
+
+
+```
+
+##### 10-yr period:
+```{r labor token co-occurence with enviro per 10-yr period}
+
+
+#### 1900
+laborTokens_wordPairs_corr_10yr_1900 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1900) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_1900_labor <- laborTokens_wordPairs_corr_10yr_1900 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_1900_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_1900_enviro.jpg") #h=11,
+
+
+
+#### 1910
+laborTokens_wordPairs_corr_10yr_1910 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1910) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_1910_labor <- laborTokens_wordPairs_corr_10yr_1910 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_1910_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_1910_enviro.jpg") #h=11,
+
+
+
+#### 1920
+laborTokens_wordPairs_corr_10yr_1920 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1920) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_1920_labor <- laborTokens_wordPairs_corr_10yr_1920 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_1920_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_1920_enviro.jpg") #h=11,
+
+
+
+#### 1930
+laborTokens_wordPairs_corr_10yr_1930 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1930) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_1930_labor <- laborTokens_wordPairs_corr_10yr_1930 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_1930_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_1930_enviro.jpg") #h=11,
+
+
+
+#### 1940
+laborTokens_wordPairs_corr_10yr_1940 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1940) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_1940_labor <- laborTokens_wordPairs_corr_10yr_1940 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_1940_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_1940_enviro.jpg") #h=11,
+
+
+
+#### 1950
+laborTokens_wordPairs_corr_10yr_1950 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1950) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_1950_labor <- laborTokens_wordPairs_corr_10yr_1950 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_1950_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_1950_enviro.jpg") #h=11,
+
+
+
+
+#### 1960
+laborTokens_wordPairs_corr_10yr_1960 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1960) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_1960_labor <- laborTokens_wordPairs_corr_10yr_1960 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_1960_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_1960_enviro.jpg") #h=11,
+
+
+
+
+#### 1970
+laborTokens_wordPairs_corr_10yr_1970 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1970) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_1970_labor <- laborTokens_wordPairs_corr_10yr_1970 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_1970_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_1970_enviro.jpg") #h=11,
+
+
+
+#### 1980
+laborTokens_wordPairs_corr_10yr_1980 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1980) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_1980_labor <- laborTokens_wordPairs_corr_10yr_1980 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_1980_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_1980_enviro.jpg") #h=11,
+
+
+
+
+#### 1990
+laborTokens_wordPairs_corr_10yr_1990 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1990) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_1990_labor <- laborTokens_wordPairs_corr_10yr_1990 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_1990_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_1990_enviro.jpg") #h=11,
+
+
+
+#### 2000
+laborTokens_wordPairs_corr_10yr_2000 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==2000) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_2000_labor <- laborTokens_wordPairs_corr_10yr_2000 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_2000_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_2000_enviro.jpg") #h=11,
+
+
+
+#### 2010
+laborTokens_wordPairs_corr_10yr_2010 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==2010) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_2010_labor <- laborTokens_wordPairs_corr_10yr_2010 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_2010_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_2010_enviro.jpg") #h=11,
+
+
+
+#### 2020
+laborTokens_wordPairs_corr_10yr_2020 <- laborTokens %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==2020) %>%
+  group_by(term) %>%
+  filter(n() >= 10) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborTokens_wordPairs_corr_10yr_2020_labor <- laborTokens_wordPairs_corr_10yr_2020 %>%
+  filter(item1 %ilike% enviroVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborTokens_wordPairs_corr_10yr_2020_labor %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborTokens_wordPairs_corr_10yr_2020_enviro.jpg") #h=11,
+
+
+```
+
+#### bigrams
+
+##### 25-yr period:
+```{r labor bigram co-occurence with enviro per 25-yr period}
+
+
+#### 1875
+laborBigrams_wordPairs_corr_25yr_1875 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==1875) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_25yr_1875_enviro <- laborBigrams_wordPairs_corr_25yr_1875 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_25yr_1875_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_25yr_1875_enviro.jpg") #h=11,
+
+
+
+#### 1900
+laborBigrams_wordPairs_corr_25yr_1900 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==1900) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_25yr_1900_enviro <- laborBigrams_wordPairs_corr_25yr_1900 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_25yr_1900_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_25yr_1900_enviro.jpg") #h=11,
+
+
+
+#### 1925
+laborBigrams_wordPairs_corr_25yr_1925 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==1925) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_25yr_1925_enviro <- laborBigrams_wordPairs_corr_25yr_1925 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_25yr_1925_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_25yr_1925_enviro.jpg") #h=11,
+
+
+
+#### 1950
+laborBigrams_wordPairs_corr_25yr_1950 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==1950) %>%
+  group_by(term) %>%
+  filter(n() >= 200) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_25yr_1950_enviro <- laborBigrams_wordPairs_corr_25yr_1950 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_25yr_1950_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_25yr_1950_enviro.jpg") #h=11,
+
+
+
+#### 1975
+laborBigrams_wordPairs_corr_25yr_1975 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==1975) %>%
+  group_by(term) %>%
+  filter(n() >= 200) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_25yr_1975_enviro <- laborBigrams_wordPairs_corr_25yr_1975 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_25yr_1975_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_25yr_1975_enviro.jpg") #h=11,
+
+
+
+
+#### 2000
+laborBigrams_wordPairs_corr_25yr_2000 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 25) %>%
+  filter(period==2000) %>%
+  group_by(term) %>%
+  filter(n() >= 200) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_25yr_2000_enviro <- laborBigrams_wordPairs_corr_25yr_2000 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_25yr_2000_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_25yr_2000_enviro.jpg") #h=11,
+
+
+
+```
+
+##### 10-yr period:
+```{r labor bigram co-occurence with enviro per 10-yr period}
+
+
+#### 1900
+laborBigrams_wordPairs_corr_10yr_1900 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1900) %>%
+  group_by(term) %>%
+  filter(n() >= 25) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_1900_enviro <- laborBigrams_wordPairs_corr_10yr_1900 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_1900_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_1900_enviro.jpg") #h=11,
+
+
+
+#### 1910
+laborBigrams_wordPairs_corr_10yr_1910 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1910) %>%
+  group_by(term) %>%
+  filter(n() >= 25) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_1910_enviro <- laborBigrams_wordPairs_corr_10yr_1910 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_1910_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_1910_enviro.jpg") #h=11,
+
+
+
+#### 1920
+laborBigrams_wordPairs_corr_10yr_1920 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1920) %>%
+  group_by(term) %>%
+  filter(n() >= 25) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_1920_enviro <- laborBigrams_wordPairs_corr_10yr_1920 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_1920_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_1920_enviro.jpg") #h=11,
+
+
+
+#### 1930
+laborBigrams_wordPairs_corr_10yr_1930 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1930) %>%
+  group_by(term) %>%
+  filter(n() >= 25) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_1930_enviro <- laborBigrams_wordPairs_corr_10yr_1930 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_1930_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_1930_enviro.jpg") #h=11,
+
+
+
+#### 1940
+laborBigrams_wordPairs_corr_10yr_1940 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1940) %>%
+  group_by(term) %>%
+  filter(n() >= 25) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_1940_enviro <- laborBigrams_wordPairs_corr_10yr_1940 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_1940_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_1940_enviro.jpg") #h=11,
+
+
+
+#### 1950
+laborBigrams_wordPairs_corr_10yr_1950 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1950) %>%
+  group_by(term) %>%
+  filter(n() >= 25) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_1950_enviro <- laborBigrams_wordPairs_corr_10yr_1950 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_1950_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_1950_enviro.jpg") #h=11,
+
+
+
+
+#### 1960
+laborBigrams_wordPairs_corr_10yr_1960 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1960) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_1960_enviro <- laborBigrams_wordPairs_corr_10yr_1960 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_1960_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_1960_enviro.jpg") #h=11,
+
+
+
+
+#### 1970
+laborBigrams_wordPairs_corr_10yr_1970 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1970) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_1970_enviro <- laborBigrams_wordPairs_corr_10yr_1970 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_1970_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_1970_enviro.jpg") #h=11,
+
+
+
+#### 1980
+laborBigrams_wordPairs_corr_10yr_1980 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1980) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_1980_enviro <- laborBigrams_wordPairs_corr_10yr_1980 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_1980_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_1980_enviro.jpg") #h=11,
+
+
+
+
+#### 1990
+laborBigrams_wordPairs_corr_10yr_1990 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==1990) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_1990_enviro <- laborBigrams_wordPairs_corr_10yr_1990 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_1990_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_1990_enviro.jpg") #h=11,
+
+
+
+#### 2000
+laborBigrams_wordPairs_corr_10yr_2000 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==2000) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_2000_enviro <- laborBigrams_wordPairs_corr_10yr_2000 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_2000_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_2000_enviro.jpg") #h=11,
+
+
+
+#### 2010
+laborBigrams_wordPairs_corr_10yr_2010 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==2010) %>%
+  group_by(term) %>%
+  filter(n() >= 100) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_2010_enviro <- laborBigrams_wordPairs_corr_10yr_2010 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_2010_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_2010_enviro.jpg") #h=11,
+
+
+
+#### 2020
+laborBigrams_wordPairs_corr_10yr_2020 <- laborBigrams %>%
+  select(speech_id,term,count,year) %>%
+  mutate(period = as.numeric(year) - as.numeric(year) %% 10) %>%
+  filter(period==2020) %>%
+  group_by(term) %>%
+  filter(n() >= 50) %>%
+  pairwise_cor(term,speech_id,sort=TRUE)
+
+laborBigrams_wordPairs_corr_10yr_2020_enviro <- laborBigrams_wordPairs_corr_10yr_2020 %>%
+  filter(item1 %ilike% enviroBigramVocabString_simple) %>%
+  slice_max(correlation,n=85) %>%
+  arrange(-correlation)
+
+set.seed(2016)
+laborBigrams_wordPairs_corr_10yr_2020_enviro %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha=correlation), 
+                 edge_color="#32127a",
+                 show.legend=TRUE) +
+  geom_node_point(color="blue", size=3.5) +
+  geom_node_text(aes(label=name), 
+                 color="#32127a",
+                 family="IBM Plex Mono",
+                 size=3,
+                 repel = TRUE) +
+  theme_void() + 
+  theme(legend.text=element_text(family="IBM Plex Mono",color="#32127a"),
+        legend.title=element_text(family="IBM Plex Mono",color="#32127a"))
+
+ggsave("congress_bookdown/figures/laborBigrams_wordPairs_corr_10yr_2020_enviro.jpg") #h=11,
+
+
+```
+
+
+## TOPIC MODELING
+

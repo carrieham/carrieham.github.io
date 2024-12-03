@@ -1,0 +1,215 @@
+# Speeches
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+#quanteda_options(tokens_block_size = 50000)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(bookdown,
+       data.table,
+       DataTables,
+       dplyr, 
+       DT,
+       htmltools,
+       htmlwidgets,
+       forcats,
+       plotly,
+       quanteda,
+       stopwords,
+       tictoc,
+       tidyverse, 
+       tidytext,
+       tokenizers,
+       vroom)
+
+```
+
+```{r input data, include=FALSE, cache=TRUE, cache.lazy=FALSE}
+
+load("data/enviroLaborSpeeches.Rda")
+
+enviroKeywords <- c("environmental",
+                 "natural environment",
+                 "ecolog",
+                 "ecosystem",
+                 "conservation",
+                 "deforestation",
+                 "reclamation",
+                 "pollution",
+                 "(land|soil) (degradation|erosion)",
+                 "natural resource",
+                 "fish",
+                 "wildlife",
+                 "wilderness") %>%
+  as_tibble()
+                 # "agricultur",
+                 # "land use",
+                 # "land management",
+                 # "mineral",
+                 # "forest",
+                 # "timber",
+                 # "habitat",
+                 # "hunting","hunter",
+                 # "air quality","clean air",
+                 # "water",
+                 # "river",
+                 # "fish",
+                 # "//bdam//b","//bdams//b")
+                 # "//bsoil erosion","soil degradation",
+
+laborKeywords <- c("labor",
+                "worker",
+                "workforce",
+                "jobs",
+                "minimum wage",
+                "unionize",
+                "craft union",
+                "trade union",
+                "industrial union",
+                "collective bargaining") %>%
+  as_tibble()
+
+hein_badSyntax <- "data/vocabulary/master_list.txt" %>%
+  vroom(delim="|") %>%
+  rename("classify" = "_classify") %>%
+  filter(classify != "vocab") %>%
+  mutate(phrase=str_replace_all(phrase," ","_"))
+
+```
+
+### KEYWORDS
+
+#### environmental keywords
+
+```{r enviro keywords , echo=FALSE}
+enviroKeywords
+```
+
+#### labor keywords
+
+```{r labor keywords , echo=FALSE}
+laborKeywords
+```
+
+```{r enviroLabor speeches set-up, echo=FALSE, cache=TRUE}
+
+
+enviroSpeeches_byYear <- enviroLaborSpeeches %>%
+  filter(environment=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+laborSpeeches_byYear <- enviroLaborSpeeches %>%
+  filter(labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+enviroLaborSpeeches_byYear <- enviroLaborSpeeches %>%
+  filter(environment=="Yes" & labor=="Yes") %>%
+  group_by(year) %>%
+  summarize(n=n(),prop=n/unique(total_annual_speeches)) %>%
+  arrange(desc(year))
+
+allSpeeches_byYear <- rbind(mutate(enviroSpeeches_byYear,type="environment"),
+                            mutate(laborSpeeches_byYear,type="labor"),
+                            mutate(enviroLaborSpeeches_byYear,type="enviro-labor"))
+
+
+```
+
+```{r enviroLabor speeches over time , echo=FALSE, cache=TRUE}
+
+map_allSpeeches_byYear <- ggplot() +
+geom_line(data=allSpeeches_byYear,
+              aes(x=year,
+                  y=n,
+                  group=3,
+                  color=type,
+                  text=paste("<b>",year,":</b> ",n," speeches",sep=""))) +
+  scale_color_manual(values=c("environment"="aquamarine4",
+                              "labor"="blue",
+                              "enviro-labor"="blueviolet")) +
+  guides(color=guide_legend(title = "")) +
+  scale_x_continuous(breaks = seq(1880, 2020, by = 10)) + 
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_allSpeeches_byYear, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         legend=list(xref="paper",
+                     x=0.5,xanchor='center',
+                     y=1,yanchor='top',
+                     orientation='h',
+                     traceorder="reversed",
+                     title=list(font=list(color="#32127a",family="IBM Plex Mono")),
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("congress_bookdown/congress_bookdown/figures/speeches_by_year.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r enviroLabor prop speeches over time, echo=FALSE, cache=TRUE}
+
+map_allSpeeches_prop_byYear <- ggplot() +
+geom_line(data=allSpeeches_byYear,
+              aes(x=year,
+                  y=prop,
+                  group=3,
+                  color=type,
+                  text=paste("<b>",year,":</b> ",round(prop*100,1),"% of speeches",sep=""))) +
+  scale_color_manual(values=c("environment"="aquamarine4",
+                              "labor"="blue",
+                              "enviro-labor"="blueviolet")) +
+  guides(color=guide_legend(title = "")) +
+  scale_x_continuous(breaks = seq(1880, 2020, by = 10)) + 
+  theme_minimal() +
+  theme(axis.line=element_line(color="#32127a"),
+        axis.ticks=element_line(color="#32127a"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+##### make interactive
+ggplotly(map_allSpeeches_prop_byYear, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+  layout(font=list(color="#32127a",family="IBM Plex Mono"),
+         xaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         yaxis=list(color="#32127a",
+                    linecolor="#32127a",
+                    tickfont=list(color="#32127a")),
+         legend=list(xref="paper",
+                     x=0.5,xanchor='center',
+                     y=1,yanchor='top',
+                     orientation='h',
+                     traceorder="reversed",
+                     title=list(font=list(color="#32127a",family="IBM Plex Mono")),
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("congress_bookdown/figures/speeches_prop_by_year.html", selfcontained = F, libdir = "lib")
+
+```
+

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>6 TOPIC MODELS | CLC text mining</title>
+<meta name="author" content="Carrie Hamilton">
+<meta name="generator" content="bookdown 0.41 with bs4_book()">
+<meta property="og:title" content="6 TOPIC MODELS | CLC text mining">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="6 TOPIC MODELS | CLC text mining">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><link href="libs/IBM_Plex_Mono-0.4.9/font.css" rel="stylesheet">
+<script src="libs/bs3compat-0.8.0/transition.js"></script><script src="libs/bs3compat-0.8.0/tabs.js"></script><script src="libs/bs3compat-0.8.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script><link rel="shortcut icon" href="favicon.ico">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="styles.css">
+<meta name="description" content="BERTopic So far, I have only run this in enviro speeches.   6.1 topic representation different topic representations take different approaches to assigning topic labels. the two I have used, in...">
+<meta property="og:description" content="BERTopic So far, I have only run this in enviro speeches.   6.1 topic representation different topic representations take different approaches to assigning topic labels. the two I have used, in...">
+<meta name="twitter:description" content="BERTopic So far, I have only run this in enviro speeches.   6.1 topic representation different topic representations take different approaches to assigning topic labels. the two I have used, in...">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">CLC text mining</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> INTRO</a></li>
+<li><a class="" href="data.html"><span class="header-section-number">2</span> DATA</a></li>
+<li><a class="" href="enviro.html"><span class="header-section-number">3</span> ENVIRO</a></li>
+<li><a class="" href="labor.html"><span class="header-section-number">4</span> LABOR</a></li>
+<li><a class="" href="enviro-labor.html"><span class="header-section-number">5</span> ENVIRO-LABOR</a></li>
+<li><a class="active" href="topic-models.html"><span class="header-section-number">6</span> TOPIC MODELS</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="topic-models" class="section level1" number="6">
+<h1>
+<span class="header-section-number">6</span> TOPIC MODELS<a class="anchor" aria-label="anchor" href="#topic-models"><i class="fas fa-link"></i></a>
+</h1>
+<p><a href="https://maartengr.github.io/BERTopic/getting_started/topicsovertime/topicsovertime.html">BERTopic</a></p>
+<p>So far, I have only run this in enviro speeches.</p>
+<iframe src="figures/plot_topics_150_original.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+<iframe src="figures/plot_topics_150_mmr.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+<div id="topic-representation" class="section level2" number="6.1">
+<h2>
+<span class="header-section-number">6.1</span> topic representation<a class="anchor" aria-label="anchor" href="#topic-representation"><i class="fas fa-link"></i></a>
+</h2>
+<p>different <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html">topic representations</a> take different approaches to assigning topic labels. the two I have used, in addition the default approach, are (1) the <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired">KeyBERTInspired</a> topic representation and (2) the <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance">MaximalMarginalRelevance</a>
+topic representation.</p>
+<p><a href="https://maartengr.github.io/BERTopic/getting_started/ctfidf/ctfidf.html">KeyBERT</a> (default): assigns topic labels based on most distinguishing words in the topic (similar to ip-idf).</p>
+<p><a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired">KeyBERTInspired:</a> does something extra, still trying to understand.</p>
+<p><a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance">MaximalMarginalRelevance:</a> reduces redundancy of selected topic keywords (e.g., car vs. cars)</p>
+<p><a href="https://maartengr.github.io/BERTopic/getting_started/representation/llm.html#openai">OpenAI</a> (trying to get this to work): supplies ChatGBT with a representative selection of topic documents and keywords and asks it to return a 5-10 word topic label.</p>
+<pre><code>## Rows: 115 Columns: 7
+## ── Column specification ───────────────────────────────────────────────────────────────────
+## Delimiter: ","
+## chr (1): Name
+## dbl (2): Topic, Count
+## lgl (4): Representation, KeyBERT, MMR, Representative_Docs
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Topic"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Count"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Name"],"name":[3],"type":["chr"],"align":["left"]},{"label":["Representation"],"name":[4],"type":["lgl"],"align":["right"]},{"label":["KeyBERT"],"name":[5],"type":["lgl"],"align":["right"]},{"label":["MMR"],"name":[6],"type":["lgl"],"align":["right"]},{"label":["Representative_Docs"],"name":[7],"type":["lgl"],"align":["right"]}],"data":[{"1":"0","2":"11628","3":"0_farm_farmers_agriculture_program","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"1","2":"9383","3":"1_energy_oil_we_gas","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"2","2":"8709","3":"2_reclamation_projects_project_irrigation","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"3","2":"4491","3":"3_air_pollution_clean_standards","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"4","2":"6775","3":"4_environmental_environment_epa_to","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"5","2":"3583","3":"5_transportation_highway_transit_rail","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"6","2":"6617","3":"6_his_he_was_him","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"7","2":"5644","3":"7_water_river_flood_project","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"8","2":"3009","3":"8_nuclear_waste_energy_the","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"9","2":"4351","3":"9_water_pollution_treatment_clean","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"10","2":"3380","3":"10_forest_timber_forests_the","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"11","2":"3929","3":"11_unanimous_consent_ask_mr","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"12","2":"2428","3":"12_climate_change_global_carbon","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"13","2":"4948","3":"13_park_parks_recreation_land","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"14","2":"2049","3":"14_youth_corps_young_conservation","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"15","2":"12559","3":"15_the_of_that_and","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"16","2":"2413","3":"16_defense_military_base_the","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"17","2":"3195","3":"17_budget_we_spending_tax","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"18","2":"2178","3":"18_fishing_fisheries_fishery_fishermen","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"19","2":"1783","3":"19_alaska_lands_land_the","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"20","2":"3319","3":"20_wilderness_areas_area_forest","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"21","2":"2590","3":"21_the_in_of_and","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"22","2":"1549","3":"22_mining_coal_surface_strip","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"23","2":"1270","3":"23_pesticides_pesticide_fda_food","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"24","2":"1972","3":"24_species_endangered_act_wildlife","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"25","2":"1285","3":"25_oil_spill_liability_spills","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"26","2":"1464","3":"26_oil_arctic_drilling_anwr","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"27","2":"1396","3":"27_indian_indians_tribes_tribal","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"28","2":"2050","3":"28_colorado_water_river_project","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"29","2":"1381","3":"29_lakes_lake_great_water","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"30","2":"1238","3":"30_ocs_oil_drilling_coastal","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"31","2":"861","3":"31_noise_airport_aircraft_faa","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"32","2":"1079","3":"32_superfund_sites_cleanup_hazardous","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"33","2":"848","3":"33_space_nasa_station_shuttle","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"34","2":"890","3":"34_fire_forest_fires_forests","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"35","2":"1596","3":"35_coal_energy_gas_of","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"36","2":"1309","3":"36_housing_urban_cities_of","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"37","2":"685","3":"37_sst_concorde_supersonic_aircraft","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"38","2":"1220","3":"38_mining_minerals_mineral_mines","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"39","2":"848","3":"39_calendar_act_rule_monday","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"40","2":"824","3":"40_nafta_mexico_trade_agreement","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"41","2":"1909","3":"41_power_transmission_bonneville_hydropower","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"42","2":"912","3":"42_waste_solid_recycling_disposal","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"43","2":"786","3":"43_guard_coast_vessels_maritime","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"44","2":"1573","3":"44_water_california_drought_delta","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"45","2":"1161","3":"45_ocean_noaa_oceans_marine","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"46","2":"1552","3":"46_trade_agreement_agreements_we","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"47","2":"1180","3":"47_education_school_schools_students","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"48","2":"819","3":"48_canal_everglades_florida_panama","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"49","2":"724","3":"49_ethanol_gasoline_fuels_fuel","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"50","2":"1047","3":"50_section_shall_rule_educational","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"51","2":"964","3":"51_judge_court_he_supreme","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"52","2":"1370","3":"52_refuge_wildlife_refuges_fish","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"53","2":"1069","3":"53_river_scenic_rivers_wild","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"54","2":"1182","3":"54_science_research_technology_scientific","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"55","2":"2047","3":"55_wildlife_fish_hunting_sportsmen","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"56","2":"1217","3":"56_health_medical_disease_research","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"57","2":"674","3":"57_wetlands_wetland_404_the","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"58","2":"1455","3":"58_regulatory_regulations_regulation_agencies","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"59","2":"868","3":"59_vehicles_fuel_cars_electric","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"60","2":"821","3":"60_unanimous_consent_session_ask","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"61","2":"515","3":"61_acid_rain_emissions_sulfur","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"62","2":"642","3":"62_grazing_lands_ranchers_livestock","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"63","2":"780","3":"63_salmon_fish_hatchery_fisheries","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"64","2":"559","3":"64_pipeline_keystone_xl_oil","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"65","2":"834","3":"65_interior_secretary_watt_he","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"66","2":"928","3":"66_gas_natural_price_prices","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"67","2":"915","3":"67_unemployment_employment_jobs_unemployed","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"68","2":"638","3":"68_pipeline_canadian_oil_route","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"69","2":"513","3":"69_dumping_ocean_marine_sludge","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"70","2":"2472","3":"70_000_budget_million_00","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"71","2":"513","3":"71_china_chinese_trade_chinas","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"72","2":"710","3":"72_disaster_flood_hurricane_and","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"73","2":"914","3":"73_her_she_was_women","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"74","2":"645","3":"74_coastal_zone_barrier_management","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"75","2":"612","3":"75_nuclear_weapons_mx_soviet","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"76","2":"558","3":"76_hearing_dirksen_room_announce","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"77","2":"601","3":"77_solar_energy_heating_cooling","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"78","2":"526","3":"78_immigration_border_immigrants_they","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"79","2":"612","3":"79_hazardous_waste_disposal_wastes","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"80","2":"647","3":"80_chemical_chemicals_substances_toxic","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"81","2":"605","3":"81_small_business_businesses_sba","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"82","2":"613","3":"82_veterans_va_care_housing","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"83","2":"437","3":"83_hearing_subcommittee_room_testimony","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"84","2":"413","3":"84_population_family_planning_growth","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"85","2":"464","3":"85_education_environmental_students_school","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"86","2":"1550","3":"86_tax_income_taxes_to","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"87","2":"272","3":"87_tobacco_smoking_smoke_cigarette","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"88","2":"273","3":"88_sugar_beet_beets_honey","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"89","2":"260","3":"89_ozone_cfcs_layer_protocol","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"90","2":"426","3":"90_nepa_environmental_impact_federal","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"91","2":"306","3":"91_steel_industry_trade_capital","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"92","2":"430","3":"92_bay_chesapeake_watershed_maryland","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"93","2":"363","3":"93_rationing_plan_gasoline_standby","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"94","2":"316","3":"94_drug_meth_drugs_methamphetamine","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"95","2":"238","3":"95_tongass_timber_forest_alaska","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"96","2":"228","3":"96_rollcall_voted_no_yea","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"97","2":"339","3":"97_drought_farmers_disaster_crop","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"98","2":"271","3":"98_tropical_forests_forest_debt","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"99","2":"265","3":"99_tva_tennessee_power_valley","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"100","2":"639","3":"100_drinking_water_safe_contaminants","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"101","2":"241","3":"101_mercury_cement_epa_emissions","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"102","2":"579","3":"102_nevada_wilderness_land_area","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"103","2":"220","3":"103_forestry_hearing_nutrition_agriculture","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"104","2":"315","3":"104_osha_workers_safety_occupational","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"105","2":"395","3":"105_duck_migratory_stamp_waterfowl","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"106","2":"221","3":"106_israel_arab_jewish_palestine","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"107","2":"224","3":"107_lead_poisoning_paint_children","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"108","2":"316","3":"108_puerto_rico_islands_guam","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"109","2":"190","3":"109_veterans_orange_agent_vietnam","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"110","2":"553","3":"110_erda_energy_research_solar","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"111","2":"166","3":"111_daylight_saving_time_yearround","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"112","2":"363","3":"112_delaware_hudson_compact_river","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"113","2":"2351","3":"113_conservation_it_that_bill","4":"NA","5":"NA","6":"NA","7":"NA"},{"1":"114","2":"423","3":"114_hells_canyon_snake_dam","4":"NA","5":"NA","6":"NA","7":"NA"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div id="topic-hierarchy" class="section level2" number="6.2">
+<h2>
+<span class="header-section-number">6.2</span> topic hierarchy<a class="anchor" aria-label="anchor" href="#topic-hierarchy"><i class="fas fa-link"></i></a>
+</h2>
+<div id="topic-representation-default" class="section level4" number="6.2.0.1">
+<h4>
+<span class="header-section-number">6.2.0.1</span> topic representation: default<a class="anchor" aria-label="anchor" href="#topic-representation-default"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/plot_topics_hierarchy_150.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+</div>
+<div id="topic-representation-keybertinspired" class="section level4" number="6.2.0.2">
+<h4>
+<span class="header-section-number">6.2.0.2</span> topic representation: <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired">KeyBERTInspired</a><a class="anchor" aria-label="anchor" href="#topic-representation-keybertinspired"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/plot_topics_hierarchy_150_key.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+</div>
+<div id="topic-representation-maximalmarginalrelevance" class="section level4" number="6.2.0.3">
+<h4>
+<span class="header-section-number">6.2.0.3</span> topic representation: <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance">MaximalMarginalRelevance</a><a class="anchor" aria-label="anchor" href="#topic-representation-maximalmarginalrelevance"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/plot_topics_hierarchy_150_mmr.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+</div>
+</div>
+<div id="topics-over-time" class="section level2" number="6.3">
+<h2>
+<span class="header-section-number">6.3</span> topics over time<a class="anchor" aria-label="anchor" href="#topics-over-time"><i class="fas fa-link"></i></a>
+</h2>
+<div id="yr-6" class="section level3" number="6.3.1">
+<h3>
+<span class="header-section-number">6.3.1</span> 10-yr<a class="anchor" aria-label="anchor" href="#yr-6"><i class="fas fa-link"></i></a>
+</h3>
+<div id="topic-representation-keybertinspired-1" class="section level4" number="6.3.1.1">
+<h4>
+<span class="header-section-number">6.3.1.1</span> topic representation: <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired">KeyBERTInspired</a><a class="anchor" aria-label="anchor" href="#topic-representation-keybertinspired-1"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/plot_topics_over_time_150_10_key.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+</div>
+<div id="topic-representation-maximalmarginalrelevance-1" class="section level4" number="6.3.1.2">
+<h4>
+<span class="header-section-number">6.3.1.2</span> topic representation: <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance">MaximalMarginalRelevance</a><a class="anchor" aria-label="anchor" href="#topic-representation-maximalmarginalrelevance-1"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/plot_topics_over_time_150_10_mmr.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+</div>
+</div>
+<div id="yr-7" class="section level3" number="6.3.2">
+<h3>
+<span class="header-section-number">6.3.2</span> 5-yr<a class="anchor" aria-label="anchor" href="#yr-7"><i class="fas fa-link"></i></a>
+</h3>
+<div id="topic-representation-keybertinspired-2" class="section level4" number="6.3.2.1">
+<h4>
+<span class="header-section-number">6.3.2.1</span> topic representation: <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired">KeyBERTInspired</a><a class="anchor" aria-label="anchor" href="#topic-representation-keybertinspired-2"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/plot_topics_over_time_150_5_key.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+</div>
+<div id="topic-representation-maximalmarginalrelevance-2" class="section level4" number="6.3.2.2">
+<h4>
+<span class="header-section-number">6.3.2.2</span> topic representation: <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance">MaximalMarginalRelevance</a><a class="anchor" aria-label="anchor" href="#topic-representation-maximalmarginalrelevance-2"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/plot_topics_over_time_150_5_mmr.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+</div>
+</div>
+<div id="yr-8" class="section level3" number="6.3.3">
+<h3>
+<span class="header-section-number">6.3.3</span> 2-yr<a class="anchor" aria-label="anchor" href="#yr-8"><i class="fas fa-link"></i></a>
+</h3>
+<div id="topic-representation-keybertinspired-3" class="section level4" number="6.3.3.1">
+<h4>
+<span class="header-section-number">6.3.3.1</span> topic representation: <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired">KeyBERTInspired</a><a class="anchor" aria-label="anchor" href="#topic-representation-keybertinspired-3"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/plot_topics_over_time_150_2_key.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+</div>
+<div id="topic-representation-maximalmarginalrelevance-3" class="section level4" number="6.3.3.2">
+<h4>
+<span class="header-section-number">6.3.3.2</span> topic representation: <a href="https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance">MaximalMarginalRelevance</a><a class="anchor" aria-label="anchor" href="#topic-representation-maximalmarginalrelevance-3"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/plot_topics_over_time_150_2_mmr.html" scrolling="yes" frameborder="0" height="800" width="100%"></iframe>
+
+</div>
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="enviro-labor.html"><span class="header-section-number">5</span> ENVIRO-LABOR</a></div>
+<div class="empty"></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#topic-models"><span class="header-section-number">6</span> TOPIC MODELS</a></li>
+<li><a class="nav-link" href="#topic-representation"><span class="header-section-number">6.1</span> topic representation</a></li>
+<li><a class="nav-link" href="#topic-hierarchy"><span class="header-section-number">6.2</span> topic hierarchy</a></li>
+<li>
+<a class="nav-link" href="#topics-over-time"><span class="header-section-number">6.3</span> topics over time</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#yr-6"><span class="header-section-number">6.3.1</span> 10-yr</a></li>
+<li><a class="nav-link" href="#yr-7"><span class="header-section-number">6.3.2</span> 5-yr</a></li>
+<li><a class="nav-link" href="#yr-8"><span class="header-section-number">6.3.3</span> 2-yr</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>CLC text mining</strong>" was written by Carrie Hamilton. </p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>
