@@ -53,7 +53,6 @@ p_load(bookdown,
 
 ```
 
-# DATA
 
 ```{r set-up, include=FALSE}
 
@@ -61,7 +60,21 @@ load("data/enviroLaborSpeeches.Rda")
 
 ```
 
-<br> 
+##### data hosting 
+
+<b>size:</b> ~600k rows x 11 cols, text data
+<br>
+<b>access:</b> public, easy-to-use
+<br>
+<b>functionality:</b> 
+
+-   search by keywords
+-   download
+-   maybe: visualization
+
+<b>example:</b> [Radiant](https://vnijs.shinyapps.io/radiant/?SSUID=decaca2c14)
+
+<br>
 
 ##### speech sample  (n=1 per year):
 
@@ -82,8 +95,6 @@ enviroLaborSpeeches %>%
   arrange(-year)
 
 ```
-
-<center>size: ~600k rows x 11 cols</center>
 
 <br>
 
@@ -135,13 +146,3 @@ tags$iframe(
 #   saveWidget("speeches_by_year.html", selfcontained = F, libdir = "lib")
 
 ```
-
-##### data hosting 
-
-Functionality: 
-
--   search by keywords
--   download
--   maybe: visualization
-
-Example: [Radiant](https://vnijs.shinyapps.io/radiant/?SSUID=decaca2c14)
