@@ -1,0 +1,205 @@
+# ENVIRO-LABOR
+
+## co-occurrence
+
+### 25-yr
+
+#### co-occurrences with enviro keywords in enviro-labor speeches
+
+```{r}
+
+# enviroVocab_simple <- c("^environ",
+#                         "^ecolog",
+#                         "^ecosyst",
+#                         "^outdoor",
+#                         "^conserv",
+#                         "^reclam",
+#                         "^pollut",
+#                         "^wildlif",
+#                         "^wilder") %>%
+#   as_tibble()
+
+enviroVocab_simple
+
+```
+
+
+<center><b>1875</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1875_enviro.jpg){width=100%}
+
+<center><b>1900</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1900_enviro.jpg){width=100%}
+
+
+<center><b>1925</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1925_enviro.jpg){width=100%}
+
+<center><b>1950</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1950_enviro.jpg){width=100%}
+
+<center><b>1975</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1975_enviro.jpg){width=100%}
+
+<center><b>2000</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_2000_enviro.jpg){width=100%}
+
+#### co-occurrences with labor keywords in enviro-labor speeches
+```{r}
+
+# laborVocab_simple <- c("^labor$",
+#                        "^worker$",
+#                        "^job$",
+#                        "^wage$",
+#                        "^class$") %>%
+#   as_tibble()
+
+laborVocab_simple
+
+```
+
+<center><b>1875</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1875_labor.jpg){width=100%}
+
+<center><b>1900</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1900_labor.jpg){width=100%}
+
+
+<center><b>1925</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1925_labor.jpg){width=100%}
+
+<center><b>1950</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1950_labor.jpg){width=100%}
+
+<center><b>1975</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1975_labor.jpg){width=100%}
+
+<center><b>2000</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_2000_labor.jpg){width=100%}
+
+
+#### co-occurrences with enviro-labor keywords in enviro-labor speeches
+```{r}
+
+# enviroVocab_simple2 <- c("^environ",
+#                         "^ecolog",
+#                         "^ecosyst",
+#                         "^outdoor",
+#                         "^conserv",
+#                         "^reclam",
+#                         "^pollut",
+#                         "^wildlif",
+#                         "^wilder")
+# 
+# laborVocab_simple2 <- c("^labor$",
+#                        "^worker$",
+#                        "^job$",
+#                        "^wage$",
+#                        "^class$")
+
+enviroLaborVocabString_simple <- c(enviroVocab_simple2,laborVocab_simple2) %>%
+  as_tibble()
+
+enviroLaborVocabString_simple
+
+```
+
+<center><b>1875</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1875_enviroLabor.jpg){width=100%}
+
+<center><b>1900</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1900_enviroLabor.jpg){width=100%}
+
+
+<center><b>1925</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1925_enviroLabor.jpg){width=100%}
+
+<center><b>1950</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1950_enviroLabor.jpg){width=100%}
+
+<center><b>1975</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_1975_enviroLabor.jpg){width=100%}
+
+<center><b>2000</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_25yr_2000_enviroLabor.jpg){width=100%}
+
+
+### 10-yr
+
+#### co-occurrences with enviro-labor keywords in enviro-labor speeches
+
+```{r}
+
+enviroLaborVocabString_simple
+
+```
+
+<center><b>1900</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_1900_enviroLabor.jpg){width=100%}
+
+<center><b>1910</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_1910_enviroLabor.jpg){width=100%}
+
+<center><b>1920</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_1920_enviroLabor.jpg){width=100%}
+
+<center><b>1930</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_1930_enviroLabor.jpg){width=100%}
+
+<center><b>1940</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_1940_enviroLabor.jpg){width=100%}
+
+<center><b>1950</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_1950_enviroLabor.jpg){width=100%}
+
+<center><b>1960</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_1960_enviroLabor.jpg){width=100%}
+
+<center><b>1970</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_1970_enviroLabor.jpg){width=100%}
+
+<center><b>1980</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_1980_enviroLabor.jpg){width=100%}
+
+<center><b>1990</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_1990_enviroLabor.jpg){width=100%}
+
+<center><b>2000</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_2000_enviroLabor.jpg){width=100%}
+
+<center><b>2010</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_2010_enviroLabor.jpg){width=100%}
+
+<center><b>2020</b></center>
+
+![](figures/enviroLaborTokens_wordPairs_corr_10yr_2020_enviroLabor.jpg){width=100%}
+

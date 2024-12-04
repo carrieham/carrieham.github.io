@@ -1,0 +1,137 @@
+---
+title: "enviro & labor congressional speeches (1873-present)"
+output:
+  html_document:
+    pandoc_args:
+    - +RTS
+    - "-M64G"
+    - "-RTS"
+    code_folding: hide
+    self_contained: no
+    df_print: paged
+    highlighter: haddock
+    toc: false
+    toc_float: false
+    css: styles.css
+    includes:
+      in_header: header.html
+---
+
+<p>
+
+<center><b><font size="3">Carrie Hamilton</font></b></center>
+
+<center><font size="3">`r Sys.Date()`</font></center>
+
+</p>
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+#quanteda_options(tokens_block_size = 50000)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(bookdown,
+       data.table,
+       DataTables,
+       dplyr, 
+       DT,
+       htmltools,
+       htmlwidgets,
+       forcats,
+       plotly,
+       quanteda,
+       stopwords,
+       tictoc,
+       tidyverse, 
+       tidytext,
+       tokenizers,
+       vroom)
+
+```
+
+# DATA
+
+```{r set-up, include=FALSE}
+
+load("data/enviroLaborSpeeches.Rda")
+
+```
+
+<br> 
+
+##### speech sample  (n=1 per year):
+
+```{r enviroLabor speeches, echo=FALSE, cache=TRUE}
+
+enviroLaborSpeeches %>%
+  select(speech_id,
+         year,
+         chamber,
+         speaker,
+         # total_annual_speeches,
+         word_count,
+         environment,
+         labor,
+         speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(-year)
+
+```
+
+<center>size: ~600k rows x 11 cols</center>
+
+<br>
+
+##### enviro + labor speeches per year:
+
+```{r speech counts over time, echo=FALSE, cache=TRUE}
+
+# include_url("figures/speeches_by_year.html",height=500)
+
+tags$iframe(
+  src = "speeches_by_year.html",
+  scrolling = "no",
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+# speeches_byYear <- enviroLaborSpeeches %>%
+#   group_by(year) %>%
+#   summarize(n=n()) %>%
+#   arrange(desc(year))
+# 
+# map_speeches_byYear <- ggplot() +
+#     geom_col(data=speeches_byYear,
+#              aes(x=year,y=n,
+#                  text=paste("<b>",year,":</b> ",n," speeches",sep="")),
+#              fill="blueviolet") +
+#   # ggtitle("# enviro + labor speeches per year") +
+#   theme_minimal() +
+#   theme(axis.line=element_line(color="#32127a"),
+#         axis.ticks=element_line(color="#32127a"),
+#         axis.title.x=element_blank(),
+#         axis.title.y=element_blank(),
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank())
+# 
+# ##### make interactive
+# ggplotly(map_speeches_byYear, tooltip="text") %>%
+#   style(hoverlabel=list(font=list(family="IBM Plex Mono",
+#                                   size=11))) %>%
+#   layout(font=list(color="#32127a",family="IBM Plex Mono"),
+#          xaxis=list(color="#32127a",
+#                     linecolor="#32127a",
+#                     tickfont=list(color="#32127a")),
+#          yaxis=list(color="#32127a",
+#                     linecolor="#32127a",
+#                     tickfont=list(color="#32127a"))) %>%
+#   partial_bundle() %>%
+#   saveWidget("speeches_by_year.html", selfcontained = F, libdir = "lib")
+
+```

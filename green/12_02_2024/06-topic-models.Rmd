@@ -1,0 +1,192 @@
+# TOPIC MODELS
+
+[BERTopic](https://maartengr.github.io/BERTopic/getting_started/topicsovertime/topicsovertime.html) 
+
+So far, I have only run this in enviro speeches. 
+
+```{r topic clusters, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_150_original.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+```{r topic clusters intertopic map, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_150_mmr.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+## topic representation
+
+different [topic representations](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html) take different approaches to assigning topic labels. the two I have used, in addition the default approach, are (1) the [KeyBERTInspired](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired) topic representation and (2) the [MaximalMarginalRelevance](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance)
+topic representation.
+
+[KeyBERT](https://maartengr.github.io/BERTopic/getting_started/ctfidf/ctfidf.html) (default): assigns topic labels based on most distinguishing words in the topic (similar to ip-idf).
+
+[KeyBERTInspired:](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired) does something extra, still trying to understand.
+
+[MaximalMarginalRelevance:](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance) reduces redundancy of selected topic keywords (e.g., car vs. cars)
+
+[OpenAI](https://maartengr.github.io/BERTopic/getting_started/representation/llm.html#openai) (trying to get this to work): supplies ChatGBT with a representative selection of topic documents and keywords and asks it to return a 5-10 word topic label.
+
+```{r topics, echo=FALSE}
+
+topic_info <- read_csv("data/topic_info_150_reduceOutliers.csv") %>%
+  as_tibble()
+
+topic_info
+
+```
+
+
+## topic hierarchy
+
+#### topic representation: default
+
+```{r topic cluster hierarchy, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_hierarchy_150.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+
+#### topic representation: [KeyBERTInspired](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired)
+
+```{r topic clusters key, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_hierarchy_150_key.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+
+#### topic representation: [MaximalMarginalRelevance](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance)
+
+```{r topic clusters mmr, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_hierarchy_150_mmr.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+## topics over time
+
+### 10-yr
+
+#### topic representation: [KeyBERTInspired](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired)
+```{r 10yr topic clusters over time key, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_over_time_150_10_key.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+
+#### topic representation: [MaximalMarginalRelevance](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance)
+
+```{r 10yr topic clusters over time MMR, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_over_time_150_10_mmr.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+### 5-yr
+
+#### topic representation: [KeyBERTInspired](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired)
+```{r 5yr topic clusters over time key, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_over_time_150_5_key.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+
+#### topic representation: [MaximalMarginalRelevance](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance)
+
+```{r 5yr topic clusters over time MMR, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_over_time_150_5_mmr.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+### 2-yr
+
+#### topic representation: [KeyBERTInspired](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#keybertinspired)
+```{r 2yr topic clusters over time key, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_over_time_150_2_key.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+
+#### topic representation: [MaximalMarginalRelevance](https://maartengr.github.io/BERTopic/getting_started/representation/representation.html#maximalmarginalrelevance)
+
+```{r 2yr topic clusters over time MMR, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/plot_topics_over_time_150_2_mmr.html",
+  scrolling = "yes",
+  frameBorder = "0",
+  height=800,
+  width="100%"
+)
+
+```
+
+
