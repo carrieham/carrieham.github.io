@@ -135,3 +135,13 @@ tags$iframe(
 #   saveWidget("speeches_by_year.html", selfcontained = F, libdir = "lib")
 
 ```
+
+##### data hosting 
+
+Functionality: 
+
+-   search by keywords
+-   download
+-   maybe: visualization
+
+Example: [Radiant](https://vnijs.shinyapps.io/radiant/?SSUID=decaca2c14)
