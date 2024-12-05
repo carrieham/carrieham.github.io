@@ -52,8 +52,6 @@ p_load(bookdown,
        igraph,
        topicmodels)
 
-# usethis::create_github_token("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")
-
 # library(reticulate)
 # require(devtools)
 # install_github("stephbuon/posextractr")
