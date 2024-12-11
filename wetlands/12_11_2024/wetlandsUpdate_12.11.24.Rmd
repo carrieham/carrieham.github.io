@@ -461,6 +461,31 @@ wetlandParks_v3_table3
 
 ##### 3. resolve geometry/data conflicts from shifting approach
 
+different access types
+```{r echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/buenaVista.png")
+
+```
+
+<br> 
+
+slightly different names
+```{r echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/hayward.png")
+
+```
+
+<br> 
+
+different managing agencies
+```{r echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/hayward.png")
+
+```
+
 <br> 
 
 #### amenities
