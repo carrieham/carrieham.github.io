@@ -45,6 +45,7 @@ Sys.setlocale(locale = "C")
 
 load("tables/park_table1.Rda")
 load("tables/wetlands_table.Rda")
+load("tables/wetlands_old_table.Rda")
 load("tables/access_table.Rda")
 load("tables/wetlandParks_v3_table1.Rda")
 load("tables/wetlandParks_v3_table2.Rda")
@@ -53,142 +54,12 @@ load("tables/wetlandParks_v1_table.Rda")
 
 ```
 
-
-#### DATA:
-
-##### [2] wetland polygons
-
-[National Wetlands Inventory](https://www.fws.gov/program/national-wetlands-inventory/data-download) (filtered to "Estuarine and Marine Wetlands")
-
-```{r wetland polygons code, eval=FALSE}
-
-##### wetlands map
-map_wetlands <- ggplot() +
-    geom_sf(data=CA_clip, fill="grey92", color="grey92")+
-  geom_sf(data=wetlands,
-          aes(color=wetland_type,
-              fill=wetland_type,
-              text=paste(wetland_type))) +
-  scale_fill_manual(values=c("emergent"="#a7dea2",
-                             "scrub-shrub"="springgreen4")) +
-  scale_color_manual(values=c("emergent"="#a7dea2",
-                              "scrub-shrub"="springgreen4")) +
-  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
-  theme_minimal() +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) 
-
-##### make interactive
-ggplotly(map_wetlands,tooltip="none") %>%
-  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
-  layout(legend=list(x=0.5,xanchor='center',
-                     y=0,yanchor='top',
-                     orientation='h',
-                     font=list(color="#32127a",family="IBM Plex Mono"))) 
-
-```
-
-```{r wetland polygons, fig.width = 5, echo=FALSE, warning=FALSE, cache=TRUE}
-
-tags$iframe(
-  src = "figures/map_wetlands.html", 
-  scrolling = "no", 
-  frameBorder = "0",
-  height=550,
-  width="100%"
-)
-
-#120
-```
-
-<p>
-
-<center><font size="2"> *draw bounding box to zoom.*</center>
-
-</font>
-
-</p>
-
+<br>
 <br>
 
-```{r wetlands table, echo=FALSE, warning=FALSE, cache=TRUE}
-
-wetlands_table
-
-```
-
-<br>
-
-
-##### [1] park polygons
-
-[California Protected Areas Database](https://www.calands.org/) (parks and open spaces, filtered to coastal study area)
-
-```{r park polygons map code, eval=FALSE}
-
-##### park polygon map
-map_parks <- ggplot() +
-  geom_sf(data=CA_clip, fill="grey92", color="grey92")+
-  geom_sf(data=parks,
-          aes(color=access_typ,
-              fill=access_typ,
-              text=paste(access_typ))) +
-  scale_color_manual(values=c("thistle","plum4","honeydew3")) + 
-  scale_fill_manual(values=c("thistle","plum4","honeydew3")) + 
-  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
-  theme_minimal()+
-  theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
-
-##### make interactive
-ggplotly(map_parks, tooltip="text") %>%
-  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
-    layout(legend=list(x=0.5,xanchor='center',y=0,yanchor='top',orientation='h',
-                       font=list(color="#32127a",family="IBM Plex Mono"))) 
-
-```
-
-```{r park polygons map, fig.width = 5, echo=FALSE, warning=FALSE, cache=TRUE}
-
-tags$iframe(
-  src = "figures/map_parks.html", 
-  scrolling = "no", 
-  frameBorder = "0",
-  height=550,
-  width="100%"
-)
-
-#92
-```
-
-<p>
-
-<center><font size="2"> *draw bounding box to zoom. click legend layers to toggle on/off.*</center></font>
-
-</p>
-
-<br>
-
-```{r park polygons table1, echo=FALSE, warning=FALSE, cache=TRUE}
-
-park_table1
-
-```
-
-<br>
-
-##### [3] coastal access points
+### ACCESS POINTS
 
 [CA Coastal Commission](https://california-coastal-commission-open-data-1-3-coastalcomm.hub.arcgis.com/datasets/coastalcomm::public-access-points/about) (Olivia's extended dataset with Bay Area access points)
-
-[to supplement park polygons w/ amenities data]
 
 ```{r access point map code, eval=FALSE}
 
@@ -224,6 +95,10 @@ ggplotly(map_access,tooltip="text") %>%
 
 ```
 
+<br>
+
+<center>TOTAL: **`r access_table$count[access_table$wetland=="Yes"]`** wetland access points</center>
+
 ```{r access point map, fig.width = 5, echo=FALSE, warning=FALSE, cache=TRUE}
 
 tags$iframe(
@@ -251,8 +126,84 @@ access_table
 ```
 
 <br>
+<br>
 
-#### OLD APPROACH
+
+### OLD APPROACH
+
+#### wetlands
+
+[National Wetlands Inventory](https://www.fws.gov/program/national-wetlands-inventory/data-download) (filtered to "Estuarine and Marine Wetlands")
+
+```{r old wetland polygons code, eval=FALSE}
+
+##### wetlands map
+map_wetlands_old <- ggplot() +
+    geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=wetlands,
+          aes(color=wetland,
+              fill=wetlandd,
+              text=paste(wetlandd))) +
+  scale_fill_manual(values=c("wetland"="#a7dea2")) +
+  scale_color_manual(values=c("wetland"="#a7dea2")) +
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlands_old,tooltip="none") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+  layout(legend=list(x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',
+                     font=list(color="#32127a",family="IBM Plex Mono"))) 
+
+```
+
+<br>
+
+<center>TOTAL: **`r sum(wetlands_old_table$count)`** wetland habitats</center>
+
+```{r old wetland polygons, fig.width = 5, echo=FALSE, warning=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/map_wetlands_old.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=550,
+  width="100%"
+)
+
+#120
+```
+
+<p>
+
+<center><font size="2"> *draw bounding box to zoom.*</center>
+
+</font>
+
+</p>
+
+<br>
+
+```{r old wetlands table, echo=FALSE, warning=FALSE, cache=TRUE}
+
+wetlands_old_table
+
+```
+
+<br>
+
+
+#### wetland-parks
 
 ```{r old parks intersecting wetlands map code, eval=FALSE}
 
@@ -327,10 +278,84 @@ wetlandParks_v1_table
 ```
 
 <br>
+<br>
 
-#### NEW APPROACH
+### NEW APPROACH
 
-##### 1. filter NWI wetlands data to (1) emergent and (2) scrub-shrub estuarine intertidal zones, according to [NWI Classification Codes](https://www.fws.gov/sites/default/files/documents/wetlands-and-deepwater-map-code-diagram.pdf)
+#### wetlands
+
+##### 1. filter wetlands data to (1) emergent and (2) scrub-shrub estuarine intertidal zones, according to [NWI Classification Codes](https://www.fws.gov/sites/default/files/documents/wetlands-and-deepwater-map-code-diagram.pdf)
+
+```{r wetland polygons code, eval=FALSE}
+
+##### wetlands map
+map_wetlands <- ggplot() +
+    geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=wetlands,
+          aes(color=wetland_type,
+              fill=wetland_type,
+              text=paste(wetland_type))) +
+  scale_fill_manual(values=c("emergent"="#a7dea2",
+                             "scrub-shrub"="springgreen4")) +
+  scale_color_manual(values=c("emergent"="#a7dea2",
+                              "scrub-shrub"="springgreen4")) +
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlands,tooltip="none") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+  layout(legend=list(x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',
+                     font=list(color="#32127a",family="IBM Plex Mono"))) 
+
+```
+
+<br>
+
+<center>TOTAL: **`r sum(wetlands_table$count)`** wetland habitats</center>
+
+```{r wetland polygons, fig.width = 5, echo=FALSE, warning=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/map_wetlands.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=550,
+  width="100%"
+)
+
+#120
+```
+
+<p>
+
+<center><font size="2"> *draw bounding box to zoom.*</center>
+
+</font>
+
+</p>
+
+<br>
+
+```{r wetlands table, echo=FALSE, warning=FALSE, cache=TRUE}
+
+wetlands_table
+
+```
+
+<br>
+
+#### wetland-parks
 
 ##### 2. select parks that intersect wetland polygons
 
@@ -436,13 +461,25 @@ wetlandParks_v3_table3
 
 ##### 3. resolve geometry/data conflicts from shifting approach
 
+<br> 
+
+#### amenities
+
 ##### 4. join with amenities data
 
 ##### 5. populate additional amenities data as needed, as a result of #3-#4
 
 ##### 6. join with transit data (binary yes/no or distance to nearest stop)
 
-##### 6. join with socioeconomic data
+<br> 
 
-##### 7. ???
+#### socio-economic
+
+##### 7. join with socioeconomic data
+
+<br> 
+
+#### final data/analysis
+
+##### 8. ???
 
