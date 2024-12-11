@@ -482,7 +482,7 @@ knitr::include_graphics("figures/hayward.png")
 different managing agencies
 ```{r echo=FALSE, out.width = '100%'}
 
-knitr::include_graphics("figures/hayward.png")
+knitr::include_graphics("figures/ormond.png")
 
 ```
 
