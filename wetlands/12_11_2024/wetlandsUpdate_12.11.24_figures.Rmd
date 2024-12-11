@@ -1,0 +1,892 @@
+---
+title: "wetlands update"
+output:
+  html_document:
+    pandoc_args:
+    - +RTS
+    - "-M64G"
+    - "-RTS"
+    css: styles.css
+---
+
+<p>
+
+<center><font size="3">`r Sys.Date()`</font></center>
+
+</p>
+
+```{r setup, include=FALSE}
+
+#knitr::opts_chunk$set(fig.width = 5)
+knitr::opts_knit$set(global.device = TRUE)
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(sf,tidyverse,plotly,janitor,knitr,htmlwidgets,RColorBrewer)
+#rmapshaper,maps,tmap,nngeo
+
+# rm(list = ls())
+
+Sys.setlocale(locale = "C")
+
+```
+
+```{r read CA data, include=FALSE, cache=TRUE}
+
+#####CA BOUNDARY
+CA <- st_read("data/CA/CAt.shp") %>%
+  st_transform(crs=26910) 
+# 
+#####OCEAN BOUNDARY
+# st_layers("data/wetlands/nwi_wetlands.gdb") #layer="California_Wetlands"
+# ocean <- st_read("data/wetlands/nwi_wetlands.gdb") %>%
+#   clean_names() %>%
+#   filter(wetland_type=="Estuarine and Marine Deepwater") %>%
+#   st_transform(crs=26910) %>%
+#   st_intersection(y=CA) %>%
+#   st_union() %>%
+#   st_cast("MULTIPOLYGON")
+
+# 
+# #####CROP CA BOUNDARY TO SHOW INLAND (I.E. BAY) WATERS
+CA_clip <- st_read("data/CA/CA_clip.shp")
+# CA_clip <- st_difference(CA,ocean) %>%
+#   select(OBJECTID,geometry) %>%
+#   st_union() %>%
+#   st_simplify(preserveTopology=TRUE,dTolerance=1) %>%
+#   st_cast("MULTIPOLYGON")
+# st_write(CA_clip,"data/CA/CA_clip.shp",append=FALSE)
+# 
+# ######CLEAN-UP
+# rm(ocean)
+
+```
+
+#### DATA:
+
+##### parks
+```{r read park data, include=FALSE, cache=TRUE}
+
+######CROP PARKS TO STUDY AREA
+studyArea <- st_read("data/StudyArea/StudyArea.shp") %>%
+  st_transform(crs=26910)
+
+load("data/output_final/parks.shp")
+parks <- st_read("data/output/OpenSpace_Holdings.shp") %>%
+  clean_names() %>%
+  select(suid_nma,
+         unit_name,
+         access_typ,
+         county,
+         mng_agncy,
+         mng_ag_typ,
+         mng_ag_lev,
+         spec_use,
+         park_url,
+         acres,
+         gap1_acres,
+         gap2_acres,
+         gap3_acres,
+         gap4_acres,
+         gap_tot_ac,
+         geometry) %>%
+  st_filter(y=studyArea, .predicate = st_intersects) %>%
+  group_by(suid_nma) %>%
+  summarise(unit_name=paste(sort(unique(unit_name)),collapse='; '),
+            access_typ=paste(sort(unique(access_typ)),collapse='; '),
+            county=paste(sort(unique(county)),collapse='; '),
+            mng_agncy=paste(sort(unique(mng_agncy)),collapse='; '),
+            mng_ag_lev=paste(sort(unique(mng_ag_lev)),collapse='; '),
+            mng_ag_typ=paste(sort(unique(mng_ag_typ)),collapse='; '),
+            spec_use=paste(sort(unique(spec_use)),collapse='; '),
+            park_url=paste(sort(unique(park_url)),collapse=' | '),
+            acres=sum(acres),
+            gap1_acres=sum(gap1_acres),
+            gap2_acres=sum(gap2_acres),
+            gap3_acres=sum(gap3_acres),
+            gap4_acres=sum(gap4_acres),
+            gap_tot_ac=sum(gap_tot_ac)) %>%
+  st_union(by_feature=TRUE) %>%
+  st_cast("MULTIPOLYGON")
+st_write(parks,"data/output_final/parks.shp", append=FALSE)
+
+
+# ######SIMPLIFY FOR INTERACTIVE MAPS
+parks_simplified <- parks %>%
+  group_by(access_typ) %>%
+  summarize(access_typ=paste(unique(access_typ))) %>%
+  select(access_typ) %>%
+  st_union(by_feature=TRUE) %>%
+  st_cast("MULTIPOLYGON")
+# 
+# ######CLEAN-UP
+# rm(studyArea)
+
+parks_simplified <- parks %>%
+  st_simplify(preserveTopology=TRUE,dTolerance=1) %>%
+  st_cast("MULTIPOLYGON")
+
+```
+
+```{r park map, fig.width = 5, echo=TRUE, warning=FALSE, cache=TRUE}
+
+##### park polygon map
+map_parks <- ggplot() +
+  geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=parks_simplified,
+          aes(color=access_typ,
+              fill=access_typ,
+              text=paste(unit_name))) +
+              # text=paste(access_typ))) +
+  scale_color_manual(values=c("blueviolet","violet","honeydew3")) +  #thistle
+  scale_fill_manual(values=c("blueviolet","violet","honeydew3")) + 
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal()+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_parks, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+  layout(legend=list(x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/map_parks.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r park table, echo=TRUE}
+
+park_table1 <- parks %>%
+  as_tibble() %>%
+  group_by(access_typ) %>%
+  summarize(count=n())
+
+save(park_table1,file="tables/park_table1.Rda")
+
+park_table1
+
+
+park_table2 <- parks %>%
+  as_tibble() %>%
+  group_by(mng_ag_lev) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))
+
+save(park_table2,file="tables/park_table2.Rda")
+
+park_table2
+
+```
+
+
+##### wetlands
+```{r read wetland data, include=FALSE, cache=TRUE}
+
+# https://www.fws.gov/sites/default/files/documents/wetlands-and-deepwater-map-code-diagram.pdf
+
+#####WETLANDS
+wetlands <- st_read("data/output/wetlands_estuarine_marine.gpkg") %>% 
+  clean_names() %>%
+  filter(wetland_type=="Estuarine and Marine Wetland") %>%
+  filter(grepl("^E2EM|^E2SS",attribute)) %>%
+  mutate(wetland="wetland") %>%
+  mutate(wetland_type = case_when(grepl("^E2EM",attribute) ~ "emergent",
+                                  grepl("^E2SS",attribute) ~ "scrub-shrub"))
+  # group_by(wetland) %>%
+  # summarise(wetland=paste(unique(wetland))) %>%
+  # st_union(by_feature=TRUE) %>%
+  # st_cast("MULTIPOLYGON")
+
+wetlands_simplified <- wetlands %>%
+  clean_names() %>%
+  # group_by(wetland_type) %>%
+  # summarise(wetland_type=paste(unique(wetland_type))) %>%
+  # st_union(by_feature=TRUE) %>%
+  # st_cast("MULTIPOLYGON") %>%
+  st_simplify(preserveTopology=TRUE,dTolerance=1)
+
+```
+
+```{r wetland map, fig.width = 5, echo=TRUE, warning=FALSE, cache=TRUE}
+
+##### wetlands map
+map_wetlands <- ggplot() +
+  geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+    # geom_sf(data=ocean,
+    #         lwd=0,
+    #         fill="darkslateblue",
+    #         alpha=0.3) +
+  # geom_sf(data=wetlands_simplified,
+  #         aes(color=wetland,
+  #             fill=wetland,
+  #             text=paste(wetland))) +
+  # scale_fill_manual(values=c("wetland"="#a7dea2")) +
+  # scale_color_manual(values=c("wetland"="#a7dea2")) +
+  geom_sf(data=wetlands_simplified,
+          aes(color=wetland_type,
+              fill=wetland_type,
+              text=paste(wetland_type))) +
+  scale_fill_manual(values=c("emergent"="#a7dea2",
+                             "scrub-shrub"="springgreen4")) +
+  scale_color_manual(values=c("emergent"="#a7dea2",
+                              "scrub-shrub"="springgreen4")) +
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlands,tooltip="none") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+  layout(legend=list(x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/map_wetlands.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r wetland table, echo=TRUE}
+
+wetlands_table <- wetlands %>%
+  as_tibble() %>%
+  group_by(wetland_type) %>%
+  summarize(count=n())
+
+save(wetlands_table,file="tables/wetlands_table.Rda")
+
+wetlands_table
+
+```
+
+
+##### access points
+```{r read access point data, include=FALSE, cache=TRUE}
+#####ACCESS POINTS#####
+access <- st_read("data/output/Access_Points_olivia_original.shp") %>% #####
+  clean_names() %>%
+  filter(is.na(archivd)) %>%
+  select(name,county,wetland,geometry) %>%
+  # select(index,distrct,county,name,locatin,
+  #        ftr_typ,accss_t,o_publc,fee,parking,
+  #        pbtrnsp,rstrctn,dsbldcs,restrms,vstr_ct,
+  #        dg_frnd,ez4strl,lifegrd,showers,food,
+  #        drnkwtr,pcnc_ar,firepts,cmpgrnd,rv_cmp,
+  #        hostel,bt_fclt,bt_fcl,lighths,pier,
+  #        hstrc_s,shpwrck,sndy_bc,dunes,rky_shr,
+  #        uplnd_b,strm_cr,wetland,bluff,by_lgn,
+  #        urbn_wf,offshr,inlnd_r,strs_bc,pth_bch,
+  #        bordwlk,blftp_t,blftp_p,trl_r_p,cct_lnk,
+  #        bik_pth,eqst_tr,wldlf_v,swm_pol,swimmng,
+  #        diving,snrklng,tidepol,plygrnd,sprt_fl,
+  #        vllybll,wndsrf,kayakng,surfing,fishing,
+  #        boating,mbch_sh,mbch_pn,a_lnd_c,a_lnd_p,
+  #        sq_mils,mls_trl,archivd,clsr_cm,swg_c_r,
+  #        o_clt_r,geometry) %>%
+  # rename(district=distrct, location=locatin,
+    # feature=ftr_typ, access=accss_t,
+    # public=o_publc, transport=pbtrnsp,
+    # restrict=rstrctn, disabled=dsbldcs,
+    # restrooms=restrms, visitor_ct=vstr_ct,
+    # dogs=dg_frnd, strollers=ez4strl,
+    # lifeguard=lifegrd, drink_h20=drnkwtr,
+    # picnic=pcnc_ar, firepits=firepts,
+    # camping=cmpgrnd, rv_camping=rv_cmp,
+    # boat=bt_fclt, boat_type=bt_fcl,
+    # lighthouse=lighths, historic=hstrc_s,
+    # shipwreck=shpwrck, sndy_beach=sndy_bc,
+    # rcky_shore=rky_shr, up_beach=uplnd_b,
+    # stream=strm_cr, bayLgnLake=by_lgn,
+    # urban_wf=urbn_wf, offshore=offshr,
+    # inland=inlnd_r, stairs=strs_bc,
+    # path=pth_bch, boardwalk=bordwlk,
+    # bluff_trls=blftp_t, bluff_park=blftp_p,
+    # trls_park=trl_r_p, CCT_trail=cct_lnk,
+    # bike_path=bik_pth, equestrian=eqst_tr,
+    # wildlife=wldlf_v, pool=swm_pol,
+    # swim=swimmng, snorkel=snrklng,
+    # tidepools=tidepol, playground=plygrnd,
+    # sports=sprt_fl, volleyball=vllybll,
+    # windsurf=wndsrf, kayak=kayakng,
+    # miles_bch=mbch_sh, miles_pub=mbch_pn,
+    # acres_land=a_lnd_c, acres_pub=a_lnd_p,
+    # sq_miles=sq_mils, miles_trl=mls_trl,
+    # closed=archivd, closed_txt=clsr_cm) %>%
+  mutate(wetland = replace_na(wetland, "Unknown"),
+         wetland=factor(wetland,levels=c("No","Unknown","Yes")))
+
+
+#####WRANGLE  
+access_wetlands <- access %>%
+  filter(wetland=="Yes")
+# 
+# access_notWetlands <- access %>%
+#   filter(wetland!="Yes" | is.na(wetland))
+
+# missing <- access_wetlands %>%
+#   filter(!(access_wetlands$index %in% access_wetlands_snapped$index))
+# 
+# access_wetlands_snapped_update <- rbind(access_wetlands_snapped,missing) %>%
+#   st_write("data/output/Access_Points_olivia_wetlands_snapped.shp", append=FALSE)
+
+
+```
+
+```{r access point map, fig.width = 5, echo=TRUE, warning=FALSE, cache=TRUE}
+
+##### CA commission map
+map_access <- ggplot() +
+  geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=access,
+          alpha=0.7,
+          aes(color=wetland,
+              text=paste(name))) +
+  scale_color_manual(values=c("Yes"="aquamarine4",
+                              "No"="grey65", 
+                              "Unknown"="darkslateblue"))+ 
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_access,tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+  layout(legend=list(xref="paper",
+                     x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',traceorder="reversed",
+                     title=list(font=list(color="#32127a",family="IBM Plex Mono")),
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/map_access.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r access point table, echo=TRUE}
+
+access_table <- access %>%
+  as_tibble() %>%
+  group_by(wetland) %>%
+  summarize(count=n())
+
+save(access_table,file="tables/access_table.Rda")
+
+access_table
+
+```
+
+
+#### STEPS:
+
+##### v1
+```{r parks intersecting wetlands map - old, fig.width = 5.5, echo=TRUE, warning=FALSE, cache=TRUE}
+
+##### parks intersecting wetland polygon or wetland access point
+wetlandParks_v1 <- st_read("data/output_final/wetlandParks_v1.gpkg")
+# wetlandParks_v1 <- st_read("data/output/wetlandParks_merge.shp") %>% #####
+#   clean_names() %>%
+#   select(suid_nm:join_count) %>%
+#   select(-mtchd_s) %>%
+#   rename(suid=suid_nm,
+#          unit_name=unit_nm,
+#          intersects_wetland=intrsc,
+#          wetland_park=wtlnd_p,
+#          intersects_access_pt=mtchd_r,
+#          count_access_pt=join_count) %>%
+#   select(suid:acres,
+#          intersects_wetland,
+#          intersects_access_pt,
+#          count_access_pt,
+#          wetland_park,
+#          geometry) %>%
+#   filter(intersects_wetland=="park intersects wetland")
+#   # mutate(intersects_wetland=case_match(intersects_wetland,
+#   #                                      "park intersects wetland" ~ "intersects wetland",
+#   #                                      "park intersects wetland access point" ~ "intersects wetland access pt"))
+# st_write(wetlandParks_v1,"data/output_final/wetlandParks_v1.gpkg", append=FALSE)
+
+wetlandParks_v1_simplified <- wetlandParks_v1 %>%
+  st_simplify(preserveTopology=TRUE,dTolerance=1) %>%
+  st_cast("MULTIPOLYGON")
+
+##### wetland-park map
+map_wetlandParks_v1 <- ggplot() +
+  geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=wetlandParks_v1_simplified,
+          # alpha=0.9,lwd=0.5,
+          aes(fill=intersects_wetland,
+              color=intersects_wetland,
+              text=paste(unit_name)))+
+  geom_sf(data=wetlands_simplified,
+          alpha=0.5,lwd=0.3,
+          aes(color=wetland,
+              fill=wetland,
+              text=paste(wetland))) +
+  scale_fill_manual(values=c("park intersects wetland"="plum4",
+                             # "intersects wetland access pt"="violet",
+                             "wetland"="#a7dea2")) +
+  scale_color_manual(values=c("park intersects wetland"="plum4",
+                              # "intersects wetland access pt"="violet",
+                              "wetland"="#a7dea2")) +
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlandParks_v1, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+  layout(legend=list(x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/map_wetlandParks_v1.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r parks intersecting wetlands table - old, echo=TRUE, warning=FALSE, cache=TRUE}
+
+#### wetland-parks table
+wetlandParks_v1_table <- wetlandParks_v1 %>%
+  as_tibble() %>%
+  select(suid,
+         unit_name,
+         county,
+         acres,
+         intersects_wetland) %>%
+  arrange(unit_name)
+
+save(wetlandParks_v1_table,file="tables/wetlandParks_v1_table.Rda")
+
+wetlandParks_v1_table
+
+```
+
+```{r parks intersecting wetlands table, echo=TRUE, warning=FALSE, cache=TRUE}
+
+#### wetland-parks table
+wetlandParks_v1_table <- wetlandParks_v1 %>%
+  as_tibble() %>%
+  select(suid,
+         unit_name,
+         county,
+         intersects_wetland,
+         acres) %>%
+  arrange(unit_name)
+save(wetlandParks_v1_table,file="tables/wetlandParks_v1_table.Rda")
+
+wetlandParks_v1_table
+
+```
+
+
+##### v2
+```{r parks intersecting wetlands map - old, refiltered, fig.width = 5.5, echo=TRUE, warning=FALSE, cache=TRUE}
+
+##### parks intersecting wetland polygon or wetland access point
+# wetlandParks_v2 <- st_read("data/output_final/wetlandParks_v2.gpkg")
+wetlandParks_v2 <- st_read("data/output/wetlandParks_merge_updatedFilter.shp") %>%
+  clean_names() %>%
+  select(suid_nm:join_count) %>%
+  select(-mtchd_s) %>%
+  rename(suid=suid_nm,
+         unit_name=unit_nm,
+         intersects_wetland=intrsc,
+         wetland_park=wtlnd_p,
+         intersects_access_pt=mtchd_r,
+         count_access_pt=join_count) %>%
+  select(suid:acres,
+         intersects_wetland,
+         intersects_access_pt,
+         count_access_pt,
+         wetland_park,
+         geometry) %>%
+  filter(intersects_wetland=="park intersects wetland")
+  # mutate(intersects_wetland=case_match(intersects_wetland,
+  #                                      "park intersects wetland" ~ "intersects wetland",
+  #                                      "park intersects wetland access point" ~ "intersects wetland access pt"))
+st_write(wetlandParks_v2,"data/output_final/wetlandParks_v2.gpkg", append=FALSE)
+
+wetlandParks_v2_simplified <- wetlandParks_v2 %>%
+  st_simplify(preserveTopology=TRUE,dTolerance=1) %>%
+  st_cast("MULTIPOLYGON")
+
+##### wetland-park map
+map_wetlandParks_v2 <- ggplot() +
+  geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=wetlandParks_v2_simplified,
+          # alpha=0.9,lwd=0.5,
+          aes(fill=intersects_wetland,
+              color=intersects_wetland,
+              text=paste(unit_name)))+
+  geom_sf(data=wetlands_simplified,
+          alpha=0.5,lwd=0.3,
+          aes(color=wetland,
+              fill=wetland,
+              text=paste(wetland))) +
+  scale_fill_manual(values=c("park intersects wetland"="plum4",
+                             # "intersects wetland access pt"="violet",
+                             "wetland"="#a7dea2")) +
+  scale_color_manual(values=c("park intersects wetland"="plum4",
+                              # "intersects wetland access pt"="violet",
+                              "wetland"="#a7dea2")) +
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+
+##### make interactive
+ggplotly(map_wetlandParks_v2, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+    layout(legend=list(x=0.5,xanchor='center',
+                       y=0,yanchor='top',
+                       orientation='h',traceorder="reversed",
+                       font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/map_wetlandParks_v2.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r parks intersecting wetlands table - old, refiltered, echo=TRUE, warning=FALSE, cache=TRUE}
+
+#### wetland-parks table
+wetlandParks_v2_table <- wetlandParks_v2 %>%
+  as_tibble() %>%
+  select(suid,
+         unit_name,
+         county,
+         acres,
+         intersects_wetland) %>%
+  arrange(unit_name)
+
+save(wetlandParks_v2_table,file="tables/wetlandParks_v2_table.Rda")
+
+wetlandParks_v2_table
+
+```
+
+##### v3
+```{r parks intersecting wetlands map, fig.width = 5.5, echo=TRUE, warning=FALSE, cache=TRUE}
+
+##### parks intersecting wetland polygon or wetland access point
+# wetlandParks_v3 <- st_read("data/output_final/wetlandParks_v3.gpkg")
+wetlandParks_v3 <- parks %>%
+  mutate(intersects_wetland= case_when(lengths(st_intersects(.,wetlands)) > 0 ~ "park intersects wetland")) %>%
+  filter(!is.na(intersects_wetland)) %>%
+  rename(suid=suid_nma,
+         access_type=access_typ,
+         managing_agency=mng_agncy,
+         managing_agency_level=mng_ag_lev,
+         managing_agency_type=mng_ag_typ,
+         special_use=spec_use,
+         gap_total_acres=gap_tot_ac) %>%
+  mutate(wetland_park="wetland-park")
+
+wetlandParks_v3_wetland <- wetlandParks_v3 %>%
+  st_join(wetlands,
+          suffix=c("_park","_wetland"),
+          join = st_intersects) %>%
+  select(-attribute,-wetland_type,-shape_length,-shape_area,-wetland) %>%
+  group_by(suid) %>%
+  summarise(acres_wetland=sum(acres_wetland)) %>%
+  as_tibble()
+
+wetlandParks_v3 <- wetlandParks_v3 %>%
+  left_join(wetlandParks_v3_wetland) %>%
+  rename(acres_park=acres)
+
+st_write(wetlandParks_v3,"data/output_final/wetlandParks_v3.gpkg", append=FALSE)
+
+wetlandParks_v3_simplified <- wetlandParks_v3 %>%
+  st_simplify(preserveTopology=TRUE,dTolerance=1) %>%
+  st_cast("MULTIPOLYGON")
+
+##### wetland-park map
+map_wetlandParks_v3 <- ggplot() +
+    geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=wetlandParks_v3_simplified,
+          # alpha=0.9,lwd=0.5,
+          aes(fill=access_type, #intersects_wetland,
+              color=access_type, #intersects_wetland,
+              text=paste(unit_name))) +
+  geom_sf(data=wetlands_simplified,
+          alpha=0.5,lwd=0.3,
+          aes(color=wetland,
+              fill=wetland)) +
+              # text=paste(wetland))) +
+    scale_fill_manual(values=c("wetland"="#a7dea2",
+                             "Open Access"="blueviolet",
+                             "Restricted Access"="violet",
+                             "Unknown Access"="thistle")) +
+    scale_color_manual(values=c("wetland"="#a7dea2",
+                             "Open Access"="blueviolet",
+                             "Restricted Access"="violet",
+                             "Unknown Access"="thistle")) +
+  # scale_fill_manual(values=c("wetland"="#a7dea2",
+  #                            "park intersects wetland"="blueviolet")) +
+  #                            # "park intersects wetland access point"="violet")) +
+  # scale_color_manual(values=c("wetland"="#a7dea2",
+  #                             "park intersects wetland"="blueviolet")) +
+  #                             # "park intersects wetland access point"="violet")) +
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlandParks_v3, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+    layout(legend=list(x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',
+                     font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/map_wetlandParks_v3.html", selfcontained = F, libdir = "lib")
+
+```
+
+```{r parks intersecting wetlands table, echo=TRUE, warning=FALSE, cache=TRUE}
+
+#### wetland-parks table
+wetlandParks_v3_table1 <- wetlandParks_v3 %>%
+  as_tibble() %>%
+  mutate(acres_wetland=round(acres_wetland,1),
+         acres_park=round(acres_park,1)) %>%
+  select(suid,
+         unit_name,
+         county,
+         acres_wetland,
+         acres_park,
+         access_type,
+         managing_agency_type) %>%
+  arrange(desc(acres_wetland))
+save(wetlandParks_v3_table1,file="tables/wetlandParks_v3_table1.Rda")
+
+wetlandParks_v3_table1
+
+
+wetlandParks_v3_table2 <- wetlandParks_v3 %>%
+  as_tibble() %>%
+  group_by(access_type) %>%
+  summarize(acres_wetland=round(sum(acres_wetland)),
+            acres_park=round(sum(acres_park)),
+            count=n()) %>%
+  arrange(desc(acres_wetland))
+save(wetlandParks_v3_table2,file="tables/wetlandParks_v3_table2.Rda")
+
+wetlandParks_v3_table2
+
+
+wetlandParks_v3_table3 <- wetlandParks_v3 %>%
+  as_tibble() %>%
+  group_by(managing_agency_level) %>%
+  summarize(acres_wetland=round(sum(acres_wetland)),
+            acres_park=round(sum(acres_park)),
+            count=n()) %>%
+  arrange(desc(acres_wetland))
+save(wetlandParks_v3_table3,file="tables/wetlandParks_v3_table3.Rda")
+
+wetlandParks_v3_table3
+
+```
+
+```{r parks intersecting wetlands - access point flags, fig.width = 5.5, echo=TRUE, warning=FALSE, cache=TRUE}
+
+##### parks intersecting wetland polygon or wetland access point
+wetlandParks_v3_accessFlags <- parks %>%
+  mutate(intersects_wetland= case_when(lengths(st_intersects(.,wetlands))==0 & lengths(st_intersects(.,access_wetlands)) > 0 ~ "park intersects wetland access pt only")) %>%
+  filter(!is.na(intersects_wetland)) %>%
+  rename(suid=suid_nma,
+         access_type=access_typ,
+         managing_agency=mng_agncy,
+         managing_agency_type=mng_ag_typ,
+         special_use=spec_use,
+         gap_total_acres=gap_tot_ac) %>%
+  mutate(wetland_park="wetland-park")
+
+#### wetland-parks table
+wetlandParks_v3_accessFlags_table <- wetlandParks_v3_accessFlags %>%
+  as_tibble() %>%
+  select(suid,
+         unit_name,
+         county,
+         acres,
+         intersects_wetland) %>%
+  arrange(unit_name)
+
+save(wetlandParks_v3_accessFlags_table,file="tables/wetlandParks_v3_accessFlags_table.Rda")
+
+wetlandParks_v3_accessFlags_table
+
+# ##### wetland-park map
+# map_wetlandParks_v3_accessFlags <- ggplot() +
+#     geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+#   geom_sf(data=wetlandParks_v3_accessFlags,
+#           alpha=0.9,lwd=0.5,
+#           aes(fill=intersects_wetland,
+#               color=intersects_wetland,
+#               text=paste(unit_name)))+
+#   geom_sf(data=wetlands,
+#           alpha=0.4,lwd=0.25,
+#           aes(color=wetland,
+#               fill=wetland,
+#               text=paste(wetland))) +
+#   scale_fill_manual(values=c("wetland"="#a7dea2",
+#                              # "park intersects wetland"="blueviolet")) +
+#                              "park intersects wetland access pt only"="violet")) +
+#   scale_color_manual(values=c("wetland"="#a7dea2",
+#                               # "park intersects wetland"="blueviolet")) +
+#                               "park intersects wetland access pt only"="violet")) +
+#   guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+#   theme_minimal() +
+#   theme(axis.title.x=element_blank(),
+#         axis.text.x=element_blank(),
+#         axis.ticks.x=element_blank(),
+#         axis.title.y=element_blank(),
+#         axis.text.y=element_blank(),
+#         axis.ticks.y=element_blank(),
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank()) 
+# 
+# ##### make interactive
+# ggplotly(map_wetlandParks_v3_accessFlags, tooltip="text") %>%
+#   style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+#     layout(legend=list(x=0.5,xanchor='center',
+#                        y=0,yanchor='top',
+#                        orientation='h',
+#                        font=list(color="#32127a",family="IBM Plex Mono"))) %>%
+#   partial_bundle() %>%
+#   saveWidget("figures/map_wetlandParks_v3_accessFlags.html", selfcontained = F, libdir = "lib")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+```{r wetland-park and access point join, fig.width = 5.5, echo=TRUE, warning=FALSE}
+
+##### find wetland access points that intersect wetland-parks
+access_wetlands <- access_wetlands %>%
+  mutate(matched = case_when(lengths(st_intersects(.,wetlandParks))==0 ~ "does not intersect wetland-park",
+                            lengths(st_intersects(.,wetlandParks)) > 0 ~ "intersects wetland-park"))
+
+##### find + classify access point interections (wetland: yes, no, unknown)
+wetlandParks_raw_filter <- wetlandParks %>%
+  filter(matched_raw=="intersects wetland access pt") %>%
+  mutate(wetland_park_intersect="intersected wetland-park") %>%
+  group_by(wetland_park_intersect) %>%
+  summarise(wetland_park_intersect=paste(unique(wetland_park_intersect))) %>%
+  st_union(by_feature=TRUE) %>%
+  st_cast("MULTIPOLYGON")
+
+##### map of wetland access points that intersect wetland-parks
+map_access_wetlands_matches <- ggplot() +
+  geom_sf(data=CA, fill="grey92", color="grey92")+
+  geom_sf(data=wetlands,
+          lwd=0,
+          alpha=0.35,
+          aes(color=wetland,
+              fill=wetland)) +
+  geom_sf(data=wetlandParks_raw_filter,
+          aes(fill=wetland_park_intersect,
+              color=wetland_park_intersect,
+              text="intersected wetland-park"),
+          lwd=0,
+          alpha=0.35) +
+  geom_sf(data=access_wetlands,
+          alpha=0.85,
+          aes(color=matched,
+              fill=matched,
+              text=paste(name))) +
+  scale_color_manual(values=c("wetland"="darkseagreen",
+                              "intersected wetland-park"="blueviolet",
+                              "intersects wetland-park"="blueviolet",
+                              "does not intersect wetland-park"="grey60")) +
+  scale_fill_manual(values=c("wetland"="darkseagreen",
+                             "intersected wetland-park"="blueviolet",
+                              "intersects wetland-park"="blueviolet",
+                              "does not intersect wetland-park"="grey60")) +
+  guides(fill=guide_legend(title = ""),
+         color=guide_legend(title = "")) +
+  theme_minimal()+ #remove grey background
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactives
+ggplotly(map_access_wetlands_matches, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",
+                                  size=11))) %>%
+    layout(legend=list(x=0.5,
+                     xanchor='center',
+                     y=0,
+                     yanchor='top',
+                     orientation='h',
+                     traceorder="reversed",
+                     title=list(font=list(color="#32127a",
+                                          family="IBM Plex Mono")),
+                     font=list(color="#32127a",
+                               family="IBM Plex Mono",
+                               size=10))) %>%
+  partial_bundle() %>%
+  saveWidget("figures/map_access_wetlands_matches.html", selfcontained = F, libdir = "lib")
+ # widget_file_size()
+
+#173
+```
+

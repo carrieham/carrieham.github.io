@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>CLC text mining</title>
+
+<script src="wetlandsUpdate_12.11.24_files/header-attrs-2.29/header-attrs.js"></script>
+<script src="wetlandsUpdate_12.11.24_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="wetlandsUpdate_12.11.24_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="wetlandsUpdate_12.11.24_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="wetlandsUpdate_12.11.24_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="wetlandsUpdate_12.11.24_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="wetlandsUpdate_12.11.24_files/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="wetlandsUpdate_12.11.24_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="wetlandsUpdate_12.11.24_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="wetlandsUpdate_12.11.24_files/navigation-1.1/tabsets.js"></script>
+<script src="wetlandsUpdate_12.11.24_files/navigation-1.1/codefolding.js"></script>
+<link href="wetlandsUpdate_12.11.24_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="wetlandsUpdate_12.11.24_files/highlightjs-9.12.0/highlight.js"></script>
+<link href="wetlandsUpdate_12.11.24_files/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="wetlandsUpdate_12.11.24_files/pagedtable-1.1/js/pagedtable.js"></script>
+<!DOCTYPE html>
+<html>
+<link rel="shortcut icon" href="favicon.ico" />
+</html>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">CLC text mining</h1>
+
+</div>
+
+
+<p>
+<center>
+<font size="3">2024-12-11</font>
+</center>
+</p>
+<div id="wetland-parks" class="section level3">
+<h3>WETLAND-PARKS</h3>
+<div id="data" class="section level4">
+<h4>DATA:</h4>
+<div id="park-polygons" class="section level5">
+<h5>[1] park polygons</h5>
+<p><a href="https://www.calands.org/">California Protected Areas
+Database</a> (parks and open spaces, filtered to coastal study area)</p>
+<ul>
+<li>includes large (e.g., national forests) and small (e.g.,
+neighborhood parks) open spaces</li>
+<li>includes 2x categories of public access: open and restricted (i.e.,
+requires permit or has limited hours of operation, but still publicly
+accessible)</li>
+</ul>
+<pre class="r"><code>##### park polygon map
+map_parks &lt;- ggplot() +
+  geom_sf(data=CA_clip, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=parks,
+          aes(color=access_typ,
+              fill=access_typ,
+              text=paste(access_typ))) +
+  scale_color_manual(values=c(&quot;thistle&quot;,&quot;plum4&quot;,&quot;honeydew3&quot;)) + 
+  scale_fill_manual(values=c(&quot;thistle&quot;,&quot;plum4&quot;,&quot;honeydew3&quot;)) + 
+  guides(fill=guide_legend(title = &quot;&quot;),color=guide_legend(title = &quot;&quot;)) +
+  theme_minimal()+
+  theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_parks, tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,size=11))) %&gt;%
+    layout(legend=list(x=0.5,xanchor=&#39;center&#39;,y=0,yanchor=&#39;top&#39;,orientation=&#39;h&#39;,
+                       font=list(color=&quot;#32127a&quot;,family=&quot;IBM Plex Mono&quot;))) </code></pre>
+<iframe src="figures/map_parks.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
+<p>
+<center>
+<font size="2"> <em>draw bounding box to zoom. click legend layers to
+toggle on/off.</em>
+</center>
+<p></font></p>
+</p>
+<p><br></p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["access_typ"],"name":[1],"type":["chr"],"align":["left"]},{"label":["count"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"Open Access","2":"5162"},{"1":"Restricted Access","2":"335"},{"1":"Unknown Access","2":"59"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p><br></p>
+</div>
+<div id="wetland-polygons" class="section level5">
+<h5>[2] wetland polygons</h5>
+<p><a
+href="https://www.fws.gov/program/national-wetlands-inventory/data-download">National
+Wetlands Inventory</a> (filtered to “Estuarine and Marine Wetlands”)</p>
+<pre class="r"><code>##### wetlands map
+map_wetlands &lt;- ggplot() +
+    geom_sf(data=CA_clip, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=wetlands,
+          aes(color=wetland_type,
+              fill=wetland_type,
+              text=paste(wetland_type))) +
+  scale_fill_manual(values=c(&quot;emergent&quot;=&quot;#a7dea2&quot;,
+                             &quot;scrub-shrub&quot;=&quot;springgreen4&quot;)) +
+  scale_color_manual(values=c(&quot;emergent&quot;=&quot;#a7dea2&quot;,
+                              &quot;scrub-shrub&quot;=&quot;springgreen4&quot;)) +
+  guides(fill=guide_legend(title = &quot;&quot;),color=guide_legend(title = &quot;&quot;)) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlands,tooltip=&quot;none&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,size=11))) %&gt;%
+  layout(legend=list(x=0.5,xanchor=&#39;center&#39;,
+                     y=0,yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     font=list(color=&quot;#32127a&quot;,family=&quot;IBM Plex Mono&quot;))) </code></pre>
+<iframe src="figures/map_wetlands.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
+<p>
+<center>
+<font size="2"> <em>draw bounding box to zoom.</em>
+</center>
+<p></font></p>
+</p>
+<p><br></p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["wetland_type"],"name":[1],"type":["chr"],"align":["left"]},{"label":["count"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"emergent","2":"5319"},{"1":"scrub-shrub","2":"100"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p><br></p>
+</div>
+<div id="coastal-access-points" class="section level5">
+<h5>[3] coastal access points</h5>
+<p><a
+href="https://california-coastal-commission-open-data-1-3-coastalcomm.hub.arcgis.com/datasets/coastalcomm::public-access-points/about">CA
+Coastal Commission</a> (Olivia’s extended dataset with Bay Area access
+points)</p>
+<p>[to supplement park polygons w/ amenities data]</p>
+<pre class="r"><code>##### CA commission map
+map_access &lt;- ggplot() +
+  geom_sf(data=CA_clip, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=access,
+          alpha=0.7,
+          aes(color=wetland,
+              text=paste(name))) +
+  scale_color_manual(values=c(&quot;Yes&quot;=&quot;aquamarine4&quot;,
+                              &quot;No&quot;=&quot;grey65&quot;, 
+                              &quot;Unknown&quot;=&quot;darkslateblue&quot;))+ 
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_access,tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,size=11))) %&gt;%
+  layout(legend=list(xref=&quot;paper&quot;,
+                     x=0.5,xanchor=&#39;center&#39;,
+                     y=0,yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,traceorder=&quot;reversed&quot;,
+                     title=list(font=list(color=&quot;#32127a&quot;,family=&quot;IBM Plex Mono&quot;)),
+                     font=list(color=&quot;#32127a&quot;,family=&quot;IBM Plex Mono&quot;)))</code></pre>
+<iframe src="figures/map_access.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
+<p>
+<center>
+<font size="2"> <em>hover over points for site names. draw bounding box
+to zoom. click legend layers to toggle on/off.</em> </font>
+</center>
+</p>
+<p><br></p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["wetland"],"name":[1],"type":["fct"],"align":["left"]},{"label":["count"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"No","2":"666"},{"1":"Unknown","2":"811"},{"1":"Yes","2":"280"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p><br></p>
+</div>
+</div>
+<div id="steps" class="section level4">
+<h4>STEPS</h4>
+<div
+id="filter-nwi-wetlands-data-to-1-emergent-and-2-scrub-shrub-estuarine-intertidal-zones-according-to-nwi-classification-codes"
+class="section level5">
+<h5>1. filter NWI wetlands data to (1) emergent and (2) scrub-shrub
+estuarine intertidal zones, according to <a
+href="https://www.fws.gov/sites/default/files/documents/wetlands-and-deepwater-map-code-diagram.pdf">NWI
+Classification Codes</a></h5>
+</div>
+<div id="select-parks-that-intersect-wetland-polygons"
+class="section level5">
+<h5>2. select parks that intersect wetland polygons</h5>
+<pre class="r"><code>##### parks intersecting wetland polygon or wetland access point
+wetlandParks_v3 &lt;- parks %&gt;%
+  mutate(intersects_wetland= case_when(lengths(st_intersects(.,wetlands)) &gt; 0 ~ &quot;park intersects wetland&quot;)) %&gt;%
+  filter(!is.na(intersects_wetland)) %&gt;%
+  rename(suid=suid_nma,
+         access_type=access_typ) %&gt;%
+  mutate(wetland_park=&quot;wetland-park&quot;)
+
+##### wetland-park map
+map_wetlandParks_v3 &lt;- ggplot() +
+    geom_sf(data=CA_clip, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=wetlandParks_v3,
+          alpha=0.9,lwd=0.5,
+          aes(fill=intersects_wetland,
+              color=intersects_wetland,
+              text=paste(unit_name)))+
+  geom_sf(data=wetlands,
+          alpha=0.4,lwd=0.25,
+          aes(color=wetland,
+              fill=wetland,
+              text=paste(wetland))) +
+  scale_fill_manual(values=c(&quot;wetland&quot;=&quot;#a7dea2&quot;,
+                             &quot;park intersects wetland&quot;=&quot;blueviolet&quot;)) +
+  scale_color_manual(values=c(&quot;wetland&quot;=&quot;#a7dea2&quot;,
+                              &quot;park intersects wetland&quot;=&quot;blueviolet&quot;)) +
+  guides(fill=guide_legend(title = &quot;&quot;),color=guide_legend(title = &quot;&quot;)) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlandParks_v3, tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,size=11))) %&gt;%
+    layout(legend=list(x=0.5,xanchor=&#39;center&#39;,
+                     y=0,yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     font=list(color=&quot;#32127a&quot;,family=&quot;IBM Plex Mono&quot;))) </code></pre>
+<p><br></p>
+<center>
+TOTAL: <strong>~267</strong> wetland parks
+</center>
+<iframe src="figures/map_wetlandParks_v3.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
+<p>
+<center>
+<font size="2"> <em>hover over polygons for park names. draw bounding
+box to zoom. click legend layers to toggle on/off.</em> </font>
+</center>
+</p>
+<p><br></p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["suid"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["unit_name"],"name":[2],"type":["chr"],"align":["left"]},{"label":["county"],"name":[3],"type":["chr"],"align":["left"]},{"label":["acres_wetland"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["acres_park"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["access_type"],"name":[6],"type":["chr"],"align":["left"]},{"label":["managing_agency_type"],"name":[7],"type":["chr"],"align":["left"]}],"data":[{"1":"30478","2":"Napa-Sonoma Marshes Wildlife Area","3":"Napa; Solano; Sonoma","4":"8813.9","5":"14254.1","6":"Open Access","7":"State Agency"},{"1":"24964","2":"San Pablo Bay National Wildlife Refuge","3":"Napa; Solano; Sonoma","4":"4404.8","5":"15509.4","6":"Restricted Access","7":"Federal Agency"},{"1":"30485","2":"Petaluma Marsh Wildlife Area","3":"Marin; Sonoma","4":"3499.5","5":"4431.6","6":"Open Access","7":"State Agency"},{"1":"13902","2":"Don Edwards National Wildlife Refuge","3":"Alameda; Santa Clara","4":"3314.9","5":"12016.9","6":"Open Access","7":"Federal Agency"},{"1":"18204","2":"Don Edwards National Wildlife Refuge","3":"Alameda; San Mateo; Santa Clara","4":"2277.4","5":"12382.7","6":"Restricted Access","7":"Federal Agency"},{"1":"30445","2":"Grizzly Island Wildlife Area","3":"Solano","4":"1463.2","5":"13531.2","6":"Open Access","7":"State Agency"},{"1":"24963","2":"San Pablo Bay National Wildlife Refuge","3":"Solano; Sonoma","4":"1104.6","5":"1623.4","6":"Open Access","7":"Federal Agency"},{"1":"12546","2":"Rush Ranch Open Space","3":"Solano","4":"1049.0","5":"2121.3","6":"Open Access","7":"Non Profit - Land Trust"},{"1":"32155","2":"Eden Landing Ecological Reserve","3":"Alameda","4":"896.2","5":"5795.5","6":"Open Access","7":"State Agency"},{"1":"30488","2":"Point Edith Wildlife Area","3":"Contra Costa","4":"848.1","5":"736.6","6":"Open Access","7":"State Agency"},{"1":"30326","2":"San Pablo Bay Wildlife Area","3":"Marin","4":"714.0","5":"10812.7","6":"Open Access","7":"State Agency"},{"1":"30448","2":"Hill Slough Wildlife Area","3":"Solano","4":"707.4","5":"1644.0","6":"Open Access","7":"State Agency"},{"1":"32033","2":"Bair Island Ecological Reserve","3":"San Mateo","4":"704.2","5":"1190.0","6":"Open Access","7":"State Agency"},{"1":"8356","2":"Baylands Preserve","3":"San Mateo; Santa Clara","4":"687.9","5":"1517.1","6":"Open Access","7":"City Agency"},{"1":"25241","2":"Seal Beach National Wildlife Refuge","3":"Orange","4":"592.4","5":"966.6","6":"Restricted Access","7":"Federal Agency"},{"1":"33998","2":"Bedwell Bayfront Park","3":"San Mateo","4":"565.8","5":"157.0","6":"Open Access","7":"City Agency"},{"1":"15765","2":"Bair Island Ecological Reserve","3":"San Mateo","4":"547.9","5":"399.3","6":"Restricted Access","7":"State Agency"},{"1":"3268","2":"Hayward Regional Shoreline","3":"Alameda","4":"456.8","5":"775.7","6":"Open Access","7":"Recreation/Parks District"},{"1":"18782","2":"Fagan Marsh Ecological Reserve","3":"Napa","4":"449.8","5":"306.0","6":"Restricted Access","7":"State Agency"},{"1":"27293","2":"Water Lots","3":"Marin","4":"448.3","5":"1356.7","6":"Open Access","7":"County Agency"},{"1":"30476","2":"Moss Landing Wildlife Area","3":"Monterey","4":"442.1","5":"752.0","6":"Open Access","7":"State Agency"},{"1":"13994","2":"Tijuana Slough National Wildlife Refuge","3":"San Diego","4":"432.1","5":"1105.8","6":"Open Access","7":"Federal Agency"},{"1":"30436","2":"Eel River Wildlife Area","3":"Humboldt","4":"427.2","5":"2384.1","6":"Open Access","7":"State Agency"},{"1":"1965","2":"Morro Bay State Park","3":"San Luis Obispo","4":"397.6","5":"2518.9","6":"Open Access","7":"State Agency"},{"1":"32326","2":"Tomales Bay Ecological Reserve","3":"Marin","4":"386.0","5":"442.9","6":"Open Access","7":"State Agency"},{"1":"13915","2":"Humboldt Bay National Wildlife Refuge","3":"Humboldt","4":"374.2","5":"2721.8","6":"Open Access","7":"Federal Agency"},{"1":"29308","2":"Sunnyvale Baylands Park","3":"Santa Clara","4":"359.1","5":"575.7","6":"Open Access","7":"County Agency - Parks"},{"1":"35764","2":"Napa -- Sonoma Marshes Wildlife Area","3":"Solano","4":"345.8","5":"439.3","6":"Open Access","7":"State Agency"},{"1":"3205","2":"Alameda Creek Regional Trail","3":"Alameda","4":"333.6","5":"634.0","6":"Open Access","7":"Recreation/Parks District"},{"1":"32343","2":"Upper Newport Bay Ecological Reserve","3":"Orange","4":"308.3","5":"505.5","6":"Open Access","7":"State Agency"},{"1":"14224","2":"Golden Gate National Recreation Area","3":"Marin; San Francisco; San Mateo","4":"299.1","5":"30412.8","6":"Open Access","7":"Federal Agency"},{"1":"32260","2":"Peytonia Slough Ecological Reserve","3":"Solano","4":"298.1","5":"158.3","6":"Open Access","7":"State Agency"},{"1":"6348","2":"Marin County Flood Control","3":"Marin","4":"293.8","5":"1294.5","6":"Open Access","7":"Flood District"},{"1":"14266","2":"Point Reyes National Seashore","3":"Marin","4":"291.1","5":"51505.9","6":"Open Access","7":"Federal Agency"},{"1":"30652","2":"City of Eureka lot","3":"Humboldt","4":"279.1","5":"2214.3","6":"Open Access","7":"City Agency"},{"1":"6326","2":"John F. McInnis County Park","3":"Marin","4":"270.1","5":"355.1","6":"Open Access","7":"County Agency - Parks"},{"1":"25140","2":"Santa Venetia Marsh Open Space Preserve","3":"Marin","4":"265.9","5":"32.3","6":"Open Access","7":"Recreation/Parks District"},{"1":"18571","2":"Elkhorn Slough","3":"Monterey","4":"259.9","5":"131.5","6":"Open Access","7":"Port/Harbor District"},{"1":"1475","2":"China Camp State Park","3":"Marin","4":"243.8","5":"1444.4","6":"Open Access","7":"State Agency"},{"1":"31445","2":"Bolinas Lagoon Open Space Preserve","3":"Marin","4":"242.2","5":"1106.5","6":"Open Access","7":"Recreation/Parks District"},{"1":"36401","2":"Coleman Property","3":"Marin","4":"242.1","5":"121.7","6":"Restricted Access","7":"Non Profit - Conservation"},{"1":"32159","2":"Elkhorn Slough Ecological Reserve","3":"Monterey","4":"240.8","5":"1756.5","6":"Open Access","7":"State Agency"},{"1":"31305","2":"Eel River Estuary Preserve","3":"Humboldt","4":"238.9","5":"1002.9","6":"Restricted Access","7":"Non Profit - Land Trust"},{"1":"31459","2":"Ravenswood Open Space Preserve","3":"San Mateo","4":"238.3","5":"283.9","6":"Open Access","7":"Recreation/Parks District"},{"1":"24252","2":"Redwood Shores Ecological Reserve","3":"San Mateo","4":"237.4","5":"207.8","6":"Restricted Access","7":"State Agency"},{"1":"32135","2":"Corte Madera Marsh Ecological Reserve","3":"Marin","4":"236.7","5":"599.6","6":"Open Access","7":"State Agency"},{"1":"32664","2":"Bay Point Regional Shoreline","3":"Contra Costa","4":"221.9","5":"137.9","6":"Open Access","7":"Recreation/Parks District"},{"1":"1444","2":"Border Field State Park","3":"San Diego","4":"208.0","5":"787.6","6":"Open Access","7":"State Agency"},{"1":"13940","2":"San Diego Bay National Wildlife Refuge","3":"San Diego","4":"202.2","5":"1594.2","6":"Open Access","7":"Federal Agency"},{"1":"33914","2":"Denverton Property","3":"Solano","4":"196.2","5":"739.6","6":"Restricted Access","7":"Non Profit - Conservation"},{"1":"3067","2":"Torrey Pines State Reserve","3":"San Diego","4":"184.1","5":"1441.9","6":"Open Access","7":"State Agency"},{"1":"13939","2":"Salinas River National Wildlife Refuge","3":"Monterey","4":"177.9","5":"383.9","6":"Open Access","7":"Federal Agency"},{"1":"16724","2":"California State Lands Commission","3":"Marin; Mendocino; Santa Cruz","4":"174.2","5":"1930.0","6":"Open Access","7":"State Agency"},{"1":"1433","2":"Benicia State Recreation Area","3":"Solano","4":"165.0","5":"640.0","6":"Open Access","7":"State Agency"},{"1":"16501","2":"Bull Island","3":"Napa","4":"160.7","5":"100.2","6":"Open Access","7":"State Agency"},{"1":"32274","2":"Redwood Shores Ecological Reserve","3":"San Mateo","4":"150.9","5":"63.6","6":"Open Access","7":"State Agency"},{"1":"22916","2":"Novato Lands 005","3":"Marin","4":"146.3","5":"56.9","6":"Open Access","7":"City Agency"},{"1":"27911","2":"Guadalupe River Parkchain","3":"Santa Clara","4":"145.8","5":"304.7","6":"Open Access","7":"City Agency"},{"1":"10430","2":"Mission Bay Park","3":"San Diego","4":"139.7","5":"3897.1","6":"Open Access","7":"City Agency"},{"1":"24954","2":"San Mateo Properties","3":"San Mateo","4":"138.8","5":"110.6","6":"Restricted Access","7":"County Agency - Other"},{"1":"32327","2":"Tomales Bay Fishing Access","3":"Marin","4":"136.8","5":"52.7","6":"Open Access","7":"State Agency"},{"1":"7067","2":"Shoreline at Mountain View Park","3":"Santa Clara","4":"136.7","5":"256.1","6":"Open Access","7":"City Agency"},{"1":"3305","2":"Point Pinole Regional Shoreline","3":"Contra Costa","4":"131.4","5":"2203.1","6":"Open Access","7":"Recreation/Parks District"},{"1":"30028","2":"Riverfront Green","3":"Napa","4":"131.1","5":"655.5","6":"Open Access","7":"City Agency"},{"1":"15789","2":"Ballona Wetlands Ecological Reserve","3":"Los Angeles","4":"129.8","5":"588.8","6":"Restricted Access","7":"State Agency"},{"1":"35957","2":"Radke Martinez Regional Shoreline","3":"Contra Costa","4":"129.0","5":"333.4","6":"Open Access","7":"Recreation/Parks District"},{"1":"15864","2":"Batiquitos Lagoon Ecological Reserve","3":"San Diego","4":"126.7","5":"410.5","6":"Restricted Access","7":"State Agency"},{"1":"22617","2":"Muzzi Marsh","3":"Marin","4":"123.7","5":"77.1","6":"Restricted Access","7":"City Agency"},{"1":"16902","2":"Carpinteria Salt Marsh Reserve - UC Natural Reserve","3":"Santa Barbara","4":"120.2","5":"114.8","6":"Restricted Access","7":"State Agency"},{"1":"30469","2":"Mad River Slough Wildlife Area","3":"Humboldt","4":"118.0","5":"563.0","6":"Open Access","7":"State Agency"},{"1":"29199","2":"McLaughlin Eastshore State Park","3":"Alameda; Contra Costa","4":"115.2","5":"1873.5","6":"Open Access","7":"Recreation/Parks District"},{"1":"8553","2":"Shollenberger Park","3":"Sonoma","4":"109.7","5":"455.8","6":"Open Access","7":"City Agency"},{"1":"31826","2":"Ten Mile Estuary Property","3":"Mendocino","4":"109.1","5":"47.0","6":"Restricted Access","7":"Non Profit - Land Trust"},{"1":"32291","2":"San Elijo Lagoon Ecological Reserve","3":"San Diego","4":"108.9","5":"609.0","6":"Open Access","7":"State Agency"},{"1":"1699","2":"Prairie Creek Redwoods State Park","3":"Del Norte; Humboldt","4":"106.0","5":"13170.7","6":"Open Access","7":"State Agency"},{"1":"19383","2":"Goleta Slough Ecological Reserve","3":"Santa Barbara","4":"98.4","5":"382.2","6":"Restricted Access","7":"State Agency"},{"1":"21749","2":"Manila Community Park","3":"Humboldt","4":"94.2","5":"15.0","6":"Open Access","7":"Community Services District"},{"1":"20143","2":"Humboldt Bay National Wildlife Refuge","3":"Humboldt","4":"93.0","5":"1038.7","6":"Restricted Access","7":"Federal Agency"},{"1":"23620","2":"Pescadero Marsh Natural Preserve","3":"San Mateo","4":"91.4","5":"650.4","6":"Restricted Access","7":"State Agency"},{"1":"16137","2":"Black Point Boat Launch","3":"Marin","4":"90.3","5":"2.2","6":"Open Access","7":"County Agency - Parks"},{"1":"34198","2":"Martin Luther King Junior Regional Shoreline","3":"Alameda","4":"85.7","5":"759.9","6":"Open Access","7":"Recreation/Parks District"},{"1":"22236","2":"Mill Valley/Sausalito Path","3":"Marin","4":"84.8","5":"32.5","6":"Open Access","7":"County Agency - Parks"},{"1":"31333","2":"Sounding Seas Dunes Reserve","3":"Humboldt","4":"80.8","5":"89.8","6":"Open Access","7":"Non Profit - Land Trust"},{"1":"15431","2":"Alviso Marina","3":"Santa Clara","4":"78.0","5":"19.8","6":"Open Access","7":"County Agency - Parks"},{"1":"23624","2":"Petaluma River Marsh","3":"Sonoma","4":"66.9","5":"0.8","6":"Restricted Access","7":"Non Profit - Land Trust"},{"1":"18216","2":"Doran Park","3":"Sonoma","4":"65.4","5":"161.3","6":"Open Access","7":"County Agency - Parks"},{"1":"29307","2":"Sunnyvale Baylands Park","3":"Santa Clara","4":"64.9","5":"502.6","6":"Open Access","7":"City Agency"},{"1":"31444","2":"Bothin Marsh Open Space Preserve","3":"Marin","4":"63.1","5":"116.3","6":"Open Access","7":"Recreation/Parks District"},{"1":"1770","2":"Tomales Bay State Park","3":"Marin","4":"57.7","5":"2470.1","6":"Open Access","7":"State Agency"},{"1":"30475","2":"Morro Bay Wildlife Area","3":"San Luis Obispo","4":"55.5","5":"1276.4","6":"Open Access","7":"State Agency"},{"1":"20157","2":"Huntington Beach Wetlands Addition","3":"Orange","4":"55.0","5":"93.4","6":"Open Access","7":"City Agency"},{"1":"24851","2":"San Diego Bay National Wildlife Refuge","3":"San Diego","4":"52.7","5":"166.0","6":"Restricted Access","7":"Federal Agency"},{"1":"16900","2":"Carpinteria Salt Marsh Reserve","3":"Santa Barbara","4":"52.4","5":"5.1","6":"Restricted Access","7":"Flood District"},{"1":"1630","2":"Mendocino Headlands State Park","3":"Mendocino","4":"52.3","5":"7542.1","6":"Open Access","7":"State Agency"},{"1":"24877","2":"San Elijo Lagoon Ecological Reserve","3":"San Diego","4":"52.2","5":"252.7","6":"Restricted Access","7":"State Agency"},{"1":"32069","2":"Buena Vista Lagoon Ecological Reserve","3":"San Diego","4":"50.4","5":"209.7","6":"Open Access","7":"State Agency"},{"1":"15570","2":"Arcata Marsh & Wildlife Sanctuary","3":"Humboldt","4":"49.6","5":"316.5","6":"Open Access","7":"City Agency"},{"1":"33187","2":"Kendall Frost Mission Bay Marsh Reserve","3":"San Diego","4":"49.0","5":"16.6","6":"Restricted Access","7":"State Agency"},{"1":"26732","2":"Upper Newport Bay Nature Preserve","3":"Orange","4":"46.1","5":"140.6","6":"Open Access","7":"County Agency"},{"1":"4363","2":"Hayward Shoreline","3":"Alameda","4":"44.3","5":"595.9","6":"Open Access","7":"Recreation/Parks District"},{"1":"30415","2":"Big Lagoon Wildlife Area","3":"Humboldt","4":"43.5","5":"1394.1","6":"Open Access","7":"State Agency"},{"1":"23051","2":"Ocean Beach Park","3":"Santa Barbara","4":"42.7","5":"38.9","6":"Open Access","7":"County Agency"},{"1":"32042","2":"Batiquitos Lagoon Ecological Reserve","3":"San Diego","4":"40.8","5":"143.0","6":"Open Access","7":"State Agency"},{"1":"24811","2":"Salt Marsh Restoration","3":"Orange","4":"40.1","5":"101.6","6":"Open Access","7":"Federal Agency"},{"1":"34930","2":"Arnold Slough","3":"Solano","4":"39.3","5":"381.6","6":"Open Access","7":"State Agency"},{"1":"35060","2":"Carpinteria Salt Marsh Reserve","3":"Santa Barbara","4":"39.2","5":"38.4","6":"Open Access","7":"Non Profit - Land Trust"},{"1":"28194","2":"Guadalupe-Nipomo Dunes Preserve Forest","3":"Santa Barbara","4":"38.5","5":"611.4","6":"Open Access","7":"County Agency"},{"1":"24866","2":"San Dieguito Lagoon Ecological Reserve","3":"San Diego","4":"36.6","5":"102.6","6":"Restricted Access","7":"State Agency"},{"1":"33921","2":"Grizzly Ranch","3":"Solano","4":"36.4","5":"916.4","6":"Restricted Access","7":"Non Profit - Conservation"},{"1":"34845","2":"Ormond Beach","3":"Ventura","4":"35.5","5":"308.1","6":"Open Access","7":"State Agency"},{"1":"22492","2":"Moro Cojo Ecological Reserve","3":"Monterey","4":"35.3","5":"43.3","6":"Restricted Access","7":"State Agency"},{"1":"30938","2":"Bay Marshes Open Space","3":"San Mateo","4":"35.2","5":"40.3","6":"Open Access","7":"City Agency"},{"1":"1607","2":"Little River State Beach","3":"Humboldt","4":"33.9","5":"213.1","6":"Open Access","7":"State Agency"},{"1":"16245","2":"Bolsa Chica Ecological Reserve","3":"Orange","4":"32.7","5":"1218.4","6":"Restricted Access","7":"State Agency"},{"1":"22626","2":"Napa-Sonoma Marshes Wildlife Area","3":"Napa","4":"32.2","5":"305.7","6":"Restricted Access","7":"State Agency"},{"1":"14271","2":"Redwood National Park","3":"Del Norte; Humboldt","4":"31.4","5":"57226.8","6":"Open Access","7":"Federal Agency"},{"1":"17243","2":"Chula Vista Wildlife Reserve","3":"San Diego","4":"31.4","5":"64.8","6":"Open Access","7":"Port/Harbor District"},{"1":"18570","2":"Elkhorn Slough","3":"Monterey","4":"31.2","5":"5.1","6":"Open Access","7":"County Agency"},{"1":"19539","2":"Guadalcanal Village","3":"Solano","4":"31.0","5":"4.0","6":"Open Access","7":"City Agency"},{"1":"35058","2":"Alman Marsh","3":"Sonoma","4":"29.5","5":"24.7","6":"Open Access","7":"Non Profit - Conservation"},{"1":"32012","2":"Agua Hedionda Lagoon Ecological Reserve","3":"San Diego","4":"29.2","5":"195.1","6":"Open Access","7":"State Agency"},{"1":"1787","2":"Wilder Ranch State Park","3":"Santa Cruz","4":"29.1","5":"7695.3","6":"Open Access","7":"State Agency"},{"1":"15756","2":"Bahia Parks","3":"Marin","4":"28.4","5":"2.1","6":"Open Access","7":"City Agency"},{"1":"28469","2":"Palco Marsh","3":"Humboldt","4":"28.3","5":"106.5","6":"Open Access","7":"City Agency"},{"1":"24541","2":"Rocky Memorial Dog","3":"Sonoma","4":"27.8","5":"22.0","6":"Open Access","7":"City Agency"},{"1":"28054","2":"Monta<f1>a de Oro State Park","3":"San Luis Obispo","4":"27.7","5":"10209.0","6":"Open Access","7":"State Agency"},{"1":"18217","2":"Doran Regional Park","3":"Sonoma","4":"27.2","5":"31.4","6":"Open Access","7":"County Agency - Parks"},{"1":"23851","2":"Point Isabel","3":"Contra Costa","4":"27.2","5":"38.0","6":"Open Access","7":"Recreation/Parks District"},{"1":"23744","2":"Piper Park","3":"Marin","4":"26.9","5":"51.5","6":"Open Access","7":"City Agency"},{"1":"1715","2":"Salinas River State Beach","3":"Monterey","4":"26.6","5":"286.5","6":"Open Access","7":"State Agency"},{"1":"21640","2":"Mad River County Park","3":"Humboldt","4":"26.6","5":"116.3","6":"Open Access","7":"County Agency"},{"1":"24421","2":"River Park","3":"Solano","4":"25.3","5":"81.1","6":"Open Access","7":"Recreation/Parks District"},{"1":"32186","2":"Hudeman Slough Fishing Access","3":"Sonoma","4":"25.0","5":"3.4","6":"Open Access","7":"State Agency"},{"1":"34602","2":"Unnamed Site - Friends of the Dunes","3":"Humboldt","4":"25.0","5":"374.9","6":"Open Access","7":"Non Profit - Conservation"},{"1":"30507","2":"South Spit Wildlife Area","3":"Humboldt","4":"24.3","5":"953.1","6":"Open Access","7":"State Agency"},{"1":"19179","2":"Gallinas Creek Marsh Restoration","3":"Marin","4":"24.1","5":"31.2","6":"Restricted Access","7":"City Agency"},{"1":"30722","2":"Baylands Athletic Center","3":"Santa Clara","4":"24.0","5":"14.2","6":"Open Access","7":"City Agency"},{"1":"1629","2":"McGrath State Beach","3":"Ventura","4":"23.9","5":"326.4","6":"Open Access","7":"State Agency"},{"1":"30996","2":"Cholla Point","3":"San Diego","4":"23.7","5":"20.8","6":"Open Access","7":"Non Profit - Conservation"},{"1":"32016","2":"Los Cerritos Wetlands","3":"Los Angeles; Orange","4":"21.9","5":"507.3","6":"Restricted Access","7":"Joint Powers Authority"},{"1":"15886","2":"Bayfront Park","3":"Marin","4":"21.3","5":"48.4","6":"Open Access","7":"City Agency"},{"1":"34847","2":"Ormond Beach","3":"Ventura","4":"21.1","5":"70.5","6":"Open Access","7":"City Agency"},{"1":"17350","2":"Civic Center Lagoon Park","3":"Marin","4":"20.5","5":"137.0","6":"Open Access","7":"County Agency - Parks"},{"1":"31350","2":"John F. Kennedy Park","3":"Napa","4":"19.9","5":"196.5","6":"Open Access","7":"City Agency"},{"1":"1993","2":"Sonoma Coast State Park","3":"Sonoma","4":"19.8","5":"6549.6","6":"Open Access","7":"State Agency"},{"1":"35880","2":"Pacheco Marsh","3":"Contra Costa","4":"19.6","5":"144.3","6":"Open Access","7":"Non Profit - Land Trust"},{"1":"26104","2":"Sweet Springs Nature Preserve","3":"San Luis Obispo","4":"19.0","5":"22.6","6":"Open Access","7":"Non Profit - Conservation"},{"1":"36039","2":"Hal Brown Park at Creekside","3":"Marin","4":"18.9","5":"27.4","6":"Open Access","7":"County Agency - Parks"},{"1":"36008","2":"Brooks Island Regional Preserve","3":"Alameda","4":"18.5","5":"375.2","6":"Open Access","7":"Recreation/Parks District"},{"1":"30437","2":"Elk River Wildlife Area","3":"Humboldt","4":"17.9","5":"99.5","6":"Open Access","7":"State Agency"},{"1":"1656","2":"Navarro River Redwoods State Park","3":"Mendocino","4":"16.8","5":"718.9","6":"Open Access","7":"State Agency"},{"1":"26046","2":"Sunset Harbor","3":"Orange","4":"16.4","5":"27.1","6":"Open Access","7":"County Agency"},{"1":"30557","2":"Unnamed site - California State Lands Commission","3":"Humboldt","4":"16.3","5":"35.7","6":"Open Access","7":"State Agency"},{"1":"21968","2":"Maxton Brown Park","3":"San Diego","4":"16.2","5":"0.9","6":"Open Access","7":"City Agency"},{"1":"36007","2":"Waterbird Regional Preserve","3":"Contra Costa","4":"16.0","5":"190.6","6":"Open Access","7":"Recreation/Parks District"},{"1":"20648","2":"Kimberly Park","3":"Napa","4":"15.9","5":"39.7","6":"Open Access","7":"City Agency"},{"1":"31313","2":"Famosa Slough Wildlife Reserve","3":"San Diego","4":"15.3","5":"33.3","6":"Open Access","7":"City Agency"},{"1":"1556","2":"Harry A. Merlo State Recreation Area","3":"Humboldt","4":"15.1","5":"734.8","6":"Open Access","7":"State Agency"},{"1":"1762","2":"Sunset State Beach","3":"Santa Cruz","4":"14.9","5":"295.3","6":"Open Access","7":"State Agency"},{"1":"33181","2":"Coal Oil Point Natural Reserve","3":"Santa Barbara","4":"14.7","5":"174.1","6":"Restricted Access","7":"State Agency"},{"1":"33080","2":"Shoreline Golf Links","3":"Santa Clara","4":"14.2","5":"289.2","6":"Restricted Access","7":"City Agency"},{"1":"1647","2":"Moss Landing State Beach","3":"Monterey","4":"13.3","5":"56.0","6":"Open Access","7":"State Agency"},{"1":"15996","2":"Belmont Sports Complex","3":"San Mateo","4":"13.2","5":"12.1","6":"Open Access","7":"City Agency"},{"1":"16524","2":"Burlingame Lagoon Park","3":"San Mateo","4":"12.9","5":"109.7","6":"Open Access","7":"City Agency"},{"1":"25913","2":"Strawberry Cove Park/Belloc Lagoon","3":"Marin","4":"12.8","5":"3.5","6":"Open Access","7":"Recreation/Parks District"},{"1":"30386","2":"Coyote Point Recreation Area","3":"San Mateo","4":"12.3","5":"155.2","6":"Open Access","7":"County Agency - Parks"},{"1":"23649","2":"Pickleweed Park","3":"Marin","4":"12.1","5":"12.0","6":"Open Access","7":"City Agency"},{"1":"32671","2":"Unnamed site - San Rafael, City of","3":"Marin","4":"12.1","5":"7.2","6":"Open Access","7":"City Agency"},{"1":"24881","2":"San Elijo Lagoon Ecological Reserve","3":"San Diego","4":"11.2","5":"48.8","6":"Open Access","7":"Non Profit - Land Trust"},{"1":"30887","2":"Corte Madera Bike Trail","3":"Marin","4":"11.0","5":"10.0","6":"Open Access","7":"City Agency"},{"1":"36053","2":"Little River Trail","3":"Humboldt","4":"10.3","5":"13.9","6":"Open Access","7":"Non Profit - Land Trust"},{"1":"30263","2":"Mission Valley Preserve","3":"San Diego","4":"10.0","5":"49.6","6":"Open Access","7":"City Agency"},{"1":"18580","2":"Elkhorn Slough / Sandholdt - ESF","3":"Monterey","4":"9.8","5":"8.4","6":"Open Access","7":"Non Profit - Land Trust"},{"1":"34006","2":"First Street Green","3":"Solano","4":"9.6","5":"5.2","6":"Open Access","7":"City Agency"},{"1":"31000","2":"Lawler Ranch Park","3":"Solano","4":"9.4","5":"10.7","6":"Open Access","7":"City Agency"},{"1":"21832","2":"Marina Park","3":"Solano","4":"9.2","5":"9.1","6":"Open Access","7":"City Agency"},{"1":"24864","2":"San Dieguito Lagoon","3":"San Diego","4":"9.2","5":"166.2","6":"Open Access","7":"City Agency"},{"1":"15865","2":"Batiquitos Lagoon Ecological Reserve","3":"San Diego","4":"9.1","5":"7.1","6":"Unknown Access","7":"Transportation Agency"},{"1":"23895","2":"Port Hueneme Beach Park","3":"Ventura","4":"9.0","5":"35.8","6":"Open Access","7":"City Agency"},{"1":"30381","2":"San Luis Rey River Trail","3":"San Diego","4":"8.3","5":"1136.3","6":"Open Access","7":"City Agency"},{"1":"25419","2":"Shorebird Marsh","3":"Marin","4":"8.2","5":"46.1","6":"Restricted Access","7":"City Agency"},{"1":"16899","2":"Carpinteria Salt Marsh Reserve","3":"Santa Barbara","4":"8.1","5":"5.8","6":"Restricted Access","7":"City Agency"},{"1":"30236","2":"Seaside Beach","3":"Mendocino","4":"8.1","5":"11.6","6":"Open Access","7":"Non Profit - Land Trust"},{"1":"1441","2":"Big Basin Redwoods State Park","3":"San Mateo; Santa Cruz","4":"8.0","5":"16670.4","6":"Open Access","7":"State Agency"},{"1":"1959","2":"MacKerricher State Park","3":"Mendocino","4":"7.9","5":"2453.2","6":"Open Access","7":"State Agency"},{"1":"1995","2":"Van Damme State Park","3":"Mendocino","4":"7.8","5":"2408.5","6":"Open Access","7":"State Agency"},{"1":"30323","2":"San Rafael Tidelands","3":"Marin","4":"7.8","5":"18.6","6":"Open Access","7":"Non Profit - Conservation"},{"1":"32344","2":"Vallejo Fishing Pier","3":"Solano","4":"7.7","5":"0.5","6":"Open Access","7":"State Agency"},{"1":"30561","2":"Unnamed site - California State University","3":"Humboldt","4":"7.6","5":"42.6","6":"Open Access","7":"State Agency"},{"1":"19877","2":"Heron's Head Park","3":"San Francisco","4":"7.4","5":"19.5","6":"Open Access","7":"Port/Harbor District"},{"1":"18574","2":"Elkhorn Slough / Elkhorn Highlands","3":"Monterey","4":"7.3","5":"17.9","6":"Open Access","7":"Port/Harbor District"},{"1":"30883","2":"Corte Madera Creek Path","3":"Marin","4":"7.2","5":"3.9","6":"Open Access","7":"County Agency - Parks"},{"1":"34400","2":"San Elijo Lagoon Ecological Reserve and Nature Center","3":"San Diego","4":"6.7","5":"15.7","6":"Open Access","7":"County Agency"},{"1":"23670","2":"Pillar Point Bluff","3":"San Mateo","4":"6.3","5":"226.4","6":"Open Access","7":"County Agency - Parks"},{"1":"1558","2":"Hearst San Simeon State Park","3":"San Luis Obispo","4":"6.2","5":"1939.6","6":"Open Access","7":"State Agency"},{"1":"32045","2":"Belden's Landing Fishing Access","3":"Solano","4":"6.0","5":"10.1","6":"Open Access","7":"State Agency"},{"1":"26170","2":"Talbert Marsh","3":"Orange","4":"5.9","5":"34.7","6":"Unknown Access","7":"County Agency"},{"1":"1655","2":"Natural Bridges State Beach","3":"Santa Cruz","4":"5.5","5":"62.3","6":"Open Access","7":"State Agency"},{"1":"34008","2":"Turnbull Park","3":"Solano","4":"5.5","5":"9.6","6":"Open Access","7":"City Agency"},{"1":"16489","2":"Buena Vista Lagoon Ecological Reserve","3":"San Diego","4":"5.4","5":"0.5","6":"Unknown Access","7":"Transportation Agency"},{"1":"1615","2":"Malibu Lagoon State Beach","3":"Los Angeles","4":"5.3","5":"71.2","6":"Open Access","7":"State Agency"},{"1":"1743","2":"Silver Strand State Beach","3":"San Diego","4":"5.0","5":"7388.2","6":"Open Access","7":"State Agency"},{"1":"30438","2":"Fay Slough Wildlife Area","3":"Humboldt","4":"4.9","5":"481.8","6":"Open Access","7":"State Agency"},{"1":"1728","2":"San Gregorio State Beach","3":"San Mateo","4":"4.8","5":"184.3","6":"Open Access","7":"State Agency"},{"1":"15788","2":"Ballona Lagoon Marine Preserve","3":"Los Angeles","4":"4.8","5":"16.0","6":"Open Access","7":"City Agency"},{"1":"24878","2":"San Elijo Lagoon Ecological Reserve","3":"San Diego","4":"4.5","5":"12.3","6":"Open Access","7":"County Agency"},{"1":"1486","2":"Crown Memorial Regional Shoreline","3":"Alameda","4":"4.4","5":"122.0","6":"Open Access","7":"Recreation/Parks District"},{"1":"1747","2":"Sinkyone Wilderness State Park","3":"Humboldt; Mendocino","4":"4.4","5":"8023.3","6":"Open Access","7":"State Agency"},{"1":"30897","2":"Charles F. McGlashan Pathway","3":"Marin","4":"4.4","5":"2.7","6":"Open Access","7":"County Agency - Parks"},{"1":"34717","2":"Hauke Park","3":"Marin","4":"4.2","5":"6.6","6":"Open Access","7":"City Agency"},{"1":"15872","2":"Bay Front Park","3":"San Mateo","4":"4.1","5":"4.1","6":"Open Access","7":"City Agency"},{"1":"34846","2":"Ventura County Game Preserve","3":"Ventura","4":"4.1","5":"575.3","6":"Restricted Access","7":"County Agency"},{"1":"1980","2":"Russian Gulch State Park","3":"Mendocino","4":"3.8","5":"1289.0","6":"Open Access","7":"State Agency"},{"1":"21033","2":"Larkspur Lands 005","3":"Marin","4":"3.8","5":"4.4","6":"Open Access","7":"City Agency"},{"1":"22736","2":"Newport Dunes Aquatic Park","3":"Orange","4":"3.8","5":"66.7","6":"Open Access","7":"County Agency"},{"1":"1467","2":"Caspar Headlands State Beach","3":"Mendocino","4":"3.6","5":"126.5","6":"Open Access","7":"State Agency"},{"1":"24965","2":"San Pablo Bay Regional Shoreline","3":"Contra Costa","4":"3.4","5":"11.0","6":"Open Access","7":"Recreation/Parks District"},{"1":"1529","2":"Emma Wood State Beach","3":"Ventura","4":"3.3","5":"123.3","6":"Open Access","7":"State Agency"},{"1":"1682","2":"Pismo State Beach","3":"San Luis Obispo","4":"2.9","5":"1525.0","6":"Open Access","7":"State Agency"},{"1":"32065","2":"Bracut Tidelands","3":"Humboldt","4":"2.9","5":"141.3","6":"Open Access","7":"State Agency"},{"1":"18725","2":"Estero Americano Preserve","3":"Sonoma","4":"2.8","5":"126.1","6":"Restricted Access","7":"Non Profit - Land Trust"},{"1":"25098","2":"Santa Margarita Island Open Space Preserve","3":"Marin","4":"2.8","5":"8.6","6":"Open Access","7":"Recreation/Parks District"},{"1":"26065","2":"Sunset State Beach","3":"Santa Cruz","4":"2.8","5":"4.6","6":"Open Access","7":"County Agency"},{"1":"1531","2":"Estero Bluffs State Park","3":"San Luis Obispo","4":"2.3","5":"385.6","6":"Open Access","7":"State Agency"},{"1":"17961","2":"Day Park","3":"Solano","4":"2.3","5":"4.3","6":"Open Access","7":"City Agency"},{"1":"19611","2":"Hallmark Transnet Environmental Mitigation","3":"San Diego","4":"2.2","5":"19.3","6":"Unknown Access","7":"State Agency"},{"1":"27503","2":"Wildcat Creek Trail","3":"Contra Costa","4":"2.2","5":"6.2","6":"Open Access","7":"Recreation/Parks District"},{"1":"33960","2":"McKay Community Forest","3":"Humboldt","4":"2.2","5":"1200.1","6":"Open Access","7":"County Agency - Other"},{"1":"25268","2":"Seaside Wilderness Park","3":"Ventura","4":"2.1","5":"18.6","6":"Open Access","7":"City Agency"},{"1":"27791","2":"Younger Lagoon Reserve","3":"Santa Cruz","4":"2.1","5":"69.9","6":"Restricted Access","7":"State Agency"},{"1":"30289","2":"San Dieguito River Park","3":"San Diego","4":"2.1","5":"122.9","6":"Open Access","7":"Open Space District"},{"1":"34430","2":"Shorebird Sanctuary","3":"San Mateo","4":"2.0","5":"2.1","6":"Open Access","7":"City Agency"},{"1":"25426","2":"Shoreline Park","3":"Alameda","4":"1.8","5":"62.5","6":"Open Access","7":"City Agency"},{"1":"25918","2":"Strawberry Point Tidal Area","3":"Marin","4":"1.8","5":"22.0","6":"Open Access","7":"Recreation/Parks District"},{"1":"25919","2":"Strawberry Point Tidal Area","3":"Marin","4":"1.8","5":"0.3","6":"Open Access","7":"Recreation/Parks District"},{"1":"31842","2":"Paradise Creek Educational Park","3":"San Diego","4":"1.8","5":"6.1","6":"Open Access","7":"City Agency"},{"1":"1646","2":"Morro Strand State Beach","3":"San Luis Obispo","4":"1.7","5":"192.7","6":"Open Access","7":"State Agency"},{"1":"1723","2":"San Buenaventura State Beach","3":"Ventura","4":"1.7","5":"97.6","6":"Open Access","7":"State Agency"},{"1":"17190","2":"Chicken Ranch Beach","3":"Marin","4":"1.6","5":"6.4","6":"Open Access","7":"County Agency - Parks"},{"1":"34883","2":"Haskell's Beach","3":"Santa Barbara","4":"1.6","5":"37.0","6":"Open Access","7":"City Agency"},{"1":"16468","2":"Buccaneer Beach Park","3":"San Diego","4":"1.5","5":"6.1","6":"Open Access","7":"City Agency"},{"1":"30247","2":"Freshwater Farms Reserve","3":"Humboldt","4":"1.5","5":"71.9","6":"Open Access","7":"Non Profit - Land Trust"},{"1":"22859","2":"North Star Beach","3":"Orange","4":"1.4","5":"11.2","6":"Open Access","7":"City Agency"},{"1":"27869","2":"Zuma County Beach","3":"Los Angeles","4":"1.1","5":"97.2","6":"Open Access","7":"County Agency"},{"1":"24330","2":"Richardson Bay Audubon Center & Sanctuary","3":"Marin","4":"1.0","5":"756.8","6":"Restricted Access","7":"Non Profit - Conservation"},{"1":"30891","2":"Cal Park Hill Trail","3":"Marin","4":"1.0","5":"10.7","6":"Open Access","7":"Transportation Agency"},{"1":"31743","2":"Blackie's Pasture","3":"Marin","4":"1.0","5":"15.5","6":"Open Access","7":"City Agency"},{"1":"19379","2":"Goleta Beach County Park","3":"Santa Barbara","4":"0.9","5":"33.1","6":"Open Access","7":"County Agency"},{"1":"35716","2":"Unnamed Site - Morro Bay, City of","3":"San Luis Obispo","4":"0.7","5":"147.5","6":"Open Access","7":"City Agency"},{"1":"20197","2":"India Basin Shoreline Park","3":"San Francisco","4":"0.6","5":"14.6","6":"Open Access","7":"City Agency"},{"1":"22732","2":"Newport Aquatic Center","3":"Orange","4":"0.6","5":"4.2","6":"Open Access","7":"City Agency"},{"1":"22809","2":"North Cays Park","3":"San Diego","4":"0.6","5":"2.2","6":"Open Access","7":"City Agency"},{"1":"15962","2":"Bel Marin Keys #5","3":"Marin","4":"0.5","5":"43.4","6":"Restricted Access","7":"State Agency"},{"1":"16634","2":"Cabrillo Beach & Marine Aquarium","3":"Los Angeles","4":"0.5","5":"51.2","6":"Open Access","7":"City Agency"},{"1":"29073","2":"Cabrillo Beach Marina and Recreation Complex","3":"Los Angeles","4":"0.5","5":"45.4","6":"Open Access","7":"Port/Harbor District"},{"1":"31739","2":"McKegney Green","3":"Marin","4":"0.5","5":"11.5","6":"Open Access","7":"City Agency"},{"1":"28002","2":"El Capit<e1>n State Beach","3":"Santa Barbara","4":"0.4","5":"2646.2","6":"Open Access","7":"State Agency"},{"1":"31201","2":"Chula Vista Bayfront Park","3":"San Diego","4":"0.4","5":"16.0","6":"Open Access","7":"Port/Harbor District"},{"1":"31545","2":"Jug Handle State Natural Reserve","3":"Mendocino","4":"0.4","5":"796.9","6":"Open Access","7":"State Agency"},{"1":"1393","2":"Andrew Molera State Park","3":"Monterey","4":"0.3","5":"4695.7","6":"Open Access","7":"State Agency"},{"1":"19524","2":"Grizzly Island Wildlife Area","3":"Solano","4":"0.3","5":"159.2","6":"Restricted Access","7":"State Agency"},{"1":"26042","2":"Sunset Cliffs Natural Park","3":"San Diego","4":"0.2","5":"67.1","6":"Open Access","7":"City Agency"},{"1":"15910","2":"Beachfront Park","3":"Del Norte","4":"0.1","5":"50.1","6":"Open Access","7":"City Agency"},{"1":"24966","2":"San Pablo Bay Regional Shoreline","3":"Contra Costa","4":"0.1","5":"57.6","6":"Restricted Access","7":"Recreation/Parks District"},{"1":"25354","2":"Shamel Park","3":"San Luis Obispo","4":"0.1","5":"2.3","6":"Open Access","7":"County Agency"},{"1":"27188","2":"Vista Points","3":"San Luis Obispo","4":"0.1","5":"36.6","6":"Open Access","7":"Non Profit - Land Trust"},{"1":"34715","2":"Mill Valley Skate Park","3":"Marin","4":"0.1","5":"0.5","6":"Open Access","7":"City Agency"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p><br></p>
+by access type:
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["access_type"],"name":[1],"type":["chr"],"align":["left"]},{"label":["acres_wetland"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["acres_park"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["count"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"Open Access","2":"38750","3":"368436","4":"222"},{"1":"Restricted Access","2":"10767","3":"40926","4":"41"},{"1":"Unknown Access","2":"23","3":"62","4":"4"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p><br></p>
+by managing agency level:
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["managing_agency_level"],"name":[1],"type":["chr"],"align":["left"]},{"label":["acres_wetland"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["acres_park"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["count"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"State","2":"25358","3":"182073","4":"94"},{"1":"Federal","2":"13688","3":"188757","4":"15"},{"1":"Special District","2":"3230","3":"12026","4":"38"},{"1":"City","2":"3169","3":"13623","4":"65"},{"1":"Non Profit","2":"2228","3":"6758","4":"23"},{"1":"County","2":"1867","3":"6186","4":"32"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p><br></p>
+</div>
+</div>
+<div id="old-approach" class="section level4">
+<h4>OLD APPROACH</h4>
+<pre class="r"><code>##### wetland-park map
+map_wetlandParks_v1 &lt;- ggplot() +
+  geom_sf(data=CA_clip, fill=&quot;grey92&quot;, color=&quot;grey92&quot;)+
+  geom_sf(data=wetlandParks_v1_simplified,
+          # alpha=0.9,lwd=0.5,
+          aes(fill=intersects_wetland,
+              color=intersects_wetland,
+              text=paste(unit_name)))+
+  geom_sf(data=wetlands_simplified,
+          alpha=0.5,lwd=0.3,
+          aes(color=wetland,
+              fill=wetland,
+              text=paste(wetland))) +
+  scale_fill_manual(values=c(&quot;park intersects wetland&quot;=&quot;plum4&quot;,
+                             &quot;wetland&quot;=&quot;#a7dea2&quot;)) +
+  scale_color_manual(values=c(&quot;park intersects wetland&quot;=&quot;plum4&quot;,
+                              &quot;wetland&quot;=&quot;#a7dea2&quot;)) +
+  guides(fill=guide_legend(title = &quot;&quot;),color=guide_legend(title = &quot;&quot;)) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlandParks_v1, tooltip=&quot;text&quot;) %&gt;%
+  style(hoverlabel=list(font=list(family=&quot;IBM Plex Mono&quot;,size=11))) %&gt;%
+  layout(legend=list(x=0.5,xanchor=&#39;center&#39;,
+                     y=0,yanchor=&#39;top&#39;,
+                     orientation=&#39;h&#39;,
+                     font=list(color=&quot;#32127a&quot;,family=&quot;IBM Plex Mono&quot;)))</code></pre>
+<p><br></p>
+<center>
+TOTAL: <strong>~569</strong> wetland parks
+</center>
+<iframe src="figures/map_wetlandParks_v1.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
+<p>
+<center>
+<font size="2"> <em>hover over polygons for park names. draw bounding
+box to zoom. click legend layers to toggle on/off.</em> </font>
+</center>
+</p>
+<p><br></p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["suid"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["unit_name"],"name":[2],"type":["chr"],"align":["left"]},{"label":["county"],"name":[3],"type":["chr"],"align":["left"]},{"label":["intersects_wetland"],"name":[4],"type":["chr"],"align":["left"]},{"label":["acres"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"29496","2":"Abalone Cove Shoreline Park","3":"Los Angeles","4":"park intersects wetland","5":"7.899836e+01"},{"1":"15284","2":"Agate Beach","3":"Marin","4":"park intersects wetland","5":"1.351589e+01"},{"1":"32012","2":"Agua Hedionda Lagoon Ecological Reserve","3":"San Diego","4":"park intersects wetland","5":"1.950822e+02"},{"1":"3205","2":"Alameda Creek Regional Trail","3":"Alameda","4":"park intersects wetland","5":"6.340234e+02"},{"1":"35977","2":"Alameda Point Shoreline Trail","3":"Alameda","4":"park intersects wetland","5":"3.265882e+00"},{"1":"15314","2":"Alamitos Beach","3":"Los Angeles","4":"park intersects wetland","5":"5.647127e+01"},{"1":"36231","2":"Albany State Marine Reserve","3":"Alameda","4":"park intersects wetland","5":"2.270962e+01"},{"1":"32092","2":"Aliso Beach Park","3":"Orange","4":"park intersects wetland","5":"3.981898e+01"},{"1":"35058","2":"Alman Marsh","3":"Sonoma","4":"park intersects wetland","5":"2.467064e+01"},{"1":"15431","2":"Alviso Marina","3":"Santa Clara","4":"park intersects wetland","5":"1.977340e+01"},{"1":"15438","2":"Amarillo Beach","3":"Los Angeles","4":"park intersects wetland","5":"5.826996e+00"},{"1":"15470","2":"Anchor Memorial Park","3":"San Luis Obispo","4":"park intersects wetland","5":"8.167479e-02"},{"1":"1393","2":"Andrew Molera State Park","3":"Monterey","4":"park intersects wetland","5":"4.695686e+03"},{"1":"1394","2":"Angel Island State Park","3":"Marin","4":"park intersects wetland","5":"7.543117e+02"},{"1":"14191","2":"Aquatic Park","3":"San Francisco","4":"park intersects wetland","5":"3.305178e+01"},{"1":"15552","2":"Aramburu Wildlife Preserve","3":"Marin","4":"park intersects wetland","5":"4.528827e+01"},{"1":"15570","2":"Arcata Marsh & Wildlife Sanctuary","3":"Humboldt","4":"park intersects wetland","5":"3.164967e+02"},{"1":"34930","2":"Arnold Slough","3":"Solano","4":"park intersects wetland","5":"3.815942e+02"},{"1":"15610","2":"Arroyo Burro Beach County Park","3":"Santa Barbara","4":"park intersects wetland","5":"5.982008e+00"},{"1":"28193","2":"Arroyo Hondo Preserve","3":"Santa Barbara","4":"park intersects wetland","5":"7.812117e+02"},{"1":"1420","2":"Asilomar State Beach","3":"Monterey","4":"park intersects wetland","5":"1.070918e+02"},{"1":"35686","2":"Aubrey E. Austin Jr. Park and North Jetty","3":"Los Angeles","4":"park intersects wetland","5":"1.335988e+00"},{"1":"36405","2":"Audubon Society Lyford House Open Space Area","3":"Marin","4":"park intersects wetland","5":"9.091377e+00"},{"1":"15731","2":"Avila Beach","3":"San Luis Obispo","4":"park intersects wetland","5":"7.237223e+00"},{"1":"27967","2":"A<U+00F1>o Nuevo State Park","3":"San Mateo","4":"park intersects wetland","5":"3.502307e+03"},{"1":"161623","2":"BLM (Fleener & Guthrie Creek Beach Trails)","3":"Contra Costa | Humboldt | Mendocino | San Diego | San Luis Obispo | San Mateo | Santa Barbara | Ventura","4":"park intersects wetland","5":"6.727169e+04"},{"1":"161622","2":"BLM (King Range National Conservation Area)","3":"Contra Costa | Humboldt | Mendocino | San Diego | San Luis Obispo | San Mateo | Santa Barbara | Ventura","4":"park intersects wetland","5":"6.727169e+04"},{"1":"161625","2":"BLM (Ma-Le'l Dunes South)","3":"Contra Costa | Humboldt | Mendocino | San Diego | San Luis Obispo | San Mateo | Santa Barbara | Ventura","4":"park intersects wetland","5":"6.727169e+04"},{"1":"161621","2":"BLM (Mal Coombs Park)","3":"Contra Costa | Humboldt | Mendocino | San Diego | San Luis Obispo | San Mateo | Santa Barbara | Ventura","4":"park intersects wetland","5":"6.727169e+04"},{"1":"161627","2":"BLM (Point Arena-Stornetta Unit)","3":"Contra Costa | Humboldt | Mendocino | San Diego | San Luis Obispo | San Mateo | Santa Barbara | Ventura","4":"park intersects wetland","5":"6.727169e+04"},{"1":"161624","2":"BLM (Samoa Dunes Recreation Area)","3":"Contra Costa | Humboldt | Mendocino | San Diego | San Luis Obispo | San Mateo | Santa Barbara | Ventura","4":"park intersects wetland","5":"6.727169e+04"},{"1":"15756","2":"Bahia Parks","3":"Marin","4":"park intersects wetland","5":"2.122489e+00"},{"1":"32033","2":"Bair Island Ecological Reserve","3":"San Mateo","4":"park intersects wetland","5":"1.189970e+03"},{"1":"14193","2":"Baker Beach","3":"San Francisco","4":"park intersects wetland","5":"4.826189e+01"},{"1":"15766","2":"Baker Beach","3":"Humboldt","4":"park intersects wetland","5":"1.747247e+01"},{"1":"15788","2":"Ballona Lagoon Marine Preserve","3":"Los Angeles","4":"park intersects wetland","5":"1.595502e+01"},{"1":"15789","2":"Ballona Wetlands Ecological Reserve","3":"Los Angeles","4":"park intersects wetland","5":"5.888275e+02"},{"1":"15864","2":"Batiquitos Lagoon Ecological Reserve","3":"San Diego","4":"park intersects wetland","5":"4.104678e+02"},{"1":"15872","2":"Bay Front Park","3":"San Mateo","4":"park intersects wetland","5":"4.103216e+00"},{"1":"30938","2":"Bay Marshes Open Space","3":"San Mateo","4":"park intersects wetland","5":"4.026131e+01"},{"1":"32664","2":"Bay Point Regional Shoreline","3":"Contra Costa","4":"park intersects wetland","5":"1.379294e+02"},{"1":"15886","2":"Bayfront Park","3":"Marin","4":"park intersects wetland","5":"4.841874e+01"},{"1":"8356","2":"Baylands Preserve","3":"San Mateo | Santa Clara","4":"park intersects wetland","5":"1.517105e+03"},{"1":"29929","2":"Bayshore Beach","3":"Los Angeles","4":"park intersects wetland","5":"4.147072e+00"},{"1":"15893","2":"Bayside Drive Beach","3":"Orange","4":"park intersects wetland","5":"1.344672e+00"},{"1":"15894","2":"Bayside Joinville Park","3":"San Mateo","4":"park intersects wetland","5":"1.245522e+01"},{"1":"34226","2":"Bayside Park","3":"Marin","4":"park intersects wetland","5":"5.987581e-01"},{"1":"15910","2":"Beachfront Park","3":"Del Norte","4":"park intersects wetland","5":"5.014012e+01"},{"1":"1429","2":"Bean Hollow State Beach","3":"San Mateo","4":"park intersects wetland","5":"3.830536e+01"},{"1":"33998","2":"Bedwell Bayfront Park","3":"San Mateo","4":"park intersects wetland","5":"1.569810e+02"},{"1":"15962","2":"Bel Marin Keys #5","3":"Marin","4":"park intersects wetland","5":"4.342214e+01"},{"1":"32045","2":"Belden's Landing Fishing Access","3":"Solano","4":"park intersects wetland","5":"1.007293e+01"},{"1":"15995","2":"Belmont Shore Beach","3":"Los Angeles","4":"park intersects wetland","5":"6.413116e+01"},{"1":"15996","2":"Belmont Sports Complex","3":"San Mateo","4":"park intersects wetland","5":"1.209326e+01"},{"1":"1433","2":"Benicia State Recreation Area","3":"Solano","4":"park intersects wetland","5":"6.399625e+02"},{"1":"1441","2":"Big Basin Redwoods State Park","3":"San Mateo | Santa Cruz","4":"park intersects wetland","5":"1.667039e+04"},{"1":"30415","2":"Big Lagoon Wildlife Area","3":"Humboldt","4":"park intersects wetland","5":"1.394121e+03"},{"1":"16086","2":"Big Rock Beach","3":"Los Angeles","4":"park intersects wetland","5":"8.314005e+00"},{"1":"16137","2":"Black Point Boat Launch","3":"Marin","4":"park intersects wetland","5":"2.246035e+00"},{"1":"16196","2":"Bluff Coastal Trail","3":"San Luis Obispo","4":"park intersects wetland","5":"9.042524e+00"},{"1":"16197","2":"Bluff Cove","3":"Los Angeles","4":"park intersects wetland","5":"2.742173e+01"},{"1":"16198","2":"Bluff Park","3":"Los Angeles","4":"park intersects wetland","5":"1.857029e+01"},{"1":"16219","2":"Bodega Marine Reserve","3":"Sonoma","4":"park intersects wetland","5":"2.952464e+02"},{"1":"31445","2":"Bolinas Lagoon Open Space Preserve","3":"Marin","4":"park intersects wetland","5":"1.106470e+03"},{"1":"16245","2":"Bolsa Chica Ecological Reserve","3":"Orange","4":"park intersects wetland","5":"1.218443e+03"},{"1":"1443","2":"Bolsa Chica State Beach","3":"Orange","4":"park intersects wetland","5":"2.030794e+02"},{"1":"1444","2":"Border Field State Park","3":"San Diego","4":"park intersects wetland","5":"7.875725e+02"},{"1":"31444","2":"Bothin Marsh Open Space Preserve","3":"Marin","4":"park intersects wetland","5":"1.163177e+02"},{"1":"32065","2":"Bracut Tidelands","3":"Humboldt","4":"park intersects wetland","5":"1.413293e+02"},{"1":"16339","2":"Brazil Ranch","3":"Monterey","4":"park intersects wetland","5":"1.197808e+03"},{"1":"16375","2":"Brickyard Park","3":"Marin","4":"park intersects wetland","5":"1.739849e+01"},{"1":"36008","2":"Brooks Island Regional Preserve","3":"Alameda","4":"park intersects wetland","5":"3.751505e+02"},{"1":"16449","2":"Bruhel Point","3":"Mendocino","4":"park intersects wetland","5":"1.974837e+02"},{"1":"16468","2":"Buccaneer Beach Park","3":"San Diego","4":"park intersects wetland","5":"6.072119e+00"},{"1":"32069","2":"Buena Vista Lagoon Ecological Reserve","3":"San Diego","4":"park intersects wetland","5":"2.096645e+02"},{"1":"16501","2":"Bull Island","3":"Napa","4":"park intersects wetland","5":"1.001803e+02"},{"1":"16524","2":"Burlingame Lagoon Park","3":"San Mateo","4":"park intersects wetland","5":"1.096860e+02"},{"1":"16634","2":"Cabrillo Beach & Marine Aquarium","3":"Los Angeles","4":"park intersects wetland","5":"5.116311e+01"},{"1":"29073","2":"Cabrillo Beach Marina and Recreation Complex","3":"Los Angeles","4":"park intersects wetland","5":"4.536875e+01"},{"1":"30891","2":"Cal Park Hill Trail","3":"Marin","4":"park intersects wetland","5":"1.067289e+01"},{"1":"33867","2":"Camino Majorca Beach Access","3":"Santa Barbara","4":"park intersects wetland","5":"3.396575e-01"},{"1":"33807","2":"Camino Pescadero Park","3":"Santa Barbara","4":"park intersects wetland","5":"5.011001e-01"},{"1":"1458","2":"Candlestick Point State Recreation Area","3":"San Francisco","4":"park intersects wetland","5":"2.064579e+02"},{"1":"16839","2":"Capitola Beach","3":"Santa Cruz","4":"park intersects wetland","5":"8.080486e+00"},{"1":"16843","2":"Carbon Beach","3":"Los Angeles","4":"park intersects wetland","5":"1.537449e+01"},{"1":"1461","2":"Cardiff State Beach","3":"San Diego","4":"park intersects wetland","5":"5.088594e+02"},{"1":"16866","2":"Carmel Beach City Park","3":"Monterey","4":"park intersects wetland","5":"1.518417e+01"},{"1":"1463","2":"Carmel River State Beach","3":"Monterey","4":"park intersects wetland","5":"3.040818e+02"},{"1":"35061","2":"Carpinteria Bluffs Nature Preserve","3":"Santa Barbara","4":"park intersects wetland","5":"4.718312e+01"},{"1":"16895","2":"Carpinteria City Beach","3":"Santa Barbara","4":"park intersects wetland","5":"2.332295e+00"},{"1":"35060","2":"Carpinteria Salt Marsh Reserve","3":"Santa Barbara","4":"park intersects wetland","5":"3.843544e+01"},{"1":"1466","2":"Carpinteria State Beach","3":"Santa Barbara","4":"park intersects wetland","5":"5.811684e+01"},{"1":"6373","2":"Carquinez Strait Regional Shoreline","3":"Contra Costa","4":"park intersects wetland","5":"1.385996e+03"},{"1":"1467","2":"Caspar Headlands State Beach","3":"Mendocino","4":"park intersects wetland","5":"1.265020e+02"},{"1":"1468","2":"Caspar Headlands State Natural Reserve","3":"Mendocino","4":"park intersects wetland","5":"3.217672e+00"},{"1":"16947","2":"Castaways Park","3":"Orange","4":"park intersects wetland","5":"1.677727e+01"},{"1":"34300","2":"Cave Landing","3":"San Luis Obispo","4":"park intersects wetland","5":"2.682802e+01"},{"1":"1474","2":"Cayucos State Beach","3":"San Luis Obispo","4":"park intersects wetland","5":"1.601293e+01"},{"1":"17041","2":"Centerville Beach","3":"Humboldt","4":"park intersects wetland","5":"2.336263e+00"},{"1":"30897","2":"Charles F. McGlashan Pathway","3":"Marin","4":"park intersects wetland","5":"2.709014e+00"},{"1":"17155","2":"Chase Palm Park","3":"Santa Barbara","4":"park intersects wetland","5":"4.295159e+01"},{"1":"17190","2":"Chicken Ranch Beach","3":"Marin","4":"park intersects wetland","5":"6.425414e+00"},{"1":"14203","2":"China Beach","3":"San Francisco","4":"park intersects wetland","5":"5.071175e+00"},{"1":"1475","2":"China Camp State Park","3":"Marin","4":"park intersects wetland","5":"1.444448e+03"},{"1":"31201","2":"Chula Vista Bayfront Park","3":"San Diego","4":"park intersects wetland","5":"1.601360e+01"},{"1":"17243","2":"Chula Vista Wildlife Reserve","3":"San Diego","4":"park intersects wetland","5":"6.476605e+01"},{"1":"30410","2":"City Beach","3":"Ventura","4":"park intersects wetland","5":"1.237054e+00"},{"1":"30652","2":"City of Eureka lot","3":"Humboldt","4":"park intersects wetland","5":"2.214303e+03"},{"1":"17350","2":"Civic Center Lagoon Park","3":"Marin","4":"park intersects wetland","5":"1.369656e+02"},{"1":"4510","2":"Clam Beach County Park","3":"Humboldt","4":"park intersects wetland","5":"4.621212e+02"},{"1":"17423","2":"Cliff Drive Open Space","3":"Santa Cruz","4":"park intersects wetland","5":"1.082809e+00"},{"1":"33181","2":"Coal Oil Point Natural Reserve","3":"Santa Barbara","4":"park intersects wetland","5":"1.741121e+02"},{"1":"17483","2":"Cold Creek Valley Preserve","3":"Los Angeles","4":"park intersects wetland","5":"6.029072e+02"},{"1":"17491","2":"Coleman Park","3":"San Luis Obispo","4":"park intersects wetland","5":"2.808850e+01"},{"1":"36401","2":"Coleman Property","3":"Marin","4":"park intersects wetland","5":"1.216884e+02"},{"1":"17569","2":"Community Park I","3":"Napa","4":"park intersects wetland","5":"2.399679e+01"},{"1":"17619","2":"Cooley Landing Park","3":"San Mateo","4":"park intersects wetland","5":"6.623826e+00"},{"1":"30629","2":"Corona del Mar State Beach","3":"Orange","4":"park intersects wetland","5":"3.506131e+01"},{"1":"30887","2":"Corte Madera Bike Trail","3":"Marin","4":"park intersects wetland","5":"1.004401e+01"},{"1":"30883","2":"Corte Madera Creek Path","3":"Marin","4":"park intersects wetland","5":"3.851730e+00"},{"1":"32135","2":"Corte Madera Marsh Ecological Reserve","3":"Marin","4":"park intersects wetland","5":"5.995509e+02"},{"1":"34455","2":"Corte Madera Town Park","3":"Marin","4":"park intersects wetland","5":"2.018918e+01"},{"1":"40000","2":"Cowell Ranch State Beach","3":"San Mateo","4":"park intersects wetland","5":"0.000000e+00"},{"1":"17729","2":"Cowell's Beach","3":"Santa Cruz","4":"park intersects wetland","5":"5.929409e-01"},{"1":"17731","2":"Cowell-Purisima Coastal Trail","3":"San Mateo","4":"park intersects wetland","5":"4.210917e+01"},{"1":"30386","2":"Coyote Point Recreation Area","3":"San Mateo","4":"park intersects wetland","5":"1.551795e+02"},{"1":"17793","2":"Crescent City Marsh Wildlife Area","3":"Del Norte","4":"park intersects wetland","5":"4.446084e+02"},{"1":"14207","2":"Crissy Field","3":"San Francisco","4":"park intersects wetland","5":"1.054139e+02"},{"1":"1486","2":"Crown Memorial Regional Shoreline","3":"Alameda","4":"park intersects wetland","5":"1.219996e+02"},{"1":"29098","2":"Cruise Ship Promenade","3":"Los Angeles","4":"park intersects wetland","5":"3.942183e+00"},{"1":"17888","2":"Czuleger Park","3":"Los Angeles","4":"park intersects wetland","5":"3.654803e+00"},{"1":"29044","2":"Dan Blocker Beach","3":"Los Angeles","4":"park intersects wetland","5":"5.567445e+00"},{"1":"17908","2":"Dana Cove Park","3":"Orange","4":"park intersects wetland","5":"5.463522e+00"},{"1":"17912","2":"Dana Point Park","3":"Orange","4":"park intersects wetland","5":"9.314298e+00"},{"1":"17914","2":"Dana Point Preserve","3":"Orange","4":"park intersects wetland","5":"2.943062e+01"},{"1":"31164","2":"Davenport Beach Park","3":"Orange","4":"park intersects wetland","5":"4.461602e-01"},{"1":"17938","2":"Davenport Landing Beach","3":"Santa Cruz","4":"park intersects wetland","5":"3.924617e+00"},{"1":"17939","2":"Davenport Park","3":"Alameda","4":"park intersects wetland","5":"2.090802e+00"},{"1":"17961","2":"Day Park","3":"Solano","4":"park intersects wetland","5":"4.255311e+00"},{"1":"36049","2":"Deer Creek Property","3":"Ventura","4":"park intersects wetland","5":"1.334472e+03"},{"1":"30383","2":"Del Mar North Beach","3":"San Diego","4":"park intersects wetland","5":"5.369323e+00"},{"1":"1491","2":"Del Norte Coast Redwoods State Park","3":"Del Norte","4":"park intersects wetland","5":"2.197486e+04"},{"1":"30651","2":"Del Norte Street Picnic Area","3":"Humboldt","4":"park intersects wetland","5":"1.373352e+00"},{"1":"33914","2":"Denverton Property","3":"Solano","4":"park intersects wetland","5":"7.395895e+02"},{"1":"30387","2":"Devil's Slide Trail","3":"San Mateo","4":"park intersects wetland","5":"9.913640e+01"},{"1":"18155","2":"Dinosaur Caves Park","3":"San Luis Obispo","4":"park intersects wetland","5":"1.140826e+01"},{"1":"30635","2":"Dockweiler State Beach","3":"Los Angeles","4":"park intersects wetland","5":"2.791013e+02"},{"1":"1950","2":"Doheny State Beach","3":"Orange","4":"park intersects wetland","5":"2.888503e+02"},{"1":"18204","2":"Don Edwards National Wildlife Refuge","3":"Alameda | San Mateo | Santa Clara","4":"park intersects wetland","5":"1.238272e+04"},{"1":"18216","2":"Doran Park","3":"Sonoma","4":"park intersects wetland","5":"1.613029e+02"},{"1":"18243","2":"Douglas Family Reserve","3":"Santa Barbara","4":"park intersects wetland","5":"6.879680e+01"},{"1":"18301","2":"Dunes State Park - Marina County Water District","3":"Monterey","4":"park intersects wetland","5":"1.013192e+01"},{"1":"18362","2":"East Beach","3":"Santa Barbara","4":"park intersects wetland","5":"1.874070e+01"},{"1":"34848","2":"East Cliff Drive County Parkway","3":"Santa Cruz","4":"park intersects wetland","5":"4.082363e-01"},{"1":"32155","2":"Eden Landing Ecological Reserve","3":"Alameda","4":"park intersects wetland","5":"5.795532e+03"},{"1":"31305","2":"Eel River Estuary Preserve","3":"Humboldt","4":"park intersects wetland","5":"1.002900e+03"},{"1":"30436","2":"Eel River Wildlife Area","3":"Humboldt","4":"park intersects wetland","5":"2.384149e+03"},{"1":"28002","2":"El Capit<U+00E1>n State Beach","3":"Santa Barbara","4":"park intersects wetland","5":"2.646156e+03"},{"1":"33871","2":"El Embarcadero Beach Access","3":"Santa Barbara","4":"park intersects wetland","5":"1.412740e-01"},{"1":"18539","2":"El Segundo Beach","3":"Los Angeles","4":"park intersects wetland","5":"2.765322e+01"},{"1":"34272","2":"El Sol Beach","3":"Los Angeles","4":"park intersects wetland","5":"3.245013e+00"},{"1":"18555","2":"Eldwayen Ocean Park","3":"San Luis Obispo","4":"park intersects wetland","5":"1.343053e+00"},{"1":"30437","2":"Elk River Wildlife Area","3":"Humboldt","4":"park intersects wetland","5":"9.948549e+01"},{"1":"32159","2":"Elkhorn Slough","3":"Monterey","4":"park intersects wetland","5":"1.756525e+03"},{"1":"34884","2":"Ellwood Mesa and Sperling Preserve","3":"Santa Barbara","4":"park intersects wetland","5":"2.254906e+02"},{"1":"1529","2":"Emma Wood State Beach","3":"Ventura","4":"park intersects wetland","5":"1.233004e+02"},{"1":"28192","2":"Eolian Dunes Preserve","3":"Monterey","4":"park intersects wetland","5":"2.938602e+01"},{"1":"18702","2":"Escondido Beach","3":"Los Angeles","4":"park intersects wetland","5":"1.366570e+01"},{"1":"18715","2":"Esplanade Park","3":"Santa Cruz","4":"park intersects wetland","5":"7.861180e-01"},{"1":"18725","2":"Estero Americano Preserve","3":"Sonoma","4":"park intersects wetland","5":"1.261152e+02"},{"1":"1531","2":"Estero Bluffs State Park","3":"San Luis Obispo","4":"park intersects wetland","5":"3.856214e+02"},{"1":"30643","2":"Eureka Public Marina","3":"Humboldt","4":"park intersects wetland","5":"9.668891e+00"},{"1":"18752","2":"Evans Park","3":"Monterey","4":"park intersects wetland","5":"1.031320e+01"},{"1":"18782","2":"Fagan Marsh Ecological Reserve","3":"Napa","4":"park intersects wetland","5":"3.059800e+02"},{"1":"31313","2":"Famosa Slough Wildlife Reserve","3":"San Diego","4":"park intersects wetland","5":"3.330955e+01"},{"1":"30438","2":"Fay Slough Wildlife Area","3":"Humboldt","4":"park intersects wetland","5":"4.818498e+02"},{"1":"18888","2":"Ferry Point","3":"Contra Costa","4":"park intersects wetland","5":"7.117625e+00"},{"1":"18892","2":"Fiesta Meadows","3":"San Mateo","4":"park intersects wetland","5":"4.925088e+00"},{"1":"34006","2":"First Street Green","3":"Solano","4":"park intersects wetland","5":"5.217551e+00"},{"1":"31119","2":"Fiscalini Ranch Preserve","3":"San Luis Obispo","4":"park intersects wetland","5":"4.084169e+02"},{"1":"18928","2":"Fitzgerald Marine Reserve","3":"San Mateo","4":"park intersects wetland","5":"4.139224e+01"},{"1":"19005","2":"Fort Bragg Coastal Park","3":"Mendocino","4":"park intersects wetland","5":"2.916706e+01"},{"1":"1539","2":"Fort Ord Dunes State Park","3":"Monterey","4":"park intersects wetland","5":"1.142918e+03"},{"1":"1952","2":"Fort Ross State Historic Park","3":"Sonoma","4":"park intersects wetland","5":"3.374350e+03"},{"1":"30247","2":"Freshwater Farms Reserve","3":"Humboldt","4":"park intersects wetland","5":"7.186569e+01"},{"1":"19179","2":"Gallinas Creek Marsh Restoration","3":"Marin","4":"park intersects wetland","5":"3.118117e+01"},{"1":"1545","2":"Garrapata State Park","3":"Monterey","4":"park intersects wetland","5":"2.741353e+03"},{"1":"1546","2":"Gaviota State Park","3":"Santa Barbara","4":"park intersects wetland","5":"2.709618e+03"},{"1":"32169","2":"Gazos Creek Fishing Access","3":"San Mateo","4":"park intersects wetland","5":"5.842676e+00"},{"1":"31382","2":"Glen Cove Nature Area","3":"Solano","4":"park intersects wetland","5":"1.304377e+01"},{"1":"14224","2":"Golden Gate National Recreation Area","3":"Marin | San Francisco | San Mateo","4":"park intersects wetland","5":"3.041283e+04"},{"1":"19379","2":"Goleta Beach County Park","3":"Santa Barbara","4":"park intersects wetland","5":"3.313535e+01"},{"1":"19383","2":"Goleta Slough Ecological Reserve","3":"Santa Barbara","4":"park intersects wetland","5":"3.822378e+02"},{"1":"19432","2":"Granite Rock Dunes","3":"Monterey","4":"park intersects wetland","5":"4.708770e+01"},{"1":"1549","2":"Gray Whale Cove State Beach","3":"San Mateo","4":"park intersects wetland","5":"3.024364e+00"},{"1":"1551","2":"Greenwood State Beach","3":"Mendocino","4":"park intersects wetland","5":"6.177532e+01"},{"1":"34851","2":"Greyhound Rock Fishing Access","3":"Santa Cruz","4":"park intersects wetland","5":"6.858894e+01"},{"1":"30445","2":"Grizzly Island Wildlife Area","3":"Solano","4":"park intersects wetland","5":"1.353117e+04"},{"1":"33921","2":"Grizzly Ranch","3":"Solano","4":"park intersects wetland","5":"9.163716e+02"},{"1":"19539","2":"Guadalcanal Village","3":"Solano","4":"park intersects wetland","5":"3.961376e+00"},{"1":"27911","2":"Guadalupe River Parkchain","3":"Santa Clara","4":"park intersects wetland","5":"3.047090e+02"},{"1":"28194","2":"Guadalupe-Nipomo Dunes Preserve Forest","3":"Santa Barbara","4":"park intersects wetland","5":"6.113988e+02"},{"1":"19560","2":"Gualala Point","3":"Sonoma","4":"park intersects wetland","5":"1.622645e+02"},{"1":"36039","2":"Hal Brown Park at Creekside","3":"Marin","4":"park intersects wetland","5":"2.740204e+01"},{"1":"1554","2":"Half Moon Bay State Beach","3":"San Mateo","4":"park intersects wetland","5":"2.026084e+02"},{"1":"30638","2":"Halvorsen Park","3":"Humboldt","4":"park intersects wetland","5":"1.857865e+01"},{"1":"19627","2":"Hammond's Meadow","3":"Santa Barbara","4":"park intersects wetland","5":"5.356530e+00"},{"1":"19662","2":"Harbor Cove Park","3":"Marin","4":"park intersects wetland","5":"3.649066e+00"},{"1":"30238","2":"Hare Creek Beach","3":"Mendocino","4":"park intersects wetland","5":"5.829614e+00"},{"1":"1555","2":"Harmony Headlands State Park","3":"San Luis Obispo","4":"park intersects wetland","5":"7.485564e+02"},{"1":"1556","2":"Harry A. Merlo State Recreation Area","3":"Humboldt","4":"park intersects wetland","5":"7.348310e+02"},{"1":"34883","2":"Haskell's Beach","3":"Santa Barbara","4":"park intersects wetland","5":"3.704065e+01"},{"1":"34717","2":"Hauke Park","3":"Marin","4":"park intersects wetland","5":"6.608132e+00"},{"1":"3268","2":"Hayward Regional Shoreline","3":"Alameda","4":"park intersects wetland","5":"7.756794e+02"},{"1":"33693","2":"Hearn Gulch","3":"Mendocino","4":"park intersects wetland","5":"6.414949e+00"},{"1":"1558","2":"Hearst San Simeon State Park","3":"San Luis Obispo","4":"park intersects wetland","5":"1.939584e+03"},{"1":"19795","2":"Heisler Park","3":"Orange","4":"park intersects wetland","5":"8.475416e+00"},{"1":"19869","2":"Hermosa City Beach","3":"Los Angeles","4":"park intersects wetland","5":"9.186850e+01"},{"1":"19877","2":"Heron's Head Park","3":"San Francisco","4":"park intersects wetland","5":"1.950257e+01"},{"1":"19902","2":"Hidden Beach Park","3":"Santa Cruz","4":"park intersects wetland","5":"1.744146e+01"},{"1":"19926","2":"Higgins Dock","3":"Marin","4":"park intersects wetland","5":"6.233840e-01"},{"1":"19940","2":"Highlands Inn turnout","3":"Monterey","4":"park intersects wetland","5":"3.689973e-01"},{"1":"30448","2":"Hill Slough Wildlife Area","3":"Solano","4":"park intersects wetland","5":"1.643952e+03"},{"1":"20018","2":"Hobson County Park","3":"Ventura","4":"park intersects wetland","5":"3.299009e+00"},{"1":"31339","2":"Houda Point/Camel Rock Beach Park","3":"Humboldt","4":"park intersects wetland","5":"5.870522e+00"},{"1":"32186","2":"Hudeman Slough Fishing Access","3":"Sonoma","4":"park intersects wetland","5":"3.392500e+00"},{"1":"13915","2":"Humboldt Bay National Wildlife Refuge","3":"Humboldt","4":"park intersects wetland","5":"2.721815e+03"},{"1":"31169","2":"Humboldt Beach","3":"Orange","4":"park intersects wetland","5":"4.494821e-01"},{"1":"20144","2":"Humboldt Coastal Nature Center","3":"Humboldt","4":"park intersects wetland","5":"1.072864e+02"},{"1":"1568","2":"Humboldt Lagoons State Park","3":"Humboldt","4":"park intersects wetland","5":"2.298782e+03"},{"1":"20157","2":"Huntington Beach Wetlands Addition","3":"Orange","4":"park intersects wetland","5":"9.337589e+01"},{"1":"1575","2":"Huntington State Beach","3":"Orange","4":"park intersects wetland","5":"1.157887e+02"},{"1":"20197","2":"India Basin Shoreline Park","3":"San Francisco","4":"park intersects wetland","5":"1.462072e+01"},{"1":"20222","2":"Inspiration Point","3":"Orange","4":"park intersects wetland","5":"1.119249e+00"},{"1":"20338","2":"Jalama Beach County Park","3":"Santa Barbara","4":"park intersects wetland","5":"2.661307e+01"},{"1":"20352","2":"James Scripps Bluff Preserve","3":"San Diego","4":"park intersects wetland","5":"6.312676e+00"},{"1":"32673","2":"Jean & John Starkweather Shoreline Park","3":"Marin","4":"park intersects wetland","5":"7.212117e+01"},{"1":"31350","2":"John F. Kennedy Park","3":"Napa","4":"park intersects wetland","5":"1.964530e+02"},{"1":"6326","2":"John F. McInnis County Park","3":"Marin","4":"park intersects wetland","5":"3.551336e+02"},{"1":"1582","2":"John Little State Reserve","3":"Monterey","4":"park intersects wetland","5":"2.809834e+01"},{"1":"31545","2":"Jug Handle State Natural Reserve","3":"Mendocino","4":"park intersects wetland","5":"7.969077e+02"},{"1":"1585","2":"Julia Pfeiffer Burns State Park","3":"Monterey","4":"park intersects wetland","5":"2.224392e+03"},{"1":"20529","2":"Junipero Beach","3":"Los Angeles","4":"park intersects wetland","5":"4.842883e+01"},{"1":"20548","2":"Kamph Memorial Park","3":"Del Norte","4":"park intersects wetland","5":"6.050502e+00"},{"1":"33187","2":"Kendall Frost Mission Bay Marsh Reserve","3":"San Diego","4":"park intersects wetland","5":"1.655444e+01"},{"1":"20648","2":"Kimberly Park","3":"Napa","4":"park intersects wetland","5":"3.974182e+01"},{"1":"29045","2":"La Costa Beach","3":"Los Angeles","4":"park intersects wetland","5":"9.114202e+00"},{"1":"20768","2":"La Jolla Shores Park","3":"San Diego","4":"park intersects wetland","5":"6.706101e+00"},{"1":"20773","2":"La Mesa Park","3":"Santa Barbara","4":"park intersects wetland","5":"1.867717e+01"},{"1":"20995","2":"Lampton Cliffs County Park","3":"San Luis Obispo","4":"park intersects wetland","5":"1.771782e+00"},{"1":"21003","2":"Landels-Hill Big Creek Reserve","3":"Monterey","4":"park intersects wetland","5":"4.301193e+03"},{"1":"21070","2":"Las Tunas County Beach","3":"Los Angeles","4":"park intersects wetland","5":"3.184425e+00"},{"1":"34273","2":"Latigo Shores Beach","3":"Los Angeles","4":"park intersects wetland","5":"1.903124e+00"},{"1":"31000","2":"Lawler Ranch Park","3":"Solano","4":"park intersects wetland","5":"1.069031e+01"},{"1":"21125","2":"Leadbetter Beach","3":"Santa Barbara","4":"park intersects wetland","5":"1.582995e+01"},{"1":"21128","2":"Lechuza Beach","3":"Los Angeles","4":"park intersects wetland","5":"3.275839e+00"},{"1":"1603","2":"Leo Carrillo State Park","3":"Los Angeles | Ventura","4":"park intersects wetland","5":"1.885072e+03"},{"1":"1605","2":"Lighthouse Field State Beach","3":"Santa Cruz","4":"park intersects wetland","5":"4.252874e+01"},{"1":"1606","2":"Limekiln State Park","3":"Monterey","4":"park intersects wetland","5":"7.435629e+02"},{"1":"1607","2":"Little River State Beach","3":"Humboldt","4":"park intersects wetland","5":"2.131170e+02"},{"1":"21444","2":"Lone Tree Point","3":"Contra Costa","4":"park intersects wetland","5":"2.108887e+01"},{"1":"21461","2":"Lookout Park and Beach","3":"Santa Barbara","4":"park intersects wetland","5":"6.555208e+00"},{"1":"32016","2":"Los Cerritos Wetlands","3":"Los Angeles | Orange","4":"park intersects wetland","5":"5.072629e+02"},{"1":"14070","2":"Los Padres National Forest","3":"Monterey | San Luis Obispo | Santa Barbara | Ventura","4":"park intersects wetland","5":"2.469548e+05"},{"1":"31495","2":"Lower Otay Lakes","3":"San Diego","4":"park intersects wetland","5":"4.992502e+02"},{"1":"36050","2":"Luffenholtz Beach","3":"Humboldt","4":"park intersects wetland","5":"1.134141e+01"},{"1":"21596","2":"Lunada Bay","3":"Los Angeles","4":"park intersects wetland","5":"9.967928e+00"},{"1":"1959","2":"MacKerricher State Park","3":"Mendocino","4":"park intersects wetland","5":"2.453156e+03"},{"1":"30362","2":"Mad River Bluffs","3":"Humboldt","4":"park intersects wetland","5":"4.888298e+01"},{"1":"21640","2":"Mad River County Park","3":"Humboldt","4":"park intersects wetland","5":"1.163276e+02"},{"1":"30469","2":"Mad River Slough Wildlife Area","3":"Humboldt","4":"park intersects wetland","5":"5.629893e+02"},{"1":"21651","2":"Madera Gardens Lagoons","3":"Marin","4":"park intersects wetland","5":"1.341727e+01"},{"1":"21688","2":"Main Beach Park","3":"Orange","4":"park intersects wetland","5":"7.942946e+00"},{"1":"21699","2":"Malibu Beach","3":"Los Angeles","4":"park intersects wetland","5":"1.234667e+01"},{"1":"1615","2":"Malibu Lagoon State Beach","3":"Los Angeles","4":"park intersects wetland","5":"7.119136e+01"},{"1":"1960","2":"Manchester State Park","3":"Mendocino","4":"park intersects wetland","5":"5.345854e+03"},{"1":"1617","2":"Mandalay State Beach","3":"Ventura","4":"park intersects wetland","5":"9.503319e+01"},{"1":"30661","2":"Manhattan Beach Pier","3":"Los Angeles","4":"park intersects wetland","5":"5.493214e+00"},{"1":"21746","2":"Manhattan County Beach","3":"Los Angeles","4":"park intersects wetland","5":"9.586358e+01"},{"1":"21749","2":"Manila Community Park","3":"Humboldt","4":"park intersects wetland","5":"1.501789e+01"},{"1":"6209","2":"Manila Dunes Recreation Area","3":"Humboldt","4":"park intersects wetland","5":"1.661750e+02"},{"1":"1619","2":"Manresa State Beach","3":"Santa Cruz","4":"park intersects wetland","5":"1.401209e+02"},{"1":"21806","2":"Margo Dodd Park","3":"San Luis Obispo","4":"park intersects wetland","5":"2.010722e-01"},{"1":"30324","2":"Marin Audubon Society","3":"Marin","4":"park intersects wetland","5":"3.254504e+01"},{"1":"6348","2":"Marin County Flood Control","3":"Marin","4":"park intersects wetland","5":"1.294511e+03"},{"1":"21817","2":"Marin Island National Wildlife Refuge","3":"Marin","4":"park intersects wetland","5":"6.768463e+02"},{"1":"21819","2":"Marina Beach","3":"Los Angeles","4":"park intersects wetland","5":"9.300472e+00"},{"1":"21823","2":"Marina Green/Yacht Harbor","3":"San Francisco","4":"park intersects wetland","5":"3.390426e+01"},{"1":"21829","2":"Marina Lagoon Wildlife Island","3":"San Mateo","4":"park intersects wetland","5":"3.907678e-01"},{"1":"21832","2":"Marina Park","3":"Solano","4":"park intersects wetland","5":"9.093573e+00"},{"1":"21838","2":"Marina Park","3":"Ventura","4":"park intersects wetland","5":"2.044777e+01"},{"1":"1622","2":"Marina State Beach","3":"Monterey","4":"park intersects wetland","5":"1.725092e+02"},{"1":"21846","2":"Marine Gardens Park","3":"Monterey","4":"park intersects wetland","5":"3.402611e+01"},{"1":"21851","2":"Mariner's Island","3":"San Mateo","4":"park intersects wetland","5":"4.040742e+00"},{"1":"21903","2":"Martin Dunes","3":"Monterey","4":"park intersects wetland","5":"1.283919e+02"},{"1":"34198","2":"Martin Luther King Junior Regional Shoreline","3":"Alameda","4":"park intersects wetland","5":"7.598599e+02"},{"1":"21968","2":"Maxton Brown Park","3":"San Diego","4":"park intersects wetland","5":"9.431617e-01"},{"1":"1629","2":"McGrath State Beach","3":"Ventura","4":"park intersects wetland","5":"3.263692e+02"},{"1":"33960","2":"McKay Community Forest","3":"Humboldt","4":"park intersects wetland","5":"1.200143e+03"},{"1":"31739","2":"McKegney Green","3":"Marin","4":"park intersects wetland","5":"1.145155e+01"},{"1":"29199","2":"McLaughlin Eastshore State Park","3":"Alameda | Contra Costa","4":"park intersects wetland","5":"1.873503e+03"},{"1":"22063","2":"McNears Beach County Park","3":"Marin","4":"park intersects wetland","5":"7.404351e+01"},{"1":"22147","2":"Memory Park","3":"San Luis Obispo","4":"park intersects wetland","5":"3.924368e-01"},{"1":"34470","2":"Mendocino Coast Botanical Gardens","3":"Mendocino","4":"park intersects wetland","5":"4.743712e+01"},{"1":"1630","2":"Mendocino Headlands State Park","3":"Mendocino","4":"park intersects wetland","5":"7.542140e+03"},{"1":"36168","2":"Middle Harbor Shoreline Park","3":"Alameda","4":"park intersects wetland","5":"4.135341e+01"},{"1":"22236","2":"Mill Valley/Sausalito Path","3":"Marin","4":"park intersects wetland","5":"3.246859e+01"},{"1":"3288","2":"Miller Knox Regional Shoreline","3":"Contra Costa","4":"park intersects wetland","5":"3.178993e+02"},{"1":"33339","2":"Miramar Beach","3":"San Mateo","4":"park intersects wetland","5":"5.245645e-01"},{"1":"10430","2":"Mission Bay Park","3":"San Diego","4":"park intersects wetland","5":"3.897136e+03"},{"1":"30263","2":"Mission Valley Preserve","3":"San Diego","4":"park intersects wetland","5":"4.958111e+01"},{"1":"31558","2":"Mitchell's Cove","3":"Santa Cruz","4":"park intersects wetland","5":"1.360612e+00"},{"1":"33692","2":"Moat Creek Coastal Access","3":"Mendocino","4":"park intersects wetland","5":"2.353226e+01"},{"1":"1632","2":"Montara State Beach","3":"San Mateo","4":"park intersects wetland","5":"9.799299e+02"},{"1":"28054","2":"Monta<U+00F1>a de Oro State Park","3":"San Luis Obispo","4":"park intersects wetland","5":"1.020895e+04"},{"1":"22416","2":"Monterey Bay Coastal Trail","3":"Monterey","4":"park intersects wetland","5":"3.696104e+00"},{"1":"22428","2":"Monterey Peninsula Regional Park District 5","3":"Monterey","4":"park intersects wetland","5":"8.017224e+00"},{"1":"1637","2":"Monterey State Beach","3":"Monterey","4":"park intersects wetland","5":"6.439816e+01"},{"1":"1640","2":"Monterey State Historic Park","3":"Monterey","4":"park intersects wetland","5":"9.205599e+00"},{"1":"22454","2":"Moonstone Beach County Park","3":"Humboldt","4":"park intersects wetland","5":"7.607742e+00"},{"1":"22456","2":"Moonstone Park","3":"Los Angeles","4":"park intersects wetland","5":"1.470329e+00"},{"1":"22471","2":"Moran Lake Park","3":"Santa Cruz","4":"park intersects wetland","5":"9.026411e+00"},{"1":"14258","2":"Mori Point","3":"San Mateo","4":"park intersects wetland","5":"1.105961e+02"},{"1":"22492","2":"Moro Cojo Ecological Reserve","3":"Monterey","4":"park intersects wetland","5":"4.331283e+01"},{"1":"22501","2":"Morro Bay City Beach","3":"San Luis Obispo","4":"park intersects wetland","5":"3.189686e+01"},{"1":"1965","2":"Morro Bay State Park","3":"San Luis Obispo","4":"park intersects wetland","5":"2.518896e+03"},{"1":"30475","2":"Morro Bay Wildlife Area","3":"San Luis Obispo","4":"park intersects wetland","5":"1.276449e+03"},{"1":"1646","2":"Morro Strand State Beach","3":"San Luis Obispo","4":"park intersects wetland","5":"1.926800e+02"},{"1":"1647","2":"Moss Landing State Beach","3":"Monterey","4":"park intersects wetland","5":"5.600261e+01"},{"1":"30476","2":"Moss Landing Wildlife Area","3":"Monterey","4":"park intersects wetland","5":"7.520084e+02"},{"1":"6341","2":"Mount Tamalpais State Park","3":"Marin","4":"park intersects wetland","5":"6.386156e+03"},{"1":"22606","2":"Murphy","3":"Monterey","4":"park intersects wetland","5":"2.530187e+01"},{"1":"2960","2":"Mussel Rock Park","3":"San Mateo","4":"park intersects wetland","5":"1.529592e+02"},{"1":"22617","2":"Muzzi Marsh","3":"Marin","4":"park intersects wetland","5":"7.713029e+01"},{"1":"33054","2":"Napa Golf Course","3":"Napa","4":"park intersects wetland","5":"1.559534e+02"},{"1":"30478","2":"Napa-Sonoma Marshes Wildlife Area","3":"Napa | Solano | Sonoma","4":"park intersects wetland","5":"1.425414e+04"},{"1":"1655","2":"Natural Bridges State Beach","3":"Santa Cruz","4":"park intersects wetland","5":"6.230359e+01"},{"1":"22677","2":"Navarro Point Preserve","3":"Mendocino","4":"park intersects wetland","5":"5.928729e+01"},{"1":"1656","2":"Navarro River Redwoods State Park","3":"Mendocino","4":"park intersects wetland","5":"7.188941e+02"},{"1":"1657","2":"New Brighton State Beach","3":"Santa Cruz","4":"park intersects wetland","5":"1.556594e+02"},{"1":"22732","2":"Newport Aquatic Center","3":"Orange","4":"park intersects wetland","5":"4.181742e+00"},{"1":"22734","2":"Newport Beach Marine Life Refuge","3":"Orange","4":"park intersects wetland","5":"1.623199e+01"},{"1":"22736","2":"Newport Dunes Aquatic Park","3":"Orange","4":"park intersects wetland","5":"6.669121e+01"},{"1":"22743","2":"Nicholas Canyon County Beach","3":"Los Angeles","4":"park intersects wetland","5":"4.370766e+01"},{"1":"30083","2":"Nicholson's Point Park","3":"San Diego","4":"park intersects wetland","5":"5.093845e-01"},{"1":"22809","2":"North Cays Park","3":"San Diego","4":"park intersects wetland","5":"2.229034e+00"},{"1":"22859","2":"North Star Beach","3":"Orange","4":"park intersects wetland","5":"1.124822e+01"},{"1":"22916","2":"Novato Lands 005","3":"Marin","4":"park intersects wetland","5":"5.691048e+01"},{"1":"30748","2":"Noyo Headlands Park","3":"Mendocino","4":"park intersects wetland","5":"9.331637e+01"},{"1":"23051","2":"Ocean Beach Park","3":"Santa Barbara","4":"park intersects wetland","5":"3.891769e+01"},{"1":"23052","2":"Ocean Beach Park","3":"San Diego","4":"park intersects wetland","5":"3.057452e+01"},{"1":"29388","2":"Ocean Trails Reserve","3":"Los Angeles","4":"park intersects wetland","5":"4.767071e+01"},{"1":"23097","2":"Old Port Beach","3":"San Luis Obispo","4":"park intersects wetland","5":"6.454773e+01"},{"1":"33063","2":"Olivas Links Golf Course","3":"Ventura","4":"park intersects wetland","5":"2.545637e+02"},{"1":"23136","2":"Oliver Property","3":"Alameda","4":"park intersects wetland","5":"1.182922e+02"},{"1":"34845","2":"Ormond Beach","3":"Ventura","4":"park intersects wetland","5":"3.080702e+02"},{"1":"23248","2":"Other Federal","3":"Humboldt","4":"park intersects wetland","5":"1.813499e+02"},{"1":"23277","2":"Owings","3":"Monterey","4":"park intersects wetland","5":"3.542627e+01"},{"1":"23283","2":"Oyster Bay Regional Shoreline","3":"Alameda","4":"park intersects wetland","5":"1.947887e+02"},{"1":"35880","2":"Pacheco Marsh","3":"Contra Costa","4":"park intersects wetland","5":"1.442810e+02"},{"1":"23308","2":"Pacifica Esplanade","3":"San Mateo","4":"park intersects wetland","5":"2.091687e+00"},{"1":"30671","2":"Pacifica State Beach","3":"San Mateo","4":"park intersects wetland","5":"2.116607e+01"},{"1":"28469","2":"Palco Marsh","3":"Humboldt","4":"park intersects wetland","5":"1.065430e+02"},{"1":"23374","2":"Palos Verdes Shoreline Preserve","3":"Los Angeles","4":"park intersects wetland","5":"8.994655e+01"},{"1":"31842","2":"Paradise Creek Educational Park","3":"San Diego","4":"park intersects wetland","5":"6.129105e+00"},{"1":"23447","2":"Parkside Aquatic","3":"San Mateo","4":"park intersects wetland","5":"3.156626e+00"},{"1":"23550","2":"Pebble Beach","3":"Sonoma","4":"park intersects wetland","5":"2.041166e+01"},{"1":"32257","2":"Pebble Beach Fishing Access","3":"Del Norte","4":"park intersects wetland","5":"4.297179e+00"},{"1":"31827","2":"Pelican Bluffs Reserve","3":"Mendocino","4":"park intersects wetland","5":"7.660303e+01"},{"1":"29436","2":"Pelican Cove","3":"Los Angeles","4":"park intersects wetland","5":"1.029837e+01"},{"1":"23568","2":"Pelican Park","3":"Santa Barbara","4":"park intersects wetland","5":"1.002465e+00"},{"1":"1672","2":"Pelican State Beach","3":"Del Norte","4":"park intersects wetland","5":"7.275720e+00"},{"1":"23578","2":"Peninsula Beach","3":"Los Angeles","4":"park intersects wetland","5":"6.176622e+01"},{"1":"23620","2":"Pescadero Marsh Natural Preserve","3":"San Mateo","4":"park intersects wetland","5":"6.504395e+02"},{"1":"28527","2":"Pescadero Point and Hill Preserve","3":"Monterey","4":"park intersects wetland","5":"6.496693e+00"},{"1":"1674","2":"Pescadero State Beach","3":"San Mateo","4":"park intersects wetland","5":"9.051769e+01"},{"1":"30485","2":"Petaluma Marsh Wildlife Area","3":"Marin | Sonoma","4":"park intersects wetland","5":"4.431613e+03"},{"1":"23624","2":"Petaluma River Marsh","3":"Sonoma","4":"park intersects wetland","5":"7.945060e-01"},{"1":"32260","2":"Peytonia Slough Ecological Reserve","3":"Solano","4":"park intersects wetland","5":"1.582991e+02"},{"1":"23649","2":"Pickleweed Park","3":"Marin","4":"park intersects wetland","5":"1.198290e+01"},{"1":"23661","2":"Piedras Blancas Point and Lighthouse","3":"San Luis Obispo","4":"park intersects wetland","5":"2.194388e+01"},{"1":"30390","2":"Pigeon Point County Park","3":"San Mateo","4":"park intersects wetland","5":"1.518256e+01"},{"1":"1679","2":"Pigeon Point Light Station State Historic Park","3":"San Mateo","4":"park intersects wetland","5":"8.077213e+01"},{"1":"23670","2":"Pillar Point Bluff","3":"San Mateo","4":"park intersects wetland","5":"2.263586e+02"},{"1":"23699","2":"Pinnacle Gulch","3":"Sonoma","4":"park intersects wetland","5":"1.200985e+01"},{"1":"23744","2":"Piper Park","3":"Marin","4":"park intersects wetland","5":"5.151751e+01"},{"1":"1682","2":"Pismo State Beach","3":"San Luis Obispo","4":"park intersects wetland","5":"1.525029e+03"},{"1":"34854","2":"Pleasure Point County Park","3":"Santa Cruz","4":"park intersects wetland","5":"2.251612e+00"},{"1":"32724","2":"Point Arena Cove & Fishing Pier","3":"Mendocino","4":"park intersects wetland","5":"7.012501e+00"},{"1":"1685","2":"Point Cabrillo Light Station","3":"Mendocino","4":"park intersects wetland","5":"3.057973e+02"},{"1":"30686","2":"Point Dume State Beach","3":"Los Angeles","4":"park intersects wetland","5":"3.320804e+01"},{"1":"30488","2":"Point Edith Wildlife Area","3":"Contra Costa","4":"park intersects wetland","5":"7.366472e+02"},{"1":"29208","2":"Point Emery Park","3":"Alameda","4":"park intersects wetland","5":"2.070046e+01"},{"1":"35478","2":"Point Fermin Park","3":"Los Angeles","4":"park intersects wetland","5":"2.571191e+01"},{"1":"23851","2":"Point Isabel","3":"Contra Costa","4":"park intersects wetland","5":"3.801356e+01"},{"1":"30688","2":"Point Lobos State Natural Reserve","3":"Monterey","4":"park intersects wetland","5":"1.532340e+03"},{"1":"1692","2":"Point Mugu State Park","3":"Ventura","4":"park intersects wetland","5":"1.353001e+04"},{"1":"3305","2":"Point Pinole Regional Shoreline","3":"Contra Costa","4":"park intersects wetland","5":"2.203051e+03"},{"1":"23858","2":"Point Pinos - USCG","3":"Monterey","4":"park intersects wetland","5":"1.793383e+01"},{"1":"14266","2":"Point Reyes National Seashore","3":"Marin","4":"park intersects wetland","5":"5.150588e+04"},{"1":"1693","2":"Point Sal","3":"Santa Barbara","4":"park intersects wetland","5":"1.306369e+02"},{"1":"33227","2":"Point San Luis Lighthouse Public Access","3":"San Luis Obispo","4":"park intersects wetland","5":"3.159298e+01"},{"1":"3081","2":"Point St. George","3":"Del Norte","4":"park intersects wetland","5":"2.620407e+02"},{"1":"1694","2":"Point Sur State Historic Park","3":"Monterey","4":"park intersects wetland","5":"1.053444e+02"},{"1":"31724","2":"Point Tiburon Shoreline Park","3":"Marin","4":"park intersects wetland","5":"2.268227e+00"},{"1":"29431","2":"Point Vicente Interpretive Center & Lighthouse","3":"Los Angeles","4":"park intersects wetland","5":"2.655347e+01"},{"1":"23879","2":"Pomo Bluffs Park","3":"Mendocino","4":"park intersects wetland","5":"2.356904e+01"},{"1":"1695","2":"Pomponio State Beach","3":"San Mateo","4":"park intersects wetland","5":"3.852532e+02"},{"1":"33340","2":"Poplar Beach","3":"San Mateo","4":"park intersects wetland","5":"6.371137e+01"},{"1":"23895","2":"Port Hueneme Beach Park","3":"Ventura","4":"park intersects wetland","5":"3.583567e+01"},{"1":"1699","2":"Prairie Creek Redwoods State Park","3":"Del Norte | Humboldt","4":"park intersects wetland","5":"1.317068e+04"},{"1":"14267","2":"Presidio","3":"San Francisco","4":"park intersects wetland","5":"1.314010e+03"},{"1":"24029","2":"Puerco Beach","3":"Los Angeles","4":"park intersects wetland","5":"2.430119e+01"},{"1":"24191","2":"RAT Beach / Malaga Cove","3":"Los Angeles","4":"park intersects wetland","5":"1.118312e+01"},{"1":"35957","2":"Radke Martinez Regional Shoreline","3":"Contra Costa","4":"park intersects wetland","5":"3.334071e+02"},{"1":"29416","2":"Rancho Palos Verdes Beach","3":"Los Angeles","4":"park intersects wetland","5":"1.393589e+00"},{"1":"31459","2":"Ravenswood Open Space Preserve","3":"San Mateo","4":"park intersects wetland","5":"2.839218e+02"},{"1":"24241","2":"Redondo Beach Pier","3":"Los Angeles","4":"park intersects wetland","5":"7.472262e+00"},{"1":"24242","2":"Redondo County Beach","3":"Los Angeles","4":"park intersects wetland","5":"5.430585e+01"},{"1":"14271","2":"Redwood National Park","3":"Del Norte | Humboldt","4":"park intersects wetland","5":"5.722681e+04"},{"1":"24252","2":"Redwood Shores Ecological Reserve","3":"San Mateo","4":"park intersects wetland","5":"2.077833e+02"},{"1":"1978","2":"Refugio State Beach","3":"Santa Barbara","4":"park intersects wetland","5":"9.298407e+02"},{"1":"24289","2":"Remillard Park","3":"Marin","4":"park intersects wetland","5":"3.418566e+00"},{"1":"24330","2":"Richardson Bay Audubon Center & Sanctuary","3":"Marin","4":"park intersects wetland","5":"7.568467e+02"},{"1":"31740","2":"Richardson Bay Lineal Park","3":"Marin","4":"park intersects wetland","5":"1.134561e+01"},{"1":"24367","2":"Rincon Beach Park","3":"Santa Barbara","4":"park intersects wetland","5":"2.236938e+01"},{"1":"24421","2":"River Park","3":"Solano","4":"park intersects wetland","5":"8.106692e+01"},{"1":"30028","2":"Riverfront Green","3":"Napa","4":"park intersects wetland","5":"6.555386e+02"},{"1":"1709","2":"Robert H. Meyer Memorial State Beach","3":"Los Angeles","4":"park intersects wetland","5":"3.604630e+01"},{"1":"24541","2":"Rocky Memorial Dog","3":"Sonoma","4":"park intersects wetland","5":"2.200411e+01"},{"1":"24545","2":"Rocky Point Open Space","3":"Monterey","4":"park intersects wetland","5":"8.871688e+00"},{"1":"24716","2":"Royal Palms County Beach","3":"Los Angeles","4":"park intersects wetland","5":"2.081190e+01"},{"1":"31486","2":"Rush Creek Open Space Preserve","3":"Marin","4":"park intersects wetland","5":"4.883633e+02"},{"1":"12546","2":"Rush Ranch Open Space","3":"Solano","4":"park intersects wetland","5":"2.121331e+03"},{"1":"1980","2":"Russian Gulch State Park","3":"Mendocino","4":"park intersects wetland","5":"1.288981e+03"},{"1":"25332","2":"SF Zoological Gardens","3":"San Francisco","4":"park intersects wetland","5":"1.371306e+02"},{"1":"13939","2":"Salinas River National Wildlife Refuge","3":"Monterey","4":"park intersects wetland","5":"3.839386e+02"},{"1":"1715","2":"Salinas River State Beach","3":"Monterey","4":"park intersects wetland","5":"2.864544e+02"},{"1":"24808","2":"Salt Creek Beach County Park","3":"Orange","4":"park intersects wetland","5":"4.491488e+01"},{"1":"24811","2":"Salt Marsh Restoration","3":"Orange","4":"park intersects wetland","5":"1.016331e+02"},{"1":"1981","2":"Salt Point State Park","3":"Sonoma","4":"park intersects wetland","5":"5.641929e+03"},{"1":"30519","2":"Samoa Boat Ramp County Park","3":"Humboldt","4":"park intersects wetland","5":"1.206373e+01"},{"1":"24841","2":"San Bruno Point Park","3":"San Mateo","4":"park intersects wetland","5":"2.510396e+00"},{"1":"1723","2":"San Buenaventura State Beach","3":"Ventura","4":"park intersects wetland","5":"9.757899e+01"},{"1":"24846","2":"San Carlos Beach Park","3":"Monterey","4":"park intersects wetland","5":"2.625150e+00"},{"1":"13940","2":"San Diego Bay National Wildlife Refuge","3":"San Diego","4":"park intersects wetland","5":"1.594246e+03"},{"1":"24864","2":"San Dieguito Lagoon","3":"San Diego","4":"park intersects wetland","5":"1.662242e+02"},{"1":"34400","2":"San Elijo Lagoon Ecological Reserve and Nature Center","3":"San Diego","4":"park intersects wetland","5":"1.571170e+01"},{"1":"1726","2":"San Elijo State Beach","3":"San Diego","4":"park intersects wetland","5":"5.529981e+02"},{"1":"1728","2":"San Gregorio State Beach","3":"San Mateo","4":"park intersects wetland","5":"1.842701e+02"},{"1":"30381","2":"San Luis Rey River Trail","3":"San Diego","4":"park intersects wetland","5":"1.136270e+03"},{"1":"24951","2":"San Mateo Fishing Pier","3":"San Mateo","4":"park intersects wetland","5":"7.589844e+00"},{"1":"13878","2":"San Onofre State Beach","3":"Orange | San Diego","4":"park intersects wetland","5":"2.043007e+03"},{"1":"24964","2":"San Pablo Bay National Wildlife Refuge","3":"Napa | Solano | Sonoma","4":"park intersects wetland","5":"1.550938e+04"},{"1":"24966","2":"San Pablo Bay Regional Shoreline","3":"Contra Costa","4":"park intersects wetland","5":"5.760997e+01"},{"1":"30326","2":"San Pablo Bay Wildlife Area","3":"Marin","4":"park intersects wetland","5":"1.081271e+04"},{"1":"30323","2":"San Rafael Tidelands","3":"Marin","4":"park intersects wetland","5":"1.862283e+01"},{"1":"25032","2":"Santa Ana River County Beach","3":"Orange","4":"park intersects wetland","5":"4.247640e+01"},{"1":"29296","2":"Santa Ana River Trail","3":"Orange","4":"park intersects wetland","5":"1.654362e+03"},{"1":"25039","2":"Santa Barbara Cemetery","3":"Santa Barbara","4":"park intersects wetland","5":"5.997227e+01"},{"1":"25052","2":"Santa Barbara Maitime Museum","3":"Santa Barbara","4":"park intersects wetland","5":"3.945090e+01"},{"1":"25061","2":"Santa Claus Lane Beach","3":"Santa Barbara","4":"park intersects wetland","5":"1.658199e+00"},{"1":"31559","2":"Santa Cruz Riverwalk","3":"Santa Cruz","4":"park intersects wetland","5":"4.723064e+01"},{"1":"25098","2":"Santa Margarita Island Open Space Preserve","3":"Marin","4":"park intersects wetland","5":"8.642055e+00"},{"1":"1737","2":"Santa Monica State Beach","3":"Los Angeles","4":"park intersects wetland","5":"2.089714e+02"},{"1":"25140","2":"Santa Venetia Marsh Open Space Preserve","3":"Marin","4":"park intersects wetland","5":"3.233472e+01"},{"1":"1740","2":"Schooner Gulch State Beach","3":"Mendocino","4":"park intersects wetland","5":"5.551815e+01"},{"1":"25192","2":"Schoonmaker Beach","3":"Marin","4":"park intersects wetland","5":"9.904309e-01"},{"1":"25202","2":"Scott Creek Beach County Park","3":"Santa Cruz","4":"park intersects wetland","5":"5.058478e+01"},{"1":"25230","2":"Sea Bridge Park","3":"Orange","4":"park intersects wetland","5":"3.707469e+00"},{"1":"25235","2":"Sea Ranch Trail Access","3":"Sonoma","4":"park intersects wetland","5":"1.034484e+01"},{"1":"1741","2":"Seacliff State Beach","3":"Santa Cruz","4":"park intersects wetland","5":"1.137863e+02"},{"1":"25241","2":"Seal Beach National Wildlife Refuge","3":"Orange","4":"park intersects wetland","5":"9.665524e+02"},{"1":"30236","2":"Seaside Beach","3":"Mendocino","4":"park intersects wetland","5":"1.156834e+01"},{"1":"32657","2":"Seaside Lagoon Park","3":"Los Angeles","4":"park intersects wetland","5":"3.799115e+00"},{"1":"25268","2":"Seaside Wilderness Park","3":"Ventura","4":"park intersects wetland","5":"1.864720e+01"},{"1":"34035","2":"Seawood Cape Preserve","3":"Humboldt","4":"park intersects wetland","5":"1.288053e+02"},{"1":"12383","2":"Shady Dell","3":"Mendocino","4":"park intersects wetland","5":"9.275320e+02"},{"1":"25354","2":"Shamel Park","3":"San Luis Obispo","4":"park intersects wetland","5":"2.345606e+00"},{"1":"25364","2":"Sharp Park Beach","3":"San Mateo","4":"park intersects wetland","5":"1.388727e+01"},{"1":"33048","2":"Sharp Park Golf Course","3":"San Mateo","4":"park intersects wetland","5":"4.068009e+02"},{"1":"8553","2":"Shollenberger Park","3":"Sonoma","4":"park intersects wetland","5":"4.558128e+02"},{"1":"25419","2":"Shorebird Marsh","3":"Marin","4":"park intersects wetland","5":"4.612804e+01"},{"1":"34430","2":"Shorebird Sanctuary","3":"San Mateo","4":"park intersects wetland","5":"2.113760e+00"},{"1":"25425","2":"Shoreline Bayfront Seal Point","3":"San Mateo","4":"park intersects wetland","5":"9.227721e+01"},{"1":"33080","2":"Shoreline Golf Links","3":"Santa Clara","4":"park intersects wetland","5":"2.892097e+02"},{"1":"25426","2":"Shoreline Park","3":"Alameda","4":"park intersects wetland","5":"6.248264e+01"},{"1":"25428","2":"Shoreline Park","3":"Santa Barbara","4":"park intersects wetland","5":"1.322181e+01"},{"1":"28474","2":"Shoreline Park","3":"Contra Costa","4":"park intersects wetland","5":"1.041356e+01"},{"1":"29692","2":"Shoreline Park","3":"Los Angeles","4":"park intersects wetland","5":"5.218942e+01"},{"1":"7067","2":"Shoreline at Mountain View Park","3":"Santa Clara","4":"park intersects wetland","5":"2.560986e+02"},{"1":"25495","2":"Silver Strand Beach County Park","3":"Orange","4":"park intersects wetland","5":"4.907351e+00"},{"1":"1743","2":"Silver Strand State Beach","3":"San Diego","4":"park intersects wetland","5":"7.388156e+03"},{"1":"1747","2":"Sinkyone Wilderness State Park","3":"Humboldt | Mendocino","4":"park intersects wetland","5":"8.023285e+03"},{"1":"1993","2":"Sonoma Coast State Park","3":"Sonoma","4":"park intersects wetland","5":"6.549560e+03"},{"1":"32315","2":"South Kibesillah Gulch Fishing Access","3":"Mendocino","4":"park intersects wetland","5":"5.227303e+00"},{"1":"25665","2":"South Monterey Dunes Beach","3":"Monterey","4":"park intersects wetland","5":"9.487032e+00"},{"1":"25669","2":"South Palisades Park","3":"San Luis Obispo","4":"park intersects wetland","5":"4.039570e+00"},{"1":"30507","2":"South Spit Wildlife Area","3":"Humboldt","4":"park intersects wetland","5":"9.530660e+02"},{"1":"25754","2":"Spud Pt Marina","3":"Sonoma","4":"park intersects wetland","5":"2.455936e+01"},{"1":"25760","2":"Spyglass Park","3":"San Luis Obispo","4":"park intersects wetland","5":"1.551794e+00"},{"1":"25815","2":"Stearns Wharf","3":"Santa Barbara","4":"park intersects wetland","5":"3.855867e+00"},{"1":"27895","2":"Stillwater Cove Regional Park","3":"Sonoma","4":"park intersects wetland","5":"2.217033e+02"},{"1":"25857","2":"Stockton Avenue Beach","3":"Santa Cruz","4":"park intersects wetland","5":"1.461529e-01"},{"1":"25913","2":"Strawberry Cove Park/Belloc Lagoon","3":"Marin","4":"park intersects wetland","5":"3.473936e+00"},{"1":"25918","2":"Strawberry Point Tidal Area","3":"Marin","4":"park intersects wetland","5":"2.198231e+01"},{"1":"34832","2":"Sue-meg State Park","3":"Humboldt","4":"park intersects wetland","5":"6.502142e+02"},{"1":"29308","2":"Sunnyvale Baylands Park","3":"Santa Clara","4":"park intersects wetland","5":"5.756509e+02"},{"1":"26042","2":"Sunset Cliffs Natural Park","3":"San Diego","4":"park intersects wetland","5":"6.713178e+01"},{"1":"26043","2":"Sunset County Beach","3":"Orange","4":"park intersects wetland","5":"9.403015e+01"},{"1":"26046","2":"Sunset Harbor","3":"Orange","4":"park intersects wetland","5":"2.705510e+01"},{"1":"1762","2":"Sunset State Beach","3":"Santa Cruz","4":"park intersects wetland","5":"2.953294e+02"},{"1":"30395","2":"Surfer's Point","3":"Ventura","4":"park intersects wetland","5":"4.991830e+00"},{"1":"26076","2":"Surfers Knoll","3":"Ventura","4":"park intersects wetland","5":"1.004815e+01"},{"1":"26104","2":"Sweet Springs Nature Preserve","3":"San Luis Obispo","4":"park intersects wetland","5":"2.260589e+01"},{"1":"26170","2":"Talbert Marsh","3":"Orange","4":"park intersects wetland","5":"3.469347e+01"},{"1":"26187","2":"Tar Pits Park","3":"Santa Barbara","4":"park intersects wetland","5":"8.852357e+00"},{"1":"31826","2":"Ten Mile Estuary Property","3":"Mendocino","4":"park intersects wetland","5":"4.698439e+01"},{"1":"26280","2":"The Cypress Garden Park (Secred Garden)","3":"Marin","4":"park intersects wetland","5":"2.998426e-01"},{"1":"26330","2":"Three Arch Cove Beach","3":"Orange","4":"park intersects wetland","5":"1.913001e+00"},{"1":"26348","2":"Tidelands Park","3":"San Luis Obispo","4":"park intersects wetland","5":"2.092641e+00"},{"1":"13994","2":"Tijuana Slough National Wildlife Refuge","3":"San Diego","4":"park intersects wetland","5":"1.105801e+03"},{"1":"1769","2":"Tolowa Dunes State Park","3":"Del Norte","4":"park intersects wetland","5":"4.198574e+03"},{"1":"32326","2":"Tomales Bay Ecological Reserve","3":"Marin","4":"park intersects wetland","5":"4.428789e+02"},{"1":"1770","2":"Tomales Bay State Park","3":"Marin","4":"park intersects wetland","5":"2.470083e+03"},{"1":"26406","2":"Topanga County Beach","3":"Los Angeles","4":"park intersects wetland","5":"2.744449e+01"},{"1":"26411","2":"Tor House","3":"Monterey","4":"park intersects wetland","5":"8.322342e-02"},{"1":"34175","2":"Toro Coast Preserve","3":"San Luis Obispo","4":"park intersects wetland","5":"2.618435e+02"},{"1":"26413","2":"Torrance County Beach","3":"Los Angeles","4":"park intersects wetland","5":"2.458361e+01"},{"1":"3067","2":"Torrey Pines State Reserve","3":"San Diego","4":"park intersects wetland","5":"1.441899e+03"},{"1":"32131","2":"Treasure Island Beach","3":"Orange","4":"park intersects wetland","5":"1.032658e+01"},{"1":"26524","2":"Trestle at Hidden Beach","3":"Santa Cruz","4":"park intersects wetland","5":"1.318228e+01"},{"1":"36188","2":"Trinidad Head","3":"Humboldt","4":"park intersects wetland","5":"4.680493e+01"},{"1":"1775","2":"Trinidad State Beach","3":"Humboldt","4":"park intersects wetland","5":"2.038375e+02"},{"1":"26557","2":"Tsurai Village","3":"Humboldt","4":"park intersects wetland","5":"1.147324e+01"},{"1":"34008","2":"Turnbull Park","3":"Solano","4":"park intersects wetland","5":"9.583632e+00"},{"1":"12005","2":"Twin Lakes State Beach","3":"Santa Cruz","4":"park intersects wetland","5":"1.114883e+02"},{"1":"34602","2":"Unnamed Site - Friends of the Dunes","3":"Humboldt","4":"park intersects wetland","5":"3.748706e+02"},{"1":"35716","2":"Unnamed Site - Morro Bay, City of","3":"San Luis Obispo","4":"park intersects wetland","5":"1.474919e+02"},{"1":"35628","2":"Unnamed Site - Resort Improvement District No. 1","3":"Humboldt","4":"park intersects wetland","5":"1.125199e+03"},{"1":"30557","2":"Unnamed site - California State Lands Commission","3":"Humboldt","4":"park intersects wetland","5":"3.571004e+01"},{"1":"30561","2":"Unnamed site - California State University","3":"Humboldt","4":"park intersects wetland","5":"4.257703e+01"},{"1":"28666","2":"Unnamed site - Santa Cruz, County of","3":"Santa Cruz","4":"park intersects wetland","5":"3.760032e+00"},{"1":"32343","2":"Upper Newport Bay Ecological Reserve","3":"Orange","4":"park intersects wetland","5":"5.054971e+02"},{"1":"26732","2":"Upper Newport Bay Nature Preserve","3":"Orange","4":"park intersects wetland","5":"1.405690e+02"},{"1":"26739","2":"Upton County Beach","3":"Marin","4":"park intersects wetland","5":"1.329868e+01"},{"1":"32344","2":"Vallejo Fishing Pier","3":"Solano","4":"park intersects wetland","5":"4.552440e-01"},{"1":"1995","2":"Van Damme State Park","3":"Mendocino","4":"park intersects wetland","5":"2.408493e+03"},{"1":"32633","2":"Vanderlip Park Trail","3":"Los Angeles","4":"park intersects wetland","5":"4.785360e+00"},{"1":"26846","2":"Venice City Beach","3":"Los Angeles","4":"park intersects wetland","5":"1.726284e+02"},{"1":"34846","2":"Ventura County Game Preserve","3":"Ventura","4":"park intersects wetland","5":"5.752890e+02"},{"1":"29401","2":"Vicente Bluffs Reserve","3":"Los Angeles","4":"park intersects wetland","5":"7.001929e+01"},{"1":"27188","2":"Vista Points","3":"San Luis Obispo","4":"park intersects wetland","5":"3.663168e+01"},{"1":"27293","2":"Water Lots","3":"Marin","4":"park intersects wetland","5":"1.356729e+03"},{"1":"36007","2":"Waterbird Regional Preserve","3":"Contra Costa","4":"park intersects wetland","5":"1.905611e+02"},{"1":"30392","2":"Waterfront Promenade","3":"Ventura","4":"park intersects wetland","5":"5.892004e+00"},{"1":"35935","2":"Wavecrest","3":"San Mateo","4":"park intersects wetland","5":"2.537882e+01"},{"1":"34009","2":"West 14th Street Park","3":"Solano","4":"park intersects wetland","5":"4.619360e-01"},{"1":"30721","2":"Westport Headlands Park","3":"Mendocino","4":"park intersects wetland","5":"1.025052e+01"},{"1":"1786","2":"Westport-Union Landing State Beach","3":"Mendocino","4":"park intersects wetland","5":"1.015503e+02"},{"1":"27433","2":"Westward Beach","3":"Los Angeles","4":"park intersects wetland","5":"2.192626e+01"},{"1":"27462","2":"White Point County Beach","3":"Los Angeles","4":"park intersects wetland","5":"3.200412e+01"},{"1":"27503","2":"Wildcat Creek Trail","3":"Contra Costa","4":"park intersects wetland","5":"6.210849e+00"},{"1":"1787","2":"Wilder Ranch State Park","3":"Santa Cruz","4":"park intersects wetland","5":"7.695255e+03"},{"1":"30714","2":"Will Rogers State Beach","3":"Los Angeles","4":"park intersects wetland","5":"9.055855e+01"},{"1":"30082","2":"Windansea Beach","3":"San Diego","4":"park intersects wetland","5":"3.773039e+00"},{"1":"27791","2":"Younger Lagoon Reserve","3":"Santa Cruz","4":"park intersects wetland","5":"6.986995e+01"},{"1":"1793","2":"Zmudowski State Beach","3":"Monterey","4":"park intersects wetland","5":"1.778722e+02"},{"1":"27869","2":"Zuma County Beach","3":"Los Angeles","4":"park intersects wetland","5":"9.716042e+01"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p><br></p>
+</div>
+</div>
+<div id="amenities" class="section level3">
+<h3>AMENITIES</h3>
+</div>
+<div id="transit" class="section level3">
+<h3>TRANSIT</h3>
+</div>
+<div id="socio-economic" class="section level3">
+<h3>SOCIO-ECONOMIC</h3>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

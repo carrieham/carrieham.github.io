@@ -1,0 +1,447 @@
+---
+title: "CLC text mining"
+output:
+  html_document:
+    pandoc_args:
+    - +RTS
+    - "-M64G"
+    - "-RTS"
+    code_folding: hide
+    self_contained: no
+    df_print: paged
+    highlighter: haddock
+    toc: true
+    toc_float: true
+    css: styles.css
+    includes:
+      in_header: header.html
+---
+
+<p>
+
+<center><font size="3">`r Sys.Date()`</font></center>
+
+</p>
+
+```{r setup, include=FALSE}
+
+#knitr::opts_chunk$set(fig.width = 5)
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(sf,tidyverse,plotly,janitor,knitr,htmlwidgets,htmltools)
+#rmapshaper,maps,tmap,nngeo
+
+# rm(list = ls())
+
+knitr::opts_knit$set(global.device = TRUE)
+
+Sys.setlocale(locale = "C")
+
+```
+
+```{r data,include=FALSE}
+
+load("tables/park_table1.Rda")
+load("tables/wetlands_table.Rda")
+load("tables/access_table.Rda")
+load("tables/wetlandParks_v3_table1.Rda")
+load("tables/wetlandParks_v3_table2.Rda")
+load("tables/wetlandParks_v3_table3.Rda")
+load("tables/wetlandParks_v1_table.Rda")
+
+```
+
+
+### WETLAND-PARKS
+
+
+#### DATA:
+
+##### [1] park polygons
+
+[California Protected Areas Database](https://www.calands.org/) (parks and open spaces, filtered to coastal study area)
+
+-   includes large (e.g., national forests) and small (e.g., neighborhood parks) open spaces
+-   includes 2x categories of public access: open and restricted (i.e., requires permit or has limited hours of operation, but still publicly accessible)
+
+```{r park polygons map code, eval=FALSE}
+
+##### park polygon map
+map_parks <- ggplot() +
+  geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=parks,
+          aes(color=access_typ,
+              fill=access_typ,
+              text=paste(access_typ))) +
+  scale_color_manual(values=c("thistle","plum4","honeydew3")) + 
+  scale_fill_manual(values=c("thistle","plum4","honeydew3")) + 
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal()+
+  theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_parks, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+    layout(legend=list(x=0.5,xanchor='center',y=0,yanchor='top',orientation='h',
+                       font=list(color="#32127a",family="IBM Plex Mono"))) 
+
+```
+
+```{r park polygons map, fig.width = 5, echo=FALSE, warning=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/map_parks.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=550,
+  width="100%"
+)
+
+#92
+```
+
+<p>
+
+<center><font size="2"> *draw bounding box to zoom. click legend layers to toggle on/off.*</center></font>
+
+</p>
+
+<br>
+
+```{r park polygons table1, echo=FALSE, warning=FALSE, cache=TRUE}
+
+park_table1
+
+```
+
+<br>
+
+##### [2] wetland polygons
+[National Wetlands Inventory](https://www.fws.gov/program/national-wetlands-inventory/data-download) (filtered to "Estuarine and Marine Wetlands")
+
+```{r wetland polygons code, eval=FALSE}
+
+##### wetlands map
+map_wetlands <- ggplot() +
+    geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=wetlands,
+          aes(color=wetland_type,
+              fill=wetland_type,
+              text=paste(wetland_type))) +
+  scale_fill_manual(values=c("emergent"="#a7dea2",
+                             "scrub-shrub"="springgreen4")) +
+  scale_color_manual(values=c("emergent"="#a7dea2",
+                              "scrub-shrub"="springgreen4")) +
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlands,tooltip="none") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+  layout(legend=list(x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',
+                     font=list(color="#32127a",family="IBM Plex Mono"))) 
+
+```
+
+```{r wetland polygons, fig.width = 5, echo=FALSE, warning=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/map_wetlands.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=550,
+  width="100%"
+)
+
+#120
+```
+
+<p>
+
+<center><font size="2"> *draw bounding box to zoom.*</center>
+
+</font>
+
+</p>
+
+<br>
+
+```{r wetlands table, echo=FALSE, warning=FALSE, cache=TRUE}
+
+wetlands_table
+
+```
+
+<br>
+
+##### [3] coastal access points
+
+[CA Coastal Commission](https://california-coastal-commission-open-data-1-3-coastalcomm.hub.arcgis.com/datasets/coastalcomm::public-access-points/about) (Olivia's extended dataset with Bay Area access points)
+
+[to supplement park polygons w/ amenities data]
+
+```{r access point map code, eval=FALSE}
+
+##### CA commission map
+map_access <- ggplot() +
+  geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=access,
+          alpha=0.7,
+          aes(color=wetland,
+              text=paste(name))) +
+  scale_color_manual(values=c("Yes"="aquamarine4",
+                              "No"="grey65", 
+                              "Unknown"="darkslateblue"))+ 
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_access,tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+  layout(legend=list(xref="paper",
+                     x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',traceorder="reversed",
+                     title=list(font=list(color="#32127a",family="IBM Plex Mono")),
+                     font=list(color="#32127a",family="IBM Plex Mono")))
+
+```
+
+```{r access point map, fig.width = 5, echo=FALSE, warning=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/map_access.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=550,
+  width="100%"
+)
+
+```
+
+<p>
+
+<center><font size="2"> *hover over points for site names. draw bounding box to zoom. click legend layers to toggle on/off.* </font></center>
+
+</p>
+
+<br>
+
+```{r access point table, echo=FALSE, warning=FALSE, cache=TRUE}
+
+access_table
+
+```
+
+<br>
+
+#### STEPS
+
+##### 1. filter NWI wetlands data to (1) emergent and (2) scrub-shrub estuarine intertidal zones, according to [NWI Classification Codes](https://www.fws.gov/sites/default/files/documents/wetlands-and-deepwater-map-code-diagram.pdf)
+
+##### 2. select parks that intersect wetland polygons
+
+```{r parks intersecting wetlands map code, eval=FALSE}
+
+##### parks intersecting wetland polygon or wetland access point
+wetlandParks_v3 <- parks %>%
+  mutate(intersects_wetland= case_when(lengths(st_intersects(.,wetlands)) > 0 ~ "park intersects wetland")) %>%
+  filter(!is.na(intersects_wetland)) %>%
+  rename(suid=suid_nma,
+         access_type=access_typ) %>%
+  mutate(wetland_park="wetland-park")
+
+##### wetland-park map
+map_wetlandParks_v3 <- ggplot() +
+    geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=wetlandParks_v3,
+          alpha=0.9,lwd=0.5,
+          aes(fill=intersects_wetland,
+              color=intersects_wetland,
+              text=paste(unit_name)))+
+  geom_sf(data=wetlands,
+          alpha=0.4,lwd=0.25,
+          aes(color=wetland,
+              fill=wetland,
+              text=paste(wetland))) +
+  scale_fill_manual(values=c("wetland"="#a7dea2",
+                             "park intersects wetland"="blueviolet")) +
+  scale_color_manual(values=c("wetland"="#a7dea2",
+                              "park intersects wetland"="blueviolet")) +
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlandParks_v3, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+    layout(legend=list(x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',
+                     font=list(color="#32127a",family="IBM Plex Mono"))) 
+
+```
+
+<br>
+
+<center>TOTAL: **\~`r nrow(wetlandParks_v3_table1)`** wetland parks</center>
+
+```{r parks intersecting wetlands map, fig.width = 5.5, echo=FALSE, warning=FALSE, cache=TRUE}
+
+#### parks intersecting wetlands
+tags$iframe(
+  src = "figures/map_wetlandParks_v3.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=550,
+  width="100%"
+)
+
+```
+
+<p>
+
+<center><font size="2"> *hover over polygons for park names. draw bounding box to zoom. click legend layers to toggle on/off.* </font></center>
+
+</p>
+
+<br>
+
+```{r parks intersecting wetlands table1, echo=FALSE, warning=FALSE, cache=TRUE}
+
+wetlandParks_v3_table1
+
+```
+
+<br>
+
+by access type:
+```{r parks intersecting wetlands table2, echo=FALSE, warning=FALSE, cache=TRUE}
+
+wetlandParks_v3_table2
+
+```
+
+<br>
+
+by managing agency level:
+```{r parks intersecting wetlands table3, echo=FALSE, warning=FALSE, cache=TRUE}
+
+wetlandParks_v3_table3
+
+```
+
+
+<br>
+
+#### OLD APPROACH
+
+```{r old parks intersecting wetlands map code, eval=FALSE}
+
+##### wetland-park map
+map_wetlandParks_v1 <- ggplot() +
+  geom_sf(data=CA_clip, fill="grey92", color="grey92")+
+  geom_sf(data=wetlandParks_v1_simplified,
+          # alpha=0.9,lwd=0.5,
+          aes(fill=intersects_wetland,
+              color=intersects_wetland,
+              text=paste(unit_name)))+
+  geom_sf(data=wetlands_simplified,
+          alpha=0.5,lwd=0.3,
+          aes(color=wetland,
+              fill=wetland,
+              text=paste(wetland))) +
+  scale_fill_manual(values=c("park intersects wetland"="plum4",
+                             "wetland"="#a7dea2")) +
+  scale_color_manual(values=c("park intersects wetland"="plum4",
+                              "wetland"="#a7dea2")) +
+  guides(fill=guide_legend(title = ""),color=guide_legend(title = "")) +
+  theme_minimal() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+##### make interactive
+ggplotly(map_wetlandParks_v1, tooltip="text") %>%
+  style(hoverlabel=list(font=list(family="IBM Plex Mono",size=11))) %>%
+  layout(legend=list(x=0.5,xanchor='center',
+                     y=0,yanchor='top',
+                     orientation='h',
+                     font=list(color="#32127a",family="IBM Plex Mono")))
+
+```
+
+<br>
+
+<center>TOTAL: **\~`r nrow(wetlandParks_v1_table)`** wetland parks</center>
+
+
+```{r old parks intersecting wetlands map, fig.width = 5.5, echo=FALSE, warning=FALSE, cache=TRUE}
+
+#### parks intersecting wetlands
+tags$iframe(
+  src = "figures/map_wetlandParks_v1.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=550,
+  width="100%"
+)
+
+```
+
+<p>
+
+<center><font size="2"> *hover over polygons for park names. draw bounding box to zoom. click legend layers to toggle on/off.* </font></center>
+
+</p>
+
+<br>
+
+```{r parks old intersecting wetlands table, echo=FALSE, warning=FALSE, cache=TRUE}
+
+wetlandParks_v1_table
+
+```
+
+<br>
+
+### AMENITIES
+
+
+### TRANSIT
+
+
+### SOCIO-ECONOMIC
