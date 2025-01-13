@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>3 1905 | CLC text mining</title>
+<meta name="author" content="Carrie Hamilton">
+<meta name="generator" content="bookdown 0.41 with bs4_book()">
+<meta property="og:title" content="3 1905 | CLC text mining">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="3 1905 | CLC text mining">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><link href="libs/IBM_Plex_Mono-0.4.9/font.css" rel="stylesheet">
+<script src="libs/bs3compat-0.8.0/transition.js"></script><script src="libs/bs3compat-0.8.0/tabs.js"></script><script src="libs/bs3compat-0.8.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script><link rel="shortcut icon" href="favicon.ico">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="styles.css">
+<meta name="description" content="3.1 20-yr  3.1.1 enviro  3.1.1.1 counts   3.1.1.2 tf-ipf   3.1.1.3 co-occurrence enviro keywords in enviro speeches enviro keywords in labor speeches enviro keywords in enviro-labor speeches  ...">
+<meta property="og:description" content="3.1 20-yr  3.1.1 enviro  3.1.1.1 counts   3.1.1.2 tf-ipf   3.1.1.3 co-occurrence enviro keywords in enviro speeches enviro keywords in labor speeches enviro keywords in enviro-labor speeches  ...">
+<meta name="twitter:description" content="3.1 20-yr  3.1.1 enviro  3.1.1.1 counts   3.1.1.2 tf-ipf   3.1.1.3 co-occurrence enviro keywords in enviro speeches enviro keywords in labor speeches enviro keywords in enviro-labor speeches  ...">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">CLC text mining</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> INTRO</a></li>
+<li><a class="" href="data.html"><span class="header-section-number">2</span> DATA</a></li>
+<li><a class="active" href="section.html"><span class="header-section-number">3</span> 1905</a></li>
+<li><a class="" href="section-19.html"><span class="header-section-number">4</span> 1925</a></li>
+<li><a class="" href="section-38.html"><span class="header-section-number">5</span> 1945</a></li>
+<li><a class="" href="section-57.html"><span class="header-section-number">6</span> 1965</a></li>
+<li><a class="" href="section-76.html"><span class="header-section-number">7</span> 1985</a></li>
+<li><a class="" href="section-95.html"><span class="header-section-number">8</span> 2005</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="section" class="section level1" number="3">
+<h1>
+<span class="header-section-number">3</span> 1905<a class="anchor" aria-label="anchor" href="#section"><i class="fas fa-link"></i></a>
+</h1>
+<iframe src="figures/speeches_by_year_1905.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+<div id="yr" class="section level2" number="3.1">
+<h2>
+<span class="header-section-number">3.1</span> 20-yr<a class="anchor" aria-label="anchor" href="#yr"><i class="fas fa-link"></i></a>
+</h2>
+<div id="enviro" class="section level3" number="3.1.1">
+<h3>
+<span class="header-section-number">3.1.1</span> enviro<a class="anchor" aria-label="anchor" href="#enviro"><i class="fas fa-link"></i></a>
+</h3>
+<div id="counts" class="section level4" number="3.1.1.1">
+<h4>
+<span class="header-section-number">3.1.1.1</span> counts<a class="anchor" aria-label="anchor" href="#counts"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/top_enviroBigrams_20yr_1905.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="tf-ipf" class="section level4" number="3.1.1.2">
+<h4>
+<span class="header-section-number">3.1.1.2</span> tf-ipf<a class="anchor" aria-label="anchor" href="#tf-ipf"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/tfipf_enviroBigrams_20yr_1905.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="co-occurrence" class="section level4" number="3.1.1.3">
+<h4>
+<span class="header-section-number">3.1.1.3</span> co-occurrence<a class="anchor" aria-label="anchor" href="#co-occurrence"><i class="fas fa-link"></i></a>
+</h4>
+<p><b>enviro keywords in enviro speeches</b>
+<img src="figures/enviroTokens_wordPairs_corr_20yr_1905_enviro.jpg" width="100%"><b>enviro keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_20yr_1905_enviro.jpg" width="100%"><b>enviro keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_20yr_1905_enviro.jpg" width="100%"></p>
+</div>
+</div>
+<div id="labor" class="section level3" number="3.1.2">
+<h3>
+<span class="header-section-number">3.1.2</span> labor<a class="anchor" aria-label="anchor" href="#labor"><i class="fas fa-link"></i></a>
+</h3>
+<div id="counts-1" class="section level4" number="3.1.2.1">
+<h4>
+<span class="header-section-number">3.1.2.1</span> counts<a class="anchor" aria-label="anchor" href="#counts-1"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/top_laborBigrams_20yr_1905.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="tf-ipf-1" class="section level4" number="3.1.2.2">
+<h4>
+<span class="header-section-number">3.1.2.2</span> tf-ipf<a class="anchor" aria-label="anchor" href="#tf-ipf-1"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/tfipf_laborBigrams_20yr_1905.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="co-occurrence-1" class="section level4" number="3.1.2.3">
+<h4>
+<span class="header-section-number">3.1.2.3</span> co-occurrence<a class="anchor" aria-label="anchor" href="#co-occurrence-1"><i class="fas fa-link"></i></a>
+</h4>
+<p><b>labor keywords in enviro speeches</b>
+<img src="figures/enviroTokens_wordPairs_corr_20yr_1905_labor.jpg" width="100%"><b>labor keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_20yr_1905_labor.jpg" width="100%"></p>
+</div>
+</div>
+<div id="enviro-labor" class="section level3" number="3.1.3">
+<h3>
+<span class="header-section-number">3.1.3</span> enviro-labor<a class="anchor" aria-label="anchor" href="#enviro-labor"><i class="fas fa-link"></i></a>
+</h3>
+<div id="counts-2" class="section level4" number="3.1.3.1">
+<h4>
+<span class="header-section-number">3.1.3.1</span> counts<a class="anchor" aria-label="anchor" href="#counts-2"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/top_enviroLaborBigrams_20yr_1905.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="tf-ipf-2" class="section level4" number="3.1.3.2">
+<h4>
+<span class="header-section-number">3.1.3.2</span> tf-ipf<a class="anchor" aria-label="anchor" href="#tf-ipf-2"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/tfipf_enviroLaborBigrams_20yr_1905.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="co-occurrence-2" class="section level4" number="3.1.3.3">
+<h4>
+<span class="header-section-number">3.1.3.3</span> co-occurrence<a class="anchor" aria-label="anchor" href="#co-occurrence-2"><i class="fas fa-link"></i></a>
+</h4>
+<p><b>enviro-labor keywords in enviro speeches</b>
+<img src="figures/enviroTokens_wordPairs_corr_20yr_1905_enviroLabor.jpg" width="100%"><b>enviro-labor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_20yr_1905_enviroLabor.jpg" width="100%"><b>enviro-labor keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_20yr_1905_enviroLabor.jpg" width="100%"></p>
+</div>
+</div>
+</div>
+<div id="yr-1" class="section level2" number="3.2">
+<h2>
+<span class="header-section-number">3.2</span> 10-yr<a class="anchor" aria-label="anchor" href="#yr-1"><i class="fas fa-link"></i></a>
+</h2>
+<div id="enviro-1" class="section level3" number="3.2.1">
+<h3>
+<span class="header-section-number">3.2.1</span> enviro<a class="anchor" aria-label="anchor" href="#enviro-1"><i class="fas fa-link"></i></a>
+</h3>
+<div id="counts-3" class="section level4" number="3.2.1.1">
+<h4>
+<span class="header-section-number">3.2.1.1</span> counts<a class="anchor" aria-label="anchor" href="#counts-3"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/top_enviroBigrams_10yr_1905_1915.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="tf-ipf-3" class="section level4" number="3.2.1.2">
+<h4>
+<span class="header-section-number">3.2.1.2</span> tf-ipf<a class="anchor" aria-label="anchor" href="#tf-ipf-3"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/tfipf_enviroBigrams_10yr_1905_1915.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="co-occurrence-3" class="section level4" number="3.2.1.3">
+<h4>
+<span class="header-section-number">3.2.1.3</span> co-occurrence<a class="anchor" aria-label="anchor" href="#co-occurrence-3"><i class="fas fa-link"></i></a>
+</h4>
+<div id="section-1" class="section level5" number="3.2.1.3.1">
+<h5>
+<span class="header-section-number">3.2.1.3.1</span> 1905<a class="anchor" aria-label="anchor" href="#section-1"><i class="fas fa-link"></i></a>
+</h5>
+<p><b>enviro keywords in enviro speeches</b>
+<img src="figures/enviroTokens_wordPairs_corr_10yr_1905_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_10yr_1905_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_10yr_1905_enviro.jpg" width="100%"></p>
+</div>
+<div id="section-2" class="section level5" number="3.2.1.3.2">
+<h5>
+<span class="header-section-number">3.2.1.3.2</span> 1915<a class="anchor" aria-label="anchor" href="#section-2"><i class="fas fa-link"></i></a>
+</h5>
+<p><b>enviro keywords in enviro speeches</b>
+<img src="figures/enviroTokens_wordPairs_corr_10yr_1915_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_10yr_1915_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_10yr_1915_enviro.jpg" width="100%"></p>
+</div>
+</div>
+</div>
+<div id="labor-1" class="section level3" number="3.2.2">
+<h3>
+<span class="header-section-number">3.2.2</span> labor<a class="anchor" aria-label="anchor" href="#labor-1"><i class="fas fa-link"></i></a>
+</h3>
+<div id="counts-4" class="section level4" number="3.2.2.1">
+<h4>
+<span class="header-section-number">3.2.2.1</span> counts<a class="anchor" aria-label="anchor" href="#counts-4"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/top_laborBigrams_10yr_1905_1915.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="tf-ipf-4" class="section level4" number="3.2.2.2">
+<h4>
+<span class="header-section-number">3.2.2.2</span> tf-ipf<a class="anchor" aria-label="anchor" href="#tf-ipf-4"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/tfipf_laborBigrams_10yr_1905_1915.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="co-occurrence-4" class="section level4" number="3.2.2.3">
+<h4>
+<span class="header-section-number">3.2.2.3</span> co-occurrence<a class="anchor" aria-label="anchor" href="#co-occurrence-4"><i class="fas fa-link"></i></a>
+</h4>
+<div id="section-3" class="section level5" number="3.2.2.3.1">
+<h5>
+<span class="header-section-number">3.2.2.3.1</span> 1905<a class="anchor" aria-label="anchor" href="#section-3"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+labor keywords in enviro speeches
+</center>
+<div class="inline-figure"><img src="figures/laborTokens_wordPairs_corr_10yr_1905_labor.jpg" width="100%"></div>
+<p><b>labor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_10yr_1905_labor.jpg" width="100%"></p>
+<p><b>labor keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_10yr_1905_labor.jpg" width="100%"></p>
+</div>
+<div id="section-4" class="section level5" number="3.2.2.3.2">
+<h5>
+<span class="header-section-number">3.2.2.3.2</span> 1915<a class="anchor" aria-label="anchor" href="#section-4"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+labor keywords in enviro speeches
+</center>
+<div class="inline-figure"><img src="figures/laborTokens_wordPairs_corr_10yr_1915_labor.jpg" width="100%"></div>
+<p><b>labor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_10yr_1915_labor.jpg" width="100%"></p>
+<p><b>labor keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_10yr_1915_labor.jpg" width="100%"></p>
+</div>
+</div>
+</div>
+<div id="envirolabor" class="section level3" number="3.2.3">
+<h3>
+<span class="header-section-number">3.2.3</span> enviroLabor<a class="anchor" aria-label="anchor" href="#envirolabor"><i class="fas fa-link"></i></a>
+</h3>
+<div id="counts-5" class="section level4" number="3.2.3.1">
+<h4>
+<span class="header-section-number">3.2.3.1</span> counts<a class="anchor" aria-label="anchor" href="#counts-5"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/top_enviroLaborBigrams_10yr_1905_1915.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="tf-ipf-5" class="section level4" number="3.2.3.2">
+<h4>
+<span class="header-section-number">3.2.3.2</span> tf-ipf<a class="anchor" aria-label="anchor" href="#tf-ipf-5"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/tfipf_enviroLaborBigrams_10yr_1905_1915.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="co-occurrence-5" class="section level4" number="3.2.3.3">
+<h4>
+<span class="header-section-number">3.2.3.3</span> co-occurrence<a class="anchor" aria-label="anchor" href="#co-occurrence-5"><i class="fas fa-link"></i></a>
+</h4>
+<div id="section-5" class="section level5" number="3.2.3.3.1">
+<h5>
+<span class="header-section-number">3.2.3.3.1</span> 1905<a class="anchor" aria-label="anchor" href="#section-5"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+enviroLabor keywords in enviroLabor speeches
+</center>
+<div class="inline-figure"><img src="figures/enviroLaborTokens_wordPairs_corr_10yr_1905_enviroLabor.jpg" width="100%"></div>
+<p><b>enviroLabor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_10yr_1905_enviroLabor.jpg" width="100%"></p>
+<p><b>enviroLabor keywords in enviroLabor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_10yr_1905_enviroLabor.jpg" width="100%"></p>
+</div>
+<div id="section-6" class="section level5" number="3.2.3.3.2">
+<h5>
+<span class="header-section-number">3.2.3.3.2</span> 1915<a class="anchor" aria-label="anchor" href="#section-6"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+enviroLabor keywords in enviroLabor speeches
+</center>
+<div class="inline-figure"><img src="figures/enviroLaborTokens_wordPairs_corr_10yr_1915_enviroLabor.jpg" width="100%"></div>
+<p><b>enviroLabor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_10yr_1915_enviroLabor.jpg" width="100%"></p>
+<p><b>enviroLabor keywords in enviroLabor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_10yr_1915_enviroLabor.jpg" width="100%"></p>
+</div>
+</div>
+</div>
+</div>
+<div id="yr-2" class="section level2" number="3.3">
+<h2>
+<span class="header-section-number">3.3</span> 5-yr<a class="anchor" aria-label="anchor" href="#yr-2"><i class="fas fa-link"></i></a>
+</h2>
+<div id="enviro-2" class="section level3" number="3.3.1">
+<h3>
+<span class="header-section-number">3.3.1</span> enviro<a class="anchor" aria-label="anchor" href="#enviro-2"><i class="fas fa-link"></i></a>
+</h3>
+<div id="counts-6" class="section level4" number="3.3.1.1">
+<h4>
+<span class="header-section-number">3.3.1.1</span> counts<a class="anchor" aria-label="anchor" href="#counts-6"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/top_enviroBigrams_5yr_1905_1910.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+<iframe src="figures/top_enviroBigrams_5yr_1915_1920.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="tf-ipf-6" class="section level4" number="3.3.1.2">
+<h4>
+<span class="header-section-number">3.3.1.2</span> tf-ipf<a class="anchor" aria-label="anchor" href="#tf-ipf-6"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/tfipf_enviroBigrams_5yr_1905_1910.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+<iframe src="figures/tfipf_enviroBigrams_5yr_1915_1920.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="co-occurrence-6" class="section level4" number="3.3.1.3">
+<h4>
+<span class="header-section-number">3.3.1.3</span> co-occurrence<a class="anchor" aria-label="anchor" href="#co-occurrence-6"><i class="fas fa-link"></i></a>
+</h4>
+<div id="section-7" class="section level5" number="3.3.1.3.1">
+<h5>
+<span class="header-section-number">3.3.1.3.1</span> 1905<a class="anchor" aria-label="anchor" href="#section-7"><i class="fas fa-link"></i></a>
+</h5>
+<p><b>enviro keywords in enviro speeches</b>
+<img src="figures/enviroTokens_wordPairs_corr_5yr_1905_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1905_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1905_enviro.jpg" width="100%"></p>
+</div>
+<div id="section-8" class="section level5" number="3.3.1.3.2">
+<h5>
+<span class="header-section-number">3.3.1.3.2</span> 1910<a class="anchor" aria-label="anchor" href="#section-8"><i class="fas fa-link"></i></a>
+</h5>
+<div class="inline-figure">&lt;&gt;enviro keywords in enviro speeches
+<img src="figures/enviroTokens_wordPairs_corr_5yr_1910_enviro.jpg" width="100%">
+</div>
+<p><b>enviro keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1910_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1910_enviro.jpg" width="100%"></p>
+</div>
+<div id="section-9" class="section level5" number="3.3.1.3.3">
+<h5>
+<span class="header-section-number">3.3.1.3.3</span> 1915<a class="anchor" aria-label="anchor" href="#section-9"><i class="fas fa-link"></i></a>
+</h5>
+<p><b>enviro keywords in enviro speeches</b>
+<img src="figures/enviroTokens_wordPairs_corr_5yr_1915_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1915_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1915_enviro.jpg" width="100%"></p>
+</div>
+<div id="section-10" class="section level5" number="3.3.1.3.4">
+<h5>
+<span class="header-section-number">3.3.1.3.4</span> 1920<a class="anchor" aria-label="anchor" href="#section-10"><i class="fas fa-link"></i></a>
+</h5>
+<p><b>enviro keywords in enviro speeches</b>
+<img src="figures/enviroTokens_wordPairs_corr_5yr_1920_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1920_enviro.jpg" width="100%"></p>
+<p><b>enviro keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1920_enviro.jpg" width="100%"></p>
+</div>
+</div>
+</div>
+<div id="labor-2" class="section level3" number="3.3.2">
+<h3>
+<span class="header-section-number">3.3.2</span> labor<a class="anchor" aria-label="anchor" href="#labor-2"><i class="fas fa-link"></i></a>
+</h3>
+<div id="counts-7" class="section level4" number="3.3.2.1">
+<h4>
+<span class="header-section-number">3.3.2.1</span> counts<a class="anchor" aria-label="anchor" href="#counts-7"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/top_laborBigrams_5yr_1905_1910.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+<iframe src="figures/top_laborBigrams_5yr_1915_1920.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="tf-ipf-7" class="section level4" number="3.3.2.2">
+<h4>
+<span class="header-section-number">3.3.2.2</span> tf-ipf<a class="anchor" aria-label="anchor" href="#tf-ipf-7"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/tfipf_laborBigrams_5yr_1905_1910.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+<iframe src="figures/tfipf_laborBigrams_5yr_1915_1920.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="co-occurrence-7" class="section level4" number="3.3.2.3">
+<h4>
+<span class="header-section-number">3.3.2.3</span> co-occurrence<a class="anchor" aria-label="anchor" href="#co-occurrence-7"><i class="fas fa-link"></i></a>
+</h4>
+<div id="section-11" class="section level5" number="3.3.2.3.1">
+<h5>
+<span class="header-section-number">3.3.2.3.1</span> 1905<a class="anchor" aria-label="anchor" href="#section-11"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+labor keywords in enviro speeches
+</center>
+<div class="inline-figure"><img src="figures/laborTokens_wordPairs_corr_5yr_1905_labor.jpg" width="100%"></div>
+<p><b>labor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1905_labor.jpg" width="100%"></p>
+<p><b>labor keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1905_labor.jpg" width="100%"></p>
+</div>
+<div id="section-12" class="section level5" number="3.3.2.3.2">
+<h5>
+<span class="header-section-number">3.3.2.3.2</span> 1910<a class="anchor" aria-label="anchor" href="#section-12"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+labor keywords in enviro speeches
+</center>
+<div class="inline-figure"><img src="figures/laborTokens_wordPairs_corr_5yr_1910_labor.jpg" width="100%"></div>
+<p><b>labor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1910_labor.jpg" width="100%"></p>
+<p><b>labor keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1910_labor.jpg" width="100%"></p>
+</div>
+<div id="section-13" class="section level5" number="3.3.2.3.3">
+<h5>
+<span class="header-section-number">3.3.2.3.3</span> 1915<a class="anchor" aria-label="anchor" href="#section-13"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+labor keywords in enviro speeches
+</center>
+<div class="inline-figure"><img src="figures/laborTokens_wordPairs_corr_5yr_1915_labor.jpg" width="100%"></div>
+<p><b>labor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1915_labor.jpg" width="100%"></p>
+<p><b>labor keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1915_labor.jpg" width="100%"></p>
+</div>
+<div id="section-14" class="section level5" number="3.3.2.3.4">
+<h5>
+<span class="header-section-number">3.3.2.3.4</span> 1920<a class="anchor" aria-label="anchor" href="#section-14"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+labor keywords in enviro speeches
+</center>
+<div class="inline-figure"><img src="figures/laborTokens_wordPairs_corr_5yr_1920_labor.jpg" width="100%"></div>
+<p><b>labor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1920_labor.jpg" width="100%"></p>
+<p><b>labor keywords in enviro-labor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1920_labor.jpg" width="100%"></p>
+</div>
+</div>
+</div>
+<div id="envirolabor-1" class="section level3" number="3.3.3">
+<h3>
+<span class="header-section-number">3.3.3</span> enviroLabor<a class="anchor" aria-label="anchor" href="#envirolabor-1"><i class="fas fa-link"></i></a>
+</h3>
+<div id="counts-8" class="section level4" number="3.3.3.1">
+<h4>
+<span class="header-section-number">3.3.3.1</span> counts<a class="anchor" aria-label="anchor" href="#counts-8"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/top_enviroLaborBigrams_5yr_1905_1910.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+<iframe src="figures/top_enviroLaborBigrams_5yr_1915_1920.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="tf-ipf-8" class="section level4" number="3.3.3.2">
+<h4>
+<span class="header-section-number">3.3.3.2</span> tf-ipf<a class="anchor" aria-label="anchor" href="#tf-ipf-8"><i class="fas fa-link"></i></a>
+</h4>
+<iframe src="figures/tfipf_enviroLaborBigrams_5yr_1905_1910.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+<iframe src="figures/tfipf_enviroLaborBigrams_5yr_1915_1920.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
+</div>
+<div id="co-occurrence-8" class="section level4" number="3.3.3.3">
+<h4>
+<span class="header-section-number">3.3.3.3</span> co-occurrence<a class="anchor" aria-label="anchor" href="#co-occurrence-8"><i class="fas fa-link"></i></a>
+</h4>
+<div id="section-15" class="section level5" number="3.3.3.3.1">
+<h5>
+<span class="header-section-number">3.3.3.3.1</span> 1905<a class="anchor" aria-label="anchor" href="#section-15"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+enviroLabor keywords in enviroLabor speeches
+</center>
+<div class="inline-figure"><img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1905_enviroLabor.jpg" width="100%"></div>
+<p><b>enviroLabor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1905_enviroLabor.jpg" width="100%"></p>
+<p><b>enviroLabor keywords in enviroLabor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1905_enviroLabor.jpg" width="100%"></p>
+</div>
+<div id="section-16" class="section level5" number="3.3.3.3.2">
+<h5>
+<span class="header-section-number">3.3.3.3.2</span> 1910<a class="anchor" aria-label="anchor" href="#section-16"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+enviroLabor keywords in enviroLabor speeches
+</center>
+<div class="inline-figure"><img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1910_enviroLabor.jpg" width="100%"></div>
+<p><b>enviroLabor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1910_enviroLabor.jpg" width="100%"></p>
+<p><b>enviroLabor keywords in enviroLabor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1910_enviroLabor.jpg" width="100%"></p>
+</div>
+<div id="section-17" class="section level5" number="3.3.3.3.3">
+<h5>
+<span class="header-section-number">3.3.3.3.3</span> 1915<a class="anchor" aria-label="anchor" href="#section-17"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+enviroLabor keywords in enviroLabor speeches
+</center>
+<div class="inline-figure"><img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1915_enviroLabor.jpg" width="100%"></div>
+<p><b>enviroLabor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1915_enviroLabor.jpg" width="100%"></p>
+<p><b>enviroLabor keywords in enviroLabor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1915_enviroLabor.jpg" width="100%"></p>
+</div>
+<div id="section-18" class="section level5" number="3.3.3.3.4">
+<h5>
+<span class="header-section-number">3.3.3.3.4</span> 1920<a class="anchor" aria-label="anchor" href="#section-18"><i class="fas fa-link"></i></a>
+</h5>
+<center>
+enviroLabor keywords in enviroLabor speeches
+</center>
+<div class="inline-figure"><img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1920_enviroLabor.jpg" width="100%"></div>
+<p><b>enviroLabor keywords in labor speeches</b>
+<img src="figures/laborTokens_wordPairs_corr_5yr_1920_enviroLabor.jpg" width="100%"></p>
+<p><b>enviroLabor keywords in enviroLabor speeches</b>
+<img src="figures/enviroLaborTokens_wordPairs_corr_5yr_1920_enviroLabor.jpg" width="100%"></p>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="data.html"><span class="header-section-number">2</span> DATA</a></div>
+<div class="next"><a href="section-19.html"><span class="header-section-number">4</span> 1925</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#section"><span class="header-section-number">3</span> 1905</a></li>
+<li>
+<a class="nav-link" href="#yr"><span class="header-section-number">3.1</span> 20-yr</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#enviro"><span class="header-section-number">3.1.1</span> enviro</a></li>
+<li><a class="nav-link" href="#labor"><span class="header-section-number">3.1.2</span> labor</a></li>
+<li><a class="nav-link" href="#enviro-labor"><span class="header-section-number">3.1.3</span> enviro-labor</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#yr-1"><span class="header-section-number">3.2</span> 10-yr</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#enviro-1"><span class="header-section-number">3.2.1</span> enviro</a></li>
+<li><a class="nav-link" href="#labor-1"><span class="header-section-number">3.2.2</span> labor</a></li>
+<li><a class="nav-link" href="#envirolabor"><span class="header-section-number">3.2.3</span> enviroLabor</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#yr-2"><span class="header-section-number">3.3</span> 5-yr</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#enviro-2"><span class="header-section-number">3.3.1</span> enviro</a></li>
+<li><a class="nav-link" href="#labor-2"><span class="header-section-number">3.3.2</span> labor</a></li>
+<li><a class="nav-link" href="#envirolabor-1"><span class="header-section-number">3.3.3</span> enviroLabor</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>CLC text mining</strong>" was written by Carrie Hamilton. </p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>
