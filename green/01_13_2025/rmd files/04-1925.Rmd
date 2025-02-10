@@ -1,0 +1,836 @@
+# 1925
+
+```{r speeches over time per 25-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/speeches_by_year_1925.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+
+
+
+## 20-yr
+
+### enviro 
+#### counts
+```{r top enviro bigrams by year 20-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/top_enviroBigrams_20yr_1925.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+
+#### tf-ipf
+```{r enviro tf-ipf by year 20-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/tfipf_enviroBigrams_20yr_1925.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+
+#### co-occurrence
+
+<b>enviro keywords in enviro speeches</b>
+```{r enviro co-occurrence with enviro keywords by 20-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroTokens_wordPairs_corr_20yr_1925_enviro.jpg")
+
+```
+<b>enviro keywords in labor speeches</b>
+```{r labor co-occurrence with enviro keywords by 20-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_20yr_1925_enviro.jpg")
+
+```
+<b>enviro keywords in enviro-labor speeches</b>
+```{r enviro-labor co-occurrence with enviro keywords by 20-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_20yr_1925_enviro.jpg")
+
+```
+
+
+### labor 
+#### counts
+```{r top labor bigrams by year 20-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/top_laborBigrams_20yr_1925.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### tf-ipf
+```{r labor tf-ipf by year 20-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/tfipf_laborBigrams_20yr_1925.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### co-occurrence
+
+<b>labor keywords in enviro speeches</b>
+```{r enviro co-occurrence with labor keywords by 20-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroTokens_wordPairs_corr_20yr_1925_labor.jpg")
+
+```
+<b>labor keywords in enviro-labor speeches</b>
+```{r enviro-labor co-occurrence with labor keywords by 20-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_20yr_1925_labor.jpg")
+
+```
+
+
+### enviro-labor
+#### counts
+```{r top enviro-labor bigrams by year 20-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/top_enviroLaborBigrams_20yr_1925.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### tf-ipf
+```{r enviro-labor tf-ipf by year 20-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/tfipf_enviroLaborBigrams_20yr_1925.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+
+#### co-occurrence
+<b>enviro-labor keywords in enviro speeches</b>
+```{r enviro co-occurrence with enviroLabor keywords by 20-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroTokens_wordPairs_corr_20yr_1925_enviroLabor.jpg")
+
+```
+<b>enviro-labor keywords in labor speeches</b>
+```{r labor co-occurrence with enviroLabor keywords by 20-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_20yr_1925_enviroLabor.jpg")
+
+```
+<b>enviro-labor keywords in enviro-labor speeches</b>
+```{r enviro-labor co-occurrence with enviroLabor keywords by 20-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_20yr_1925_enviroLabor.jpg")
+
+```
+
+
+
+
+## 10-yr
+
+### enviro 
+#### counts
+```{r top enviro bigrams by year 10-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/top_enviroBigrams_10yr_1925_1935.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### tf-ipf
+```{r enviro tp-ipf by year 10-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/tfipf_enviroBigrams_10yr_1925_1935.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### co-occurrence
+##### 1925
+
+<b>enviro keywords in enviro speeches</b>
+```{r enviro co-occurrence with envirokeywords by 10-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroTokens_wordPairs_corr_10yr_1925_enviro.jpg")
+
+```
+
+<b>enviro keywords in labor speeches</b>
+```{r labor co-occurrence with envirokeywords by 10-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_10yr_1925_enviro.jpg")
+
+```
+
+<b>enviro keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with envirokeywords by 10-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_10yr_1925_enviro.jpg")
+
+```
+
+
+##### 1935
+
+<b>enviro keywords in enviro speeches</b>
+```{r enviro co-occurrence with envirokeywords by 10-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroTokens_wordPairs_corr_10yr_1935_enviro.jpg")
+
+```
+
+<b>enviro keywords in labor speeches</b>
+```{r labor co-occurrence with envirokeywords by 10-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_10yr_1935_enviro.jpg")
+
+```
+
+<b>enviro keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with envirokeywords by 10-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_10yr_1935_enviro.jpg")
+
+```
+
+
+
+
+
+
+
+
+### labor 
+#### counts
+```{r top labor bigrams by year 10-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/top_laborBigrams_10yr_1925_1935.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### tf-ipf
+```{r labor tp-ipf by year 10-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/tfipf_laborBigrams_10yr_1925_1935.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### co-occurrence
+##### 1925
+
+<center>labor keywords in enviro speeches</center>
+```{r enviro co-occurrence with laborKeywords by 10-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_10yr_1925_labor.jpg")
+
+```
+
+<b>labor keywords in labor speeches</b>
+```{r labor co-occurrence with laborKeywords by 10-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_10yr_1925_labor.jpg")
+
+```
+
+<b>labor keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with laborKeywords by 10-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_10yr_1925_labor.jpg")
+
+```
+
+
+##### 1935
+
+<center>labor keywords in enviro speeches</center>
+```{r enviro co-occurrence with laborKeywords by 10-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_10yr_1935_labor.jpg")
+
+```
+
+<b>labor keywords in labor speeches</b>
+```{r labor co-occurrence with laborKeywords by 10-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_10yr_1935_labor.jpg")
+
+```
+
+<b>labor keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with laborKeywords by 10-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_10yr_1935_labor.jpg")
+
+```
+
+
+
+
+
+
+### enviroLabor
+#### counts
+```{r top enviroLabor bigrams by year 10-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/top_enviroLaborBigrams_10yr_1925_1935.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### tf-ipf
+```{r enviroLabor tp-ipf by year 10-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/tfipf_enviroLaborBigrams_10yr_1925_1935.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### co-occurrence
+##### 1925
+
+<center>enviroLabor keywords in enviroLabor speeches</center>
+```{r enviro co-occurrence with enviroLaborKeywords by 10-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_10yr_1925_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in labor speeches</b>
+```{r labor co-occurrence with enviroLaborKeywords by 10-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_10yr_1925_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in enviroLabor speeches</b>
+```{r enviroLabor co-occurrence with enviroLaborKeywords by 10-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_10yr_1925_enviroLabor.jpg")
+
+```
+
+
+##### 1935
+
+<center>enviroLabor keywords in enviroLabor speeches</center>
+```{r enviro co-occurrence with enviroLaborKeywords by 10-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_10yr_1935_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in labor speeches</b>
+```{r labor co-occurrence with enviroLaborKeywords by 10-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_10yr_1935_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in enviroLabor speeches</b>
+```{r enviroLabor co-occurrence with enviroLaborKeywords by 10-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_10yr_1935_enviroLabor.jpg")
+
+```
+
+
+
+
+
+
+
+
+
+## 5-yr
+
+### enviro 
+#### counts
+```{r top enviro bigrams by year 5-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/top_enviroBigrams_5yr_1925_1930.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+tags$iframe(
+  src = "figures/top_enviroBigrams_5yr_1935_1940.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### tf-ipf
+```{r enviro tp-ipf by year 5-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/tfipf_enviroBigrams_5yr_1925_1930.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+tags$iframe(
+  src = "figures/tfipf_enviroBigrams_5yr_1935_1940.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+
+```
+#### co-occurrence
+##### 1925
+
+<b>enviro keywords in enviro speeches</b>
+```{r enviro co-occurrence with envirokeywords by 5-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroTokens_wordPairs_corr_5yr_1925_enviro.jpg")
+
+```
+
+<b>enviro keywords in labor speeches</b>
+```{r labor co-occurrence with envirokeywords by 5-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1925_enviro.jpg")
+
+```
+
+<b>enviro keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with envirokeywords by 5-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1925_enviro.jpg")
+
+```
+
+
+##### 1930
+
+<>enviro keywords in enviro speeches</b>
+```{r enviro co-occurrence with envirokeywords by 5-yr period - 1930, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroTokens_wordPairs_corr_5yr_1930_enviro.jpg")
+
+```
+
+<b>enviro keywords in labor speeches</b>
+```{r labor co-occurrence with envirokeywords by 5-yr period - 1930, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1930_enviro.jpg")
+
+```
+
+<b>enviro keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with envirokeywords by 5-yr period - 1930, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1930_enviro.jpg")
+
+```
+
+
+##### 1935
+
+<b>enviro keywords in enviro speeches</b>
+```{r enviro co-occurrence with envirokeywords by 5-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroTokens_wordPairs_corr_5yr_1935_enviro.jpg")
+
+```
+
+<b>enviro keywords in labor speeches</b>
+```{r labor co-occurrence with envirokeywords by 5-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1935_enviro.jpg")
+
+```
+
+<b>enviro keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with envirokeywords by 5-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1935_enviro.jpg")
+
+```
+
+
+
+
+
+
+
+
+##### 1940
+
+<b>enviro keywords in enviro speeches</b>
+```{r enviro co-occurrence with envirokeywords by 5-yr period - 1940, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroTokens_wordPairs_corr_5yr_1940_enviro.jpg")
+
+```
+
+<b>enviro keywords in labor speeches</b>
+```{r labor co-occurrence with envirokeywords by 5-yr period - 1940, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1940_enviro.jpg")
+
+```
+
+<b>enviro keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with envirokeywords by 5-yr period - 1940, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1940_enviro.jpg")
+
+```
+
+
+
+
+### labor 
+#### counts
+```{r top labor bigrams by year 5-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/top_laborBigrams_5yr_1925_1930.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+
+tags$iframe(
+  src = "figures/top_laborBigrams_5yr_1935_1940.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### tf-ipf
+```{r labor tp-ipf by year 5-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/tfipf_laborBigrams_5yr_1925_1930.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+tags$iframe(
+  src = "figures/tfipf_laborBigrams_5yr_1935_1940.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### co-occurrence
+##### 1925
+
+<center>labor keywords in enviro speeches</center>
+```{r enviro co-occurrence with laborKeywords by 5-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1925_labor.jpg")
+
+```
+
+<b>labor keywords in labor speeches</b>
+```{r labor co-occurrence with laborKeywords by 5-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1925_labor.jpg")
+
+```
+
+<b>labor keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with laborKeywords by 5-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1925_labor.jpg")
+
+```
+
+
+##### 1930
+
+<center>labor keywords in enviro speeches</center>
+```{r enviro co-occurrence with laborKeywords by 5-yr period - 1930, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1930_labor.jpg")
+
+```
+
+<b>labor keywords in labor speeches</b>
+```{r labor co-occurrence with laborKeywords by 5-yr period - 1930, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1930_labor.jpg")
+
+```
+
+<b>labor keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with laborKeywords by 5-yr period - 1930, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1930_labor.jpg")
+
+```
+
+
+##### 1935
+
+<center>labor keywords in enviro speeches</center>
+```{r enviro co-occurrence with laborKeywords by 5-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1935_labor.jpg")
+
+```
+
+<b>labor keywords in labor speeches</b>
+```{r labor co-occurrence with laborKeywords by 5-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1935_labor.jpg")
+
+```
+
+<b>labor keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with laborKeywords by 5-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1935_labor.jpg")
+
+```
+
+
+
+##### 1940
+
+<center>labor keywords in enviro speeches</center>
+```{r enviro co-occurrence with laborKeywords by 5-yr period - 1940, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1940_labor.jpg")
+
+```
+
+<b>labor keywords in labor speeches</b>
+```{r labor co-occurrence with laborKeywords by 5-yr period - 1940, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1940_labor.jpg")
+
+```
+
+<b>labor keywords in enviro-labor speeches</b>
+```{r enviroLabor co-occurrence with laborKeywords by 5-yr period - 1940, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1940_labor.jpg")
+
+```
+
+
+
+
+
+
+### enviroLabor
+#### counts
+```{r top enviroLabor bigrams by year 5-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/top_enviroLaborBigrams_5yr_1925_1930.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+tags$iframe(
+  src = "figures/top_enviroLaborBigrams_5yr_1935_1940.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### tf-ipf
+```{r enviroLabor tp-ipf by year 5-yr period 1925, echo=FALSE, cache=TRUE}
+
+tags$iframe(
+  src = "figures/tfipf_enviroLaborBigrams_5yr_1925_1930.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+tags$iframe(
+  src = "figures/tfipf_enviroLaborBigrams_5yr_1935_1940.html", 
+  scrolling = "no", 
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+#### co-occurrence
+##### 1925
+
+<center>enviroLabor keywords in enviroLabor speeches</center>
+```{r enviro co-occurrence with enviroLaborKeywords by 5-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1925_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in labor speeches</b>
+```{r labor co-occurrence with enviroLaborKeywords by 5-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1925_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in enviroLabor speeches</b>
+```{r enviroLabor co-occurrence with enviroLaborKeywords by 5-yr period 1925, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1925_enviroLabor.jpg")
+
+```
+
+
+##### 1930
+
+<center>enviroLabor keywords in enviroLabor speeches</center>
+```{r enviro co-occurrence with enviroLaborKeywords by 5-yr period - 1930, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1930_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in labor speeches</b>
+```{r labor co-occurrence with enviroLaborKeywords by 5-yr period - 1930, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1930_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in enviroLabor speeches</b>
+```{r enviroLabor co-occurrence with enviroLaborKeywords by 5-yr period - 1930, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1930_enviroLabor.jpg")
+
+```
+
+
+##### 1935
+
+<center>enviroLabor keywords in enviroLabor speeches</center>
+```{r enviro co-occurrence with enviroLaborKeywords by 5-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1935_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in labor speeches</b>
+```{r labor co-occurrence with enviroLaborKeywords by 5-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1935_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in enviroLabor speeches</b>
+```{r enviroLabor co-occurrence with enviroLaborKeywords by 5-yr period - 1935, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1935_enviroLabor.jpg")
+
+```
+
+
+
+
+
+
+##### 1940
+
+<center>enviroLabor keywords in enviroLabor speeches</center>
+```{r enviro co-occurrence with enviroLaborKeywords by 5-yr period - 1940, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1940_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in labor speeches</b>
+```{r labor co-occurrence with enviroLaborKeywords by 5-yr period - 1940, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/laborTokens_wordPairs_corr_5yr_1940_enviroLabor.jpg")
+
+```
+
+<b>enviroLabor keywords in enviroLabor speeches</b>
+```{r enviroLabor co-occurrence with enviroLaborKeywords by 5-yr period - 1940, echo=FALSE, out.width = '100%'}
+
+knitr::include_graphics("figures/enviroLaborTokens_wordPairs_corr_5yr_1940_enviroLabor.jpg")
+
+```
+
+
+
+
+

@@ -1,0 +1,79 @@
+# DATA
+
+```{r set-up, include=FALSE}
+
+load("data/enviroLaborSpeeches.Rda")
+
+enviroVocab <- c("environmental",
+                 "natural environment",
+                 "ecolog",
+                 "ecosystem",
+                 "conservation",
+                 "deforest",
+                 "reclamation",
+                 "pollut",
+                 "(land|soil) (degradation|erosion|fertility)",
+                 "natural resource",
+                 "wildlife",
+                 "wilderness") %>%
+  as_tibble()
+                 
+laborVocab <- c("labor",
+                "worker",
+                "jobs",
+                "minimum wage",
+                "unionize",
+                "craft union",
+                "trade union",
+                "industrial union",
+                "collective bargaining") %>%
+  as_tibble()
+
+```
+
+
+## keywords
+
+##### environmental keywords
+
+```{r enviro keywords , echo=FALSE}
+enviroVocab
+```
+
+maybe: name resources? (<b>land, soil, air, water, forest, river</b>)
+
+##### labor keywords
+
+```{r labor keywords , echo=FALSE}
+laborVocab
+```
+
+maybe: remove <b>workforce</b>?
+
+## speeches
+
+##### speech counts over time: 
+```{r speech counts over time, echo=FALSE, cache=TRUE}
+
+# include_url("figures/speeches_by_year.html",height=500)
+
+tags$iframe(
+  src = "figures/speeches_by_year.html",
+  scrolling = "no",
+  frameBorder = "0",
+  height=400,
+  width="100%"
+)
+
+```
+
+##### speech sample  (n=1 per year):
+```{r enviroLabor speeches, echo=FALSE, cache=TRUE}
+
+enviroLaborSpeeches %>%
+  select(year,chamber,environment,labor,speech) %>%
+  group_by(year) %>%
+  sample_n(1) %>%
+  arrange(-year)
+
+```
