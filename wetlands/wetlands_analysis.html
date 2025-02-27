@@ -349,7 +349,7 @@ holdings in the state, sharing the name “BLM,” were considered a single
 multipolygon at the super unit level). The steps I took to handle such
 challenges are detailed below.</p>
 </div>
-<pre class="r fold-show"><code>##### CROP HOLDINGS
+<pre class="r fold-hide"><code>##### CROP HOLDINGS
 holdings &lt;- st_read(&quot;data/parks/cpad/OpenSpace_Holdings.shp&quot;,
   as_tibble = TRUE, options = &quot;ENCODING=latin1&quot;
 ) %&gt;%
@@ -389,7 +389,7 @@ href="https://www.fws.gov/sites/default/files/documents/wetlands-and-deepwater-m
 Classification Scheme</a> considers all marine and estuarine intertidal
 habitat to be wetland habitat, including beaches and rocky shores.</p>
 </div>
-<pre class="r fold-show"><code>##### WETLANDS
+<pre class="r fold-hide"><code>##### WETLANDS
 wetlands_full &lt;- st_read(&quot;data/wetlands/nwi_habitats.gdb&quot;, as_tibble = TRUE) %&gt;%
   clean_names() %&gt;%
   filter(wetland_type == &quot;Estuarine and Marine Wetland&quot;) %&gt;%
@@ -429,7 +429,7 @@ wetlands_full_simplified &lt;- wetlands_full %&gt;%
 ##### OUTPUT
 st_write(wetlands_full, &quot;data/wetlands/wetlands_estuarine_marine.gpkg&quot;, append = FALSE)
 st_write(wetlands_full_simplified, &quot;data/data_final/wetlands/wetlands_full_simplified.gpkg&quot;, append = FALSE)</code></pre>
-<iframe src="figures/map_wetlands.html" scrolling="no" frameBorder="0"></iframe>
+<iframe src="figures/map_wetlands.html" scrolling="no" frameBorder="0" height="550" width="100%"></iframe>
 <div class="custom-caption">
 <em>hover over polygons for park names. draw bounding box to zoom. click
 legend layers to toggle on/off.</em>
@@ -575,7 +575,7 @@ level, there was a single, contiguous group of holdings intersecting
 wetlands for each super unit; there was thus no need to further
 differentiate between distinct groups of holdings within each super unit
 before merging the wetland holdings back to the super unit level.</p>
-<pre class="r fold-show"><code>##### FIND HOLDING EXCEPTIONS THAT INTERSECT WETLANDS
+<pre class="r fold-hide"><code>##### FIND HOLDING EXCEPTIONS THAT INTERSECT WETLANDS
 wetlandParks_exceptions &lt;- holdings %&gt;%
   clean_names() %&gt;%
   filter(unit_name %in% c(&quot;BLM&quot;, &quot;California State Lands Commission&quot;, &quot;City of Eureka lot&quot;)) %&gt;%
@@ -661,7 +661,7 @@ considered a feature within a larger CPAD park).</p>
 <p>I iteratively returned to the wetland-parks data to merge such cases
 as we encountered them. The merged cases are documented below.</p>
 </div>
-<pre class="r fold-show"><code>##### MERGE DUPLICATE PARKS
+<pre class="r fold-hide"><code>##### MERGE DUPLICATE PARKS
 wetlandParks &lt;- wetlandParks %&gt;%
   mutate(unit_name = case_when(
     unit_name == &quot;Napa -- Sonoma Marshes Wildlife Area&quot; ~
@@ -823,7 +823,7 @@ California Climate Assessment regions</a>. After meging the “San Diego”
 and “Los Angeles” regions, I assigned wetlands to one of four regions:
 North Coast, Bay Area, Central Coast, or South Coast.</p>
 </div>
-<pre class="r fold-show"><code>##### FIND WETLAND-PARK REGIONS
+<pre class="r fold-hide"><code>##### FIND WETLAND-PARK REGIONS
 wetlandParks &lt;- wetlandParks %&gt;%
   st_join(CA_regions,
     join = st_intersects,
@@ -850,7 +850,7 @@ the sum total acres of wetland polygons that a given park intersects and
 (2) the cropped acres of wetland contained within the boundaries of the
 park.</p>
 </div>
-<pre class="r fold-show"><code>##### FIND WETLAND ACRES
+<pre class="r fold-hide"><code>##### FIND WETLAND ACRES
 wetlandParks_acres &lt;- wetlands %&gt;%
   st_intersection(y = wetlandParks) %&gt;%
   group_by(suid) %&gt;%
@@ -911,7 +911,7 @@ href="https://oehha.ca.gov/calenviroscreen/report/calenviroscreen-40">CalEnviroS
 <div id="spatially-join-access-points-to-wetland-park-polygons."
 class="section level6">
 <h6>1. spatially join access points to wetland-park polygons.</h6>
-<pre class="r fold-show"><code>##### FIND ACCESS POINTS THAT INTERSECT WETLAND-PARKS
+<pre class="r fold-hide"><code>##### FIND ACCESS POINTS THAT INTERSECT WETLAND-PARKS
 access_wetlands &lt;- access %&gt;%
   mutate(matched = case_when(
     lengths(st_intersects(., wetlandParks)) == 0 ~
@@ -943,7 +943,7 @@ amenity manual data population</a></p>
 <div id="find-closest-transit-stop-to-each-wetland-park."
 class="section level6">
 <h6>3. find closest transit stop to each wetland-park.</h6>
-<pre class="r fold-show"><code>##### WETLAND-PARK CENTROIDS
+<pre class="r fold-hide"><code>##### WETLAND-PARK CENTROIDS
 wetlandParks_centroid &lt;- st_centroid(wetlandParks) %&gt;%
   select(unit_name, suid)
 
@@ -981,7 +981,7 @@ wetlandParks_nearest &lt;- wetlandParks_centroid %&gt;%
 <div id="find-transit-stops-within-1--and-0.5-mile-buffer."
 class="section level6">
 <h6>4. find # transit stops within 1- and 0.5-mile buffer.</h6>
-<pre class="r fold-show"><code>##### CREATE WETLAND-PARK BUFFERS
+<pre class="r fold-hide"><code>##### CREATE WETLAND-PARK BUFFERS
 wetlandParks_buffer_1 &lt;- st_buffer(wetlandParks, dist = 1609) # 1-mile, in meters
 wetlandParks_buffer_0.5 &lt;- st_buffer(wetlandParks, dist = 805) # 0.5-mile, in meters
 
@@ -1022,7 +1022,7 @@ wetlandParks_transit_0.5 &lt;- transit %&gt;%
 <div id="spatially-join-transit-data-to-wetland-park-polygons."
 class="section level6">
 <h6>5. spatially join transit data to wetland-park polygons.</h6>
-<pre class="r fold-show"><code>##### JOIN TRANSIT DATA
+<pre class="r fold-hide"><code>##### JOIN TRANSIT DATA
 wetlandParks_transit &lt;- wetlandParks_nearest %&gt;%
   left_join(wetlandParks_transit_1) %&gt;%
   left_join(wetlandParks_transit_0.5) %&gt;%
@@ -1043,7 +1043,7 @@ wetlandParks_transit &lt;- wetlandParks_nearest %&gt;%
 <div id="spatially-join-vulnerability-data-to-wetland-park-polygons."
 class="section level6">
 <h6>6. spatially join vulnerability data to wetland-park polygons.</h6>
-<pre class="r fold-show"><code>##### JOIN VULNERABILITY DATA
+<pre class="r fold-hide"><code>##### JOIN VULNERABILITY DATA
 wetlandParks_vul &lt;- wetlandParks %&gt;%
   st_join(vul,
     suffix = c(&quot;_park&quot;, &quot;_vul&quot;),
@@ -1063,7 +1063,7 @@ wetlandParks_vul &lt;- wetlandParks %&gt;%
 class="section level6">
 <h6>7. spatially join calenviroscreen data to wetland-park
 polygons.</h6>
-<pre class="r fold-show"><code>##### JOIN CALENVIROSCREEN DATA
+<pre class="r fold-hide"><code>##### JOIN CALENVIROSCREEN DATA
 wetlandParks_socio &lt;- wetlandParks %&gt;%
   st_join(socio,
     suffix = c(&quot;_park&quot;, &quot;_socio&quot;),
@@ -1094,7 +1094,7 @@ wetlandParks_socio &lt;- wetlandParks %&gt;%
 <div id="join-all-supplemental-data-with-full-wetland-parks-dataset."
 class="section level6">
 <h6>8. join all supplemental data with full wetland-parks dataset.</h6>
-<pre class="r fold-show"><code>##### MERGE ALL
+<pre class="r fold-hide"><code>##### MERGE ALL
 wetlandParks_final &lt;- wetlandParks %&gt;%
   left_join(wetlandParks_amenities) %&gt;%
   left_join(wetlandParks_transit) %&gt;%
