@@ -1,0 +1,15 @@
+data
+source
+environmentallabor-speeches
+environmentallabor-keywords
+stopwords
+approach
+steps
+snapshot
+speech-counts-over-time
+speeches-as-proportion-of-total-annual-speeches-over-time
+year-periods
+year-periods-1
+year-periods-2
+year-periods-3
+year-periods-4
