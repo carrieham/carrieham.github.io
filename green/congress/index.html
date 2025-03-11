@@ -4,13 +4,13 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>1 DATA | CLC text mining</title>
+<title>1 INTRO | _main.knit</title>
 <meta name="author" content="Carrie Hamilton">
 <meta name="generator" content="bookdown 0.41 with bs4_book()">
-<meta property="og:title" content="1 DATA | CLC text mining">
+<meta property="og:title" content="1 INTRO | _main.knit">
 <meta property="og:type" content="book">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="1 DATA | CLC text mining">
+<meta name="twitter:title" content="1 INTRO | _main.knit">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><link href="libs/IBM_Plex_Mono-0.4.9/font.css" rel="stylesheet">
@@ -34,7 +34,7 @@
 
     <div class="d-flex align-items-start justify-content-between">
       <h1>
-        <a href="index.html" title="">CLC text mining</a>
+        <a href="index.html" title=""></a>
       </h1>
       <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
     </div>
@@ -46,12 +46,10 @@
 
       <nav aria-label="Table of contents"><h2>Table of contents</h2>
         <ul class="book-toc list-unstyled">
-<li><a class="active" href="index.html"><span class="header-section-number">1</span> DATA</a></li>
-<li><a class="" href="year-periods.html"><span class="header-section-number">2</span> 25-YEAR PERIODS</a></li>
-<li><a class="" href="year-periods-1.html"><span class="header-section-number">3</span> 15-YEAR PERIODS</a></li>
-<li><a class="" href="year-periods-2.html"><span class="header-section-number">4</span> 10-YEAR PERIODS</a></li>
-<li><a class="" href="year-periods-3.html"><span class="header-section-number">5</span> 5-YEAR PERIODS</a></li>
-<li><a class="" href="year-periods-4.html"><span class="header-section-number">6</span> 2-YEAR PERIODS</a></li>
+<li><a class="active" href="index.html"><span class="header-section-number">1</span> INTRO</a></li>
+<li><a class="" href="data.html"><span class="header-section-number">2</span> DATA</a></li>
+<li><a class="" href="figures.html"><span class="header-section-number">3</span> FIGURES</a></li>
+<li><a class="" href="topic-models.html"><span class="header-section-number">4</span> TOPIC MODELS</a></li>
 </ul>
 
         <div class="book-extra">
@@ -59,180 +57,85 @@
         </div>
       </nav>
 </div>
-  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><!--bookdown:title:end--><!--bookdown:title:start--><div id="data" class="section level1" number="1">
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><!--bookdown:title:end--><!--bookdown:title:start--><div id="intro" class="section level1" number="1">
 <h1>
-<span class="header-section-number">1</span> DATA<a class="anchor" aria-label="anchor" href="#data"><i class="fas fa-link"></i></a>
+<span class="header-section-number">1</span> INTRO<a class="anchor" aria-label="anchor" href="#intro"><i class="fas fa-link"></i></a>
 </h1>
-<p>
-</p>
-<p><br></p>
-<div id="source" class="section level2" number="1.1">
-<h2>
-<span class="header-section-number">1.1</span> source<a class="anchor" aria-label="anchor" href="#source"><i class="fas fa-link"></i></a>
+<div id="work-to-date" class="section level2 unnumbered">
+<h2>WORK TO DATE<a class="anchor" aria-label="anchor" href="#work-to-date"><i class="fas fa-link"></i></a>
 </h2>
-<div id="environmentallabor-speeches" class="section level4" number="1.1.0.1">
-<h4>
-<span class="header-section-number">1.1.0.1</span> environmental/labor speeches<a class="anchor" aria-label="anchor" href="#environmentallabor-speeches"><i class="fas fa-link"></i></a>
-</h4>
-<p><b>1873-2016:</b> <a href="https://data.stanford.edu/congress_text">stanford hein project</a></p>
+<p>I have scraped, cleaned, and subset U.S. congressional speeches pertaining to environmental and labor issues from 1873-2024 (more on the data and keyword selection on Friday). The main text mining approaches I have experimented with include:</p>
+<ol style="list-style-type: decimal">
+<li>
+<b>Dynamic Topic Modeling:</b> How does the frequency of topics in environmental-labor congressional speeches change over time? How do the words representing a topic evolve over time?</li>
+<li>
+<b>Term Frequency - Inverse Period Frequency:</b> What words are most distinguishing of environmental-labor speeches in different periods?</li>
+<li>
+<b>Co-occurrence Networks:</b> What words co-occur with labor and/or environmental keywords in a given period? How do word co-occurrences evolve over time?</li>
+</ol>
+</div>
+<div id="broader-work" class="section level2 unnumbered">
+<h2>BROADER WORK<a class="anchor" aria-label="anchor" href="#broader-work"><i class="fas fa-link"></i></a>
+</h2>
+<p>The energy transition is marked by both tremendous urgency and tremendous possibility; the sociotechnical blueprints of our new energy system are not fixed. The rollout (and rollback) of new green industrial policy raises questions about what is at stake for US workers and their environments as the energy transition unfolds–and the strategic position workers hold to advance or contest visions of the green world they quite literally build. I am interested in the social and ecological dilemmas that we must contend with to advance an energy transition that is both green and just–and the enviro-labor organizing strategies capable of achieving this.</p>
+<p>Some of the questions that motivate my broader doctoral work:</p>
 <ul>
-<li>download bound edition speeches (1873-2009)</li>
-<li>download daily edition speeches (1981-2016)</li>
-<li>remove bound/daily speech year overlap (I subset bound speeches to 1973-1981 and used full daily speech 1981-2016 data)</li>
-<li>subset to enviro/labor speeches</li>
+<li>How do key state, corporate, environmental, and labor actors articulate “labor” and “environment” relations in struggles over green onshoring?</li>
+<li>How do (and don’t) these shifting green supply chains transform geographies of solidarity (1) within the labor movement and (2) between workers and environmentalists?</li>
+<li>How do working and organizing conditions vary across different nodes of the EV and battery supply chain? How do working and organizing conditions surrounding EV/battery production vary geographically within the U.S. (e.g., proposed battery plants in California vs. Tennessee)?</li>
+<li>What strategic challenges and opportunities do these shifting geographies of green production pose for mass enviro-labor organizing?</li>
 </ul>
-<p><b>2016-2024:</b> <a href="https://www.congress.gov/search?q=%7B%22source%22%3A%22congrecord%22%7D">congress.gov</a></p>
+</div>
+<div id="next-steps" class="section level2 unnumbered">
+<h2>NEXT STEPS<a class="anchor" aria-label="anchor" href="#next-steps"><i class="fas fa-link"></i></a>
+</h2>
 <ul>
-<li>daily edition speeches scraped</li>
-<li>scraping tool built using modification of Devin Judge-Lord’s <a href="https://judgelord.github.io/congressionalrecord/">congressionalrecord R package</a> functions</li>
-<li>3x steps:
+<li>wrap up MA paper (<a href="https://docs.google.com/document/d/1ctnanSdi7whEGsh5vharfaDwPQxCBZUZ95WMuNmLTBQ/edit?usp=sharing">brainstorm</a>)</li>
+<li>finish scraping 1873-2016 data</li>
+<li>triples analysis</li>
+<li>ongoing questions:
 <ul>
-<li>download metadata</li>
-<li>download htm files</li>
-<li>convert to txt files</li>
+<li>keywords (always)</li>
+<li>enviro vs. labor vs. enviro+labor speeches</li>
+<li>DTM–keep working on this
+<ul>
+<li><a href="https://maartengr.github.io/BERTopic/index.html">BERTopic</a></li>
+<li>outlier reduction–Y/N?</li>
+<li>breaking up data into chunks, sub-setting, etc.</li>
 </ul>
 </li>
-<li>process + clean speeches using methods comparable to stanford hein project
-<ul>
-<li>subset to enviro/labor speeches</li>
+<li>refashioning this approach for geospatial analysis (e.g., unit of analysis is U.S. state vs. time period)</li>
 </ul>
 </li>
 </ul>
-<p>
-</p>
 </div>
-<div id="environmentallabor-keywords" class="section level4" number="1.1.0.2">
-<h4>
-<span class="header-section-number">1.1.0.2</span> environmental/labor keywords<a class="anchor" aria-label="anchor" href="#environmentallabor-keywords"><i class="fas fa-link"></i></a>
-</h4>
-
-<p><b>environmental keywords</b></p>
-enviro v1
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"(conservation|environmental) (group|movement|organization)"},{"1":"(conservation|environmental)(is)"},{"1":"ecolog(i|y)"},{"1":"environmental activis(t|m)"},{"1":"environmental (conservation|issue|law|policy|preservation|protection|justice)"},{"1":"natural (environment|resource|world)"},{"1":"pollution"},{"1":"wild(life|erness)"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-enviro v2
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"(conservation|environmental) (group|movement|organization)"},{"1":"(conservation|environmental)(is)"},{"1":"ecolog(i|y)"},{"1":"environmental activis(t|m)"},{"1":"environmental (conservation|issue|law|policy|preservation|protection|justice|regulation|awareness|education|impact|legislation|degradation|harm)"},{"1":"natural (environment|resource|world)"},{"1":"pollution"},{"1":"wild(life|erness)"},{"1":"(resource|environment|nature|land|air|water|energy|soil|forest).+conserv(e|ing|ation)"},{"1":"(resource|environment|nature|land|air|water|energy|soil|forest).+(//bprotect|//bpreserv|//bsteward)"},{"1":"conserv(e|ing|ation).+(resource|environment|nature|land|air|water|energy|soil|forest)"},{"1":"(//bprotect|//bpreserv|//bsteward).+(resource|environment|nature|land|air|water|energy|soil|forest)"},{"1":"(resource|water|energy|soil|forest) (use|management)"},{"1":"(air|water|soil) quality"},{"1":"land (use|management|reform|reclamation)"},{"1":"soil (erosion|health|degradation)"},{"1":"(clean|healthy|sustainable) (resource|environment|nature|land|air|water|energy|soil|forest)"},{"1":"(green|clean|renewable) (technolog|energy)"},{"1":"greenhouse (gas|effect)"},{"1":"emissions"},{"1":"carbon footprint"},{"1":"net(zero| zero|-zero)"},{"1":"carbon neutral"},{"1":"decarboniz(e|ation)"},{"1":"carbon(capture| capture|-capture)"},{"1":"carbon sink"},{"1":"climate (action|change|crisis|emergency|catastrophe|adaptation|resilience|justice)"},{"1":"global (warming|cooling|heating)"},{"1":"(just|energy) transition"},{"1":"sustainable development"},{"1":"climate refugee"},{"1":"extreme weather"},{"1":"natural disaster"},{"1":"eco(-anxiety|anxiety| anxiety)"},{"1":"mass extinction"},{"1":"(food|water|energy) (in)*(security|justice)"},{"1":"overconsumption"},{"1":"ecocide"},{"1":"degrowth"},{"1":"fossil fuel"},{"1":"hydrocarbon"},{"1":"(fuel|energy) (efficien|use|consumption|security|crisis)"},{"1":"(critical|strategic) (resource|mineral|metal|material)"},{"1":"green space"},{"1":"urban (agriculture|farm|garden)"},{"1":"(toxic|hazardous|nuclear) (chemical|waste)"},{"1":"solid waste"},{"1":"sewage"},{"1":"waste (reduction|disposal|management)"},{"1":"superfund"},{"1":"natural capital"},{"1":"ecosystem service"},{"1":"(endangered|protected) species"},{"1":"habitat"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<b>labor keywords</b>
-labor v1
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"working(-class| class|class)"},{"1":"working (people|person|men|man|women|woman|family|families|poor|america)"},{"1":"labor\\\\b"},{"1":"\\\\blabor"},{"1":"\\\\blaborer"},{"1":"work(er|force)"},{"1":"job"},{"1":"livelihood"},{"1":"unioniz"},{"1":"union job"},{"1":"(craft|industrial|trade) union"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-labor v2
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"working(-class| class|class)"},{"1":"working (people|person|men|man|women|woman|family|families|poor|america)"},{"1":"labor\\\\b"},{"1":"\\\\blabor"},{"1":"\\\\blaborer"},{"1":"worker"},{"1":"unioniz"},{"1":"union job"},{"1":"(craft|industrial|trade) union"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-big labor
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"AFL(-|\\\\s)?CIO"},{"1":"American Federation of Labor"},{"1":"Congress of Industrial Organizations"},{"1":"labor (federation|group|movement|organiz|union)"},{"1":"organized labor"},{"1":"(craft|industrial|trade) union"},{"1":"unioniz"},{"1":"unionism"},{"1":"unionist"},{"1":"union job"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-class
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"working(-class| class|class)"},{"1":"working (people|person|men|man|women|woman|family|families|poor|america)"},{"1":"labor\\\\b"},{"1":"\\\\blabor"},{"1":"\\\\blaborer"},{"1":"work(er|force)"},{"1":"job"},{"1":"livelihood"},{"1":"unioniz"},{"1":"union job"},{"1":"(craft|industrial|trade) union"},{"1":"(blue|white)(collar| collar|-collar)"},{"1":"(lower|middle|upper)(class| class|-class)"},{"1":"(million|billion)aire"},{"1":"(factory|business) owner"},{"1":"industrialist"},{"1":"monopolist"},{"1":"(corporate|business) executive"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<br>
-</div>
-<div id="stopwords" class="section level4" number="1.1.0.3">
-<h4>
-<span class="header-section-number">1.1.0.3</span> stopwords<a class="anchor" aria-label="anchor" href="#stopwords"><i class="fas fa-link"></i></a>
-</h4>
-<p>
-</p>
-<p><b>stopwords: iso</b>
-<br>
-source: <a href="https://cran.r-project.org/web/packages/stopwords/readme/README.html">stopwords R package</a></p>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"'ll"},{"1":"'tis"},{"1":"'twas"},{"1":"'ve"},{"1":"10"},{"1":"39"},{"1":"a"},{"1":"a's"},{"1":"able"},{"1":"ableabout"},{"1":"about"},{"1":"above"},{"1":"abroad"},{"1":"abst"},{"1":"accordance"},{"1":"according"},{"1":"accordingly"},{"1":"across"},{"1":"act"},{"1":"actually"},{"1":"ad"},{"1":"added"},{"1":"adj"},{"1":"adopted"},{"1":"ae"},{"1":"af"},{"1":"affected"},{"1":"affecting"},{"1":"affects"},{"1":"after"},{"1":"afterwards"},{"1":"ag"},{"1":"again"},{"1":"against"},{"1":"ago"},{"1":"ah"},{"1":"ahead"},{"1":"ai"},{"1":"ain't"},{"1":"aint"},{"1":"al"},{"1":"all"},{"1":"allow"},{"1":"allows"},{"1":"almost"},{"1":"alone"},{"1":"along"},{"1":"alongside"},{"1":"already"},{"1":"also"},{"1":"although"},{"1":"always"},{"1":"am"},{"1":"amid"},{"1":"amidst"},{"1":"among"},{"1":"amongst"},{"1":"amoungst"},{"1":"amount"},{"1":"an"},{"1":"and"},{"1":"announce"},{"1":"another"},{"1":"any"},{"1":"anybody"},{"1":"anyhow"},{"1":"anymore"},{"1":"anyone"},{"1":"anything"},{"1":"anyway"},{"1":"anyways"},{"1":"anywhere"},{"1":"ao"},{"1":"apart"},{"1":"apparently"},{"1":"appear"},{"1":"appreciate"},{"1":"appropriate"},{"1":"approximately"},{"1":"aq"},{"1":"ar"},{"1":"are"},{"1":"area"},{"1":"areas"},{"1":"aren"},{"1":"aren't"},{"1":"arent"},{"1":"arise"},{"1":"around"},{"1":"arpa"},{"1":"as"},{"1":"aside"},{"1":"ask"},{"1":"asked"},{"1":"asking"},{"1":"asks"},{"1":"associated"},{"1":"at"},{"1":"au"},{"1":"auth"},{"1":"available"},{"1":"aw"},{"1":"away"},{"1":"awfully"},{"1":"az"},{"1":"b"},{"1":"ba"},{"1":"back"},{"1":"backed"},{"1":"backing"},{"1":"backs"},{"1":"backward"},{"1":"backwards"},{"1":"bb"},{"1":"bd"},{"1":"be"},{"1":"became"},{"1":"because"},{"1":"become"},{"1":"becomes"},{"1":"becoming"},{"1":"been"},{"1":"before"},{"1":"beforehand"},{"1":"began"},{"1":"begin"},{"1":"beginning"},{"1":"beginnings"},{"1":"begins"},{"1":"behind"},{"1":"being"},{"1":"beings"},{"1":"believe"},{"1":"below"},{"1":"beside"},{"1":"besides"},{"1":"best"},{"1":"better"},{"1":"between"},{"1":"beyond"},{"1":"bf"},{"1":"bg"},{"1":"bh"},{"1":"bi"},{"1":"big"},{"1":"bill"},{"1":"billion"},{"1":"biol"},{"1":"bj"},{"1":"bm"},{"1":"bn"},{"1":"bo"},{"1":"both"},{"1":"bottom"},{"1":"br"},{"1":"brief"},{"1":"briefly"},{"1":"bs"},{"1":"bt"},{"1":"but"},{"1":"buy"},{"1":"bv"},{"1":"bw"},{"1":"by"},{"1":"bz"},{"1":"c"},{"1":"c'mon"},{"1":"c's"},{"1":"ca"},{"1":"call"},{"1":"came"},{"1":"can"},{"1":"can't"},{"1":"cannot"},{"1":"cant"},{"1":"caption"},{"1":"case"},{"1":"cases"},{"1":"cause"},{"1":"causes"},{"1":"cc"},{"1":"cd"},{"1":"certain"},{"1":"certainly"},{"1":"cf"},{"1":"cg"},{"1":"ch"},{"1":"changes"},{"1":"ci"},{"1":"ck"},{"1":"cl"},{"1":"clear"},{"1":"clearly"},{"1":"click"},{"1":"cm"},{"1":"cmon"},{"1":"cn"},{"1":"co"},{"1":"co."},{"1":"com"},{"1":"come"},{"1":"comes"},{"1":"computer"},{"1":"con"},{"1":"concerning"},{"1":"consequently"},{"1":"consider"},{"1":"considering"},{"1":"contain"},{"1":"containing"},{"1":"contains"},{"1":"copy"},{"1":"corresponding"},{"1":"could"},{"1":"could've"},{"1":"couldn"},{"1":"couldn't"},{"1":"couldnt"},{"1":"course"},{"1":"cr"},{"1":"cry"},{"1":"cs"},{"1":"cu"},{"1":"currently"},{"1":"cv"},{"1":"cx"},{"1":"cy"},{"1":"cz"},{"1":"d"},{"1":"dare"},{"1":"daren't"},{"1":"darent"},{"1":"date"},{"1":"de"},{"1":"dear"},{"1":"definitely"},{"1":"describe"},{"1":"described"},{"1":"despite"},{"1":"detail"},{"1":"did"},{"1":"didn"},{"1":"didn't"},{"1":"didnt"},{"1":"differ"},{"1":"different"},{"1":"differently"},{"1":"directly"},{"1":"dj"},{"1":"dk"},{"1":"dm"},{"1":"do"},{"1":"does"},{"1":"doesn"},{"1":"doesn't"},{"1":"doesnt"},{"1":"doing"},{"1":"don"},{"1":"don't"},{"1":"done"},{"1":"dont"},{"1":"doubtful"},{"1":"down"},{"1":"downed"},{"1":"downing"},{"1":"downs"},{"1":"downwards"},{"1":"due"},{"1":"during"},{"1":"dz"},{"1":"e"},{"1":"each"},{"1":"early"},{"1":"ec"},{"1":"ed"},{"1":"edu"},{"1":"ee"},{"1":"effect"},{"1":"eg"},{"1":"eh"},{"1":"eight"},{"1":"eighty"},{"1":"either"},{"1":"eleven"},{"1":"else"},{"1":"elsewhere"},{"1":"empty"},{"1":"end"},{"1":"ended"},{"1":"ending"},{"1":"ends"},{"1":"enough"},{"1":"entirely"},{"1":"er"},{"1":"es"},{"1":"especially"},{"1":"et"},{"1":"et-al"},{"1":"etc"},{"1":"even"},{"1":"evenly"},{"1":"ever"},{"1":"evermore"},{"1":"every"},{"1":"everybody"},{"1":"everyone"},{"1":"everything"},{"1":"everywhere"},{"1":"ex"},{"1":"exactly"},{"1":"example"},{"1":"except"},{"1":"f"},{"1":"face"},{"1":"faces"},{"1":"fact"},{"1":"facts"},{"1":"fairly"},{"1":"far"},{"1":"farther"},{"1":"felt"},{"1":"few"},{"1":"fewer"},{"1":"ff"},{"1":"fi"},{"1":"fifteen"},{"1":"fifth"},{"1":"fifty"},{"1":"fify"},{"1":"fill"},{"1":"find"},{"1":"finds"},{"1":"fire"},{"1":"first"},{"1":"five"},{"1":"fix"},{"1":"fj"},{"1":"fk"},{"1":"fm"},{"1":"fo"},{"1":"followed"},{"1":"following"},{"1":"follows"},{"1":"for"},{"1":"forever"},{"1":"former"},{"1":"formerly"},{"1":"forth"},{"1":"forty"},{"1":"forward"},{"1":"found"},{"1":"four"},{"1":"fr"},{"1":"free"},{"1":"from"},{"1":"front"},{"1":"full"},{"1":"fully"},{"1":"further"},{"1":"furthered"},{"1":"furthering"},{"1":"furthermore"},{"1":"furthers"},{"1":"fx"},{"1":"g"},{"1":"ga"},{"1":"gave"},{"1":"gb"},{"1":"gd"},{"1":"ge"},{"1":"general"},{"1":"generally"},{"1":"get"},{"1":"gets"},{"1":"getting"},{"1":"gf"},{"1":"gg"},{"1":"gh"},{"1":"gi"},{"1":"give"},{"1":"given"},{"1":"gives"},{"1":"giving"},{"1":"gl"},{"1":"gm"},{"1":"gmt"},{"1":"gn"},{"1":"go"},{"1":"goes"},{"1":"going"},{"1":"gone"},{"1":"good"},{"1":"goods"},{"1":"got"},{"1":"gotten"},{"1":"gov"},{"1":"gp"},{"1":"gq"},{"1":"gr"},{"1":"great"},{"1":"greater"},{"1":"greatest"},{"1":"greetings"},{"1":"group"},{"1":"grouped"},{"1":"grouping"},{"1":"groups"},{"1":"gs"},{"1":"gt"},{"1":"gu"},{"1":"gw"},{"1":"gy"},{"1":"h"},{"1":"had"},{"1":"hadn't"},{"1":"hadnt"},{"1":"half"},{"1":"happens"},{"1":"hardly"},{"1":"has"},{"1":"hasn"},{"1":"hasn't"},{"1":"hasnt"},{"1":"have"},{"1":"haven"},{"1":"haven't"},{"1":"havent"},{"1":"having"},{"1":"he"},{"1":"he'd"},{"1":"he'll"},{"1":"he's"},{"1":"hed"},{"1":"hell"},{"1":"hello"},{"1":"help"},{"1":"hence"},{"1":"her"},{"1":"here"},{"1":"here's"},{"1":"hereafter"},{"1":"hereby"},{"1":"herein"},{"1":"heres"},{"1":"hereupon"},{"1":"hers"},{"1":"herself"},{"1":"herse”"},{"1":"hes"},{"1":"hi"},{"1":"hid"},{"1":"high"},{"1":"higher"},{"1":"highest"},{"1":"him"},{"1":"himself"},{"1":"himse”"},{"1":"his"},{"1":"hither"},{"1":"hk"},{"1":"hm"},{"1":"hn"},{"1":"home"},{"1":"homepage"},{"1":"hopefully"},{"1":"how"},{"1":"how'd"},{"1":"how'll"},{"1":"how's"},{"1":"howbeit"},{"1":"however"},{"1":"hr"},{"1":"ht"},{"1":"htm"},{"1":"html"},{"1":"http"},{"1":"hu"},{"1":"hundred"},{"1":"i"},{"1":"i'd"},{"1":"i'll"},{"1":"i'm"},{"1":"i've"},{"1":"i.e."},{"1":"id"},{"1":"ie"},{"1":"if"},{"1":"ignored"},{"1":"ii"},{"1":"il"},{"1":"ill"},{"1":"im"},{"1":"immediate"},{"1":"immediately"},{"1":"importance"},{"1":"important"},{"1":"in"},{"1":"inasmuch"},{"1":"inc"},{"1":"inc."},{"1":"indeed"},{"1":"index"},{"1":"indicate"},{"1":"indicated"},{"1":"indicates"},{"1":"information"},{"1":"inner"},{"1":"inside"},{"1":"insofar"},{"1":"instead"},{"1":"int"},{"1":"interest"},{"1":"interested"},{"1":"interesting"},{"1":"interests"},{"1":"into"},{"1":"invention"},{"1":"inward"},{"1":"io"},{"1":"iq"},{"1":"ir"},{"1":"is"},{"1":"isn"},{"1":"isn't"},{"1":"isnt"},{"1":"it"},{"1":"it'd"},{"1":"it'll"},{"1":"it's"},{"1":"itd"},{"1":"itll"},{"1":"its"},{"1":"itself"},{"1":"itse”"},{"1":"ive"},{"1":"j"},{"1":"je"},{"1":"jm"},{"1":"jo"},{"1":"join"},{"1":"jp"},{"1":"just"},{"1":"k"},{"1":"ke"},{"1":"keep"},{"1":"keeps"},{"1":"kept"},{"1":"keys"},{"1":"kg"},{"1":"kh"},{"1":"ki"},{"1":"kind"},{"1":"km"},{"1":"kn"},{"1":"knew"},{"1":"know"},{"1":"known"},{"1":"knows"},{"1":"kp"},{"1":"kr"},{"1":"kw"},{"1":"ky"},{"1":"kz"},{"1":"l"},{"1":"la"},{"1":"large"},{"1":"largely"},{"1":"last"},{"1":"lately"},{"1":"later"},{"1":"latest"},{"1":"latter"},{"1":"latterly"},{"1":"lb"},{"1":"lc"},{"1":"least"},{"1":"length"},{"1":"less"},{"1":"lest"},{"1":"let"},{"1":"let's"},{"1":"lets"},{"1":"li"},{"1":"like"},{"1":"liked"},{"1":"likely"},{"1":"likewise"},{"1":"line"},{"1":"little"},{"1":"lk"},{"1":"ll"},{"1":"long"},{"1":"longer"},{"1":"longest"},{"1":"look"},{"1":"looking"},{"1":"looks"},{"1":"low"},{"1":"lower"},{"1":"lr"},{"1":"ls"},{"1":"lt"},{"1":"ltd"},{"1":"lu"},{"1":"lv"},{"1":"ly"},{"1":"m"},{"1":"ma"},{"1":"made"},{"1":"mainly"},{"1":"make"},{"1":"makes"},{"1":"making"},{"1":"man"},{"1":"many"},{"1":"may"},{"1":"maybe"},{"1":"mayn't"},{"1":"maynt"},{"1":"mc"},{"1":"md"},{"1":"me"},{"1":"mean"},{"1":"means"},{"1":"meantime"},{"1":"meanwhile"},{"1":"member"},{"1":"members"},{"1":"men"},{"1":"merely"},{"1":"mg"},{"1":"mh"},{"1":"microsoft"},{"1":"might"},{"1":"might've"},{"1":"mightn't"},{"1":"mightnt"},{"1":"mil"},{"1":"mill"},{"1":"million"},{"1":"mine"},{"1":"minus"},{"1":"miss"},{"1":"mk"},{"1":"ml"},{"1":"mm"},{"1":"mn"},{"1":"mo"},{"1":"more"},{"1":"moreover"},{"1":"most"},{"1":"mostly"},{"1":"move"},{"1":"mp"},{"1":"mq"},{"1":"mr"},{"1":"mrs"},{"1":"ms"},{"1":"msie"},{"1":"mt"},{"1":"mu"},{"1":"much"},{"1":"mug"},{"1":"must"},{"1":"must've"},{"1":"mustn't"},{"1":"mustnt"},{"1":"mv"},{"1":"mw"},{"1":"mx"},{"1":"my"},{"1":"myself"},{"1":"myse”"},{"1":"mz"},{"1":"n"},{"1":"na"},{"1":"name"},{"1":"namely"},{"1":"nay"},{"1":"nc"},{"1":"nd"},{"1":"ne"},{"1":"near"},{"1":"nearly"},{"1":"necessarily"},{"1":"necessary"},{"1":"need"},{"1":"needed"},{"1":"needing"},{"1":"needn't"},{"1":"neednt"},{"1":"needs"},{"1":"neither"},{"1":"net"},{"1":"netscape"},{"1":"never"},{"1":"neverf"},{"1":"neverless"},{"1":"nevertheless"},{"1":"new"},{"1":"newer"},{"1":"newest"},{"1":"next"},{"1":"nf"},{"1":"ng"},{"1":"ni"},{"1":"nine"},{"1":"ninety"},{"1":"nl"},{"1":"no"},{"1":"no-one"},{"1":"nobody"},{"1":"non"},{"1":"none"},{"1":"nonetheless"},{"1":"noone"},{"1":"nor"},{"1":"normally"},{"1":"nos"},{"1":"not"},{"1":"noted"},{"1":"nothing"},{"1":"notwithstanding"},{"1":"novel"},{"1":"now"},{"1":"nowhere"},{"1":"np"},{"1":"nr"},{"1":"nu"},{"1":"null"},{"1":"number"},{"1":"numbers"},{"1":"nz"},{"1":"o"},{"1":"obtain"},{"1":"obtained"},{"1":"obviously"},{"1":"of"},{"1":"off"},{"1":"often"},{"1":"oh"},{"1":"ok"},{"1":"okay"},{"1":"old"},{"1":"older"},{"1":"oldest"},{"1":"om"},{"1":"omitted"},{"1":"on"},{"1":"once"},{"1":"one"},{"1":"one's"},{"1":"ones"},{"1":"only"},{"1":"onto"},{"1":"open"},{"1":"opened"},{"1":"opening"},{"1":"opens"},{"1":"opposite"},{"1":"or"},{"1":"ord"},{"1":"order"},{"1":"ordered"},{"1":"ordering"},{"1":"orders"},{"1":"org"},{"1":"other"},{"1":"others"},{"1":"otherwise"},{"1":"ought"},{"1":"oughtn't"},{"1":"oughtnt"},{"1":"our"},{"1":"ours"},{"1":"ourselves"},{"1":"out"},{"1":"outside"},{"1":"over"},{"1":"overall"},{"1":"owing"},{"1":"own"},{"1":"p"},{"1":"pa"},{"1":"page"},{"1":"pages"},{"1":"part"},{"1":"parted"},{"1":"particular"},{"1":"particularly"},{"1":"parting"},{"1":"parts"},{"1":"past"},{"1":"pe"},{"1":"per"},{"1":"perhaps"},{"1":"pf"},{"1":"pg"},{"1":"ph"},{"1":"pk"},{"1":"pl"},{"1":"place"},{"1":"placed"},{"1":"places"},{"1":"please"},{"1":"plus"},{"1":"pm"},{"1":"pmid"},{"1":"pn"},{"1":"point"},{"1":"pointed"},{"1":"pointing"},{"1":"points"},{"1":"poorly"},{"1":"possible"},{"1":"possibly"},{"1":"potentially"},{"1":"pp"},{"1":"pr"},{"1":"predominantly"},{"1":"present"},{"1":"presented"},{"1":"presenting"},{"1":"presents"},{"1":"presumably"},{"1":"previously"},{"1":"primarily"},{"1":"probably"},{"1":"problem"},{"1":"problems"},{"1":"promptly"},{"1":"proud"},{"1":"provided"},{"1":"provides"},{"1":"pt"},{"1":"put"},{"1":"puts"},{"1":"pw"},{"1":"py"},{"1":"q"},{"1":"qa"},{"1":"que"},{"1":"quickly"},{"1":"quite"},{"1":"qv"},{"1":"r"},{"1":"ran"},{"1":"rather"},{"1":"rd"},{"1":"re"},{"1":"readily"},{"1":"really"},{"1":"reasonably"},{"1":"recent"},{"1":"recently"},{"1":"ref"},{"1":"refs"},{"1":"regarding"},{"1":"regardless"},{"1":"regards"},{"1":"related"},{"1":"relatively"},{"1":"research"},{"1":"reserved"},{"1":"respectively"},{"1":"resulted"},{"1":"resulting"},{"1":"results"},{"1":"right"},{"1":"ring"},{"1":"ro"},{"1":"room"},{"1":"rooms"},{"1":"round"},{"1":"ru"},{"1":"run"},{"1":"rw"},{"1":"s"},{"1":"sa"},{"1":"said"},{"1":"same"},{"1":"saw"},{"1":"say"},{"1":"saying"},{"1":"says"},{"1":"sb"},{"1":"sc"},{"1":"sd"},{"1":"se"},{"1":"sec"},{"1":"second"},{"1":"secondly"},{"1":"seconds"},{"1":"section"},{"1":"see"},{"1":"seeing"},{"1":"seem"},{"1":"seemed"},{"1":"seeming"},{"1":"seems"},{"1":"seen"},{"1":"sees"},{"1":"self"},{"1":"selves"},{"1":"sensible"},{"1":"sent"},{"1":"serious"},{"1":"seriously"},{"1":"seven"},{"1":"seventy"},{"1":"several"},{"1":"sg"},{"1":"sh"},{"1":"shall"},{"1":"shan't"},{"1":"shant"},{"1":"she"},{"1":"she'd"},{"1":"she'll"},{"1":"she's"},{"1":"shed"},{"1":"shell"},{"1":"shes"},{"1":"should"},{"1":"should've"},{"1":"shouldn"},{"1":"shouldn't"},{"1":"shouldnt"},{"1":"show"},{"1":"showed"},{"1":"showing"},{"1":"shown"},{"1":"showns"},{"1":"shows"},{"1":"si"},{"1":"side"},{"1":"sides"},{"1":"significant"},{"1":"significantly"},{"1":"similar"},{"1":"similarly"},{"1":"since"},{"1":"sincere"},{"1":"site"},{"1":"six"},{"1":"sixty"},{"1":"sj"},{"1":"sk"},{"1":"sl"},{"1":"slightly"},{"1":"sm"},{"1":"small"},{"1":"smaller"},{"1":"smallest"},{"1":"sn"},{"1":"so"},{"1":"some"},{"1":"somebody"},{"1":"someday"},{"1":"somehow"},{"1":"someone"},{"1":"somethan"},{"1":"something"},{"1":"sometime"},{"1":"sometimes"},{"1":"somewhat"},{"1":"somewhere"},{"1":"soon"},{"1":"sorry"},{"1":"specifically"},{"1":"specified"},{"1":"specify"},{"1":"specifying"},{"1":"sr"},{"1":"st"},{"1":"state"},{"1":"states"},{"1":"still"},{"1":"stop"},{"1":"strongly"},{"1":"su"},{"1":"sub"},{"1":"substantially"},{"1":"successfully"},{"1":"such"},{"1":"sufficiently"},{"1":"suggest"},{"1":"sup"},{"1":"sure"},{"1":"sv"},{"1":"sy"},{"1":"system"},{"1":"sz"},{"1":"t"},{"1":"t's"},{"1":"take"},{"1":"taken"},{"1":"taking"},{"1":"tc"},{"1":"td"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<br><p><b>stopwords: stanford project additions</b>
-<br>
-source: Gentzkow, M, J. Shapiro, &amp; M. Taddy. 2018. <a href="https://data.stanford.edu/congress_text">Congressional Record for the 43rd-114th Congresses: Parsed Speeches and Phrase Counts</a>.</p>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"absent"},{"1":"adjourn"},{"1":"ask"},{"1":"can"},{"1":"chairman"},{"1":"committee"},{"1":"con"},{"1":"democrat"},{"1":"etc"},{"1":"gentleladies"},{"1":"gentlelady"},{"1":"gentleman"},{"1":"gentlemen"},{"1":"gentlewoman"},{"1":"gentlewomen"},{"1":"hereabout"},{"1":"hereafter"},{"1":"hereat"},{"1":"hereby"},{"1":"herein"},{"1":"hereinafter"},{"1":"hereinbefore"},{"1":"hereinto"},{"1":"hereof"},{"1":"hereon"},{"1":"hereto"},{"1":"heretofore"},{"1":"hereunder"},{"1":"hereunto"},{"1":"hereupon"},{"1":"herewith"},{"1":"month"},{"1":"mr"},{"1":"mrs"},{"1":"nai"},{"1":"nay"},{"1":"none"},{"1":"now"},{"1":"part"},{"1":"per"},{"1":"pro"},{"1":"republican"},{"1":"say"},{"1":"senator"},{"1":"shall"},{"1":"sir"},{"1":"speak"},{"1":"speaker"},{"1":"tell"},{"1":"thank"},{"1":"thereabout"},{"1":"thereafter"},{"1":"thereagainst"},{"1":"thereat"},{"1":"therebefore"},{"1":"therebeforn"},{"1":"thereby"},{"1":"therefor"},{"1":"therefore"},{"1":"therefrom"},{"1":"therein"},{"1":"thereinafter"},{"1":"thereof"},{"1":"thereon"},{"1":"thereto"},{"1":"theretofore"},{"1":"thereunder"},{"1":"thereunto"},{"1":"thereupon"},{"1":"therewith"},{"1":"therewithal"},{"1":"today"},{"1":"whereabouts"},{"1":"whereafter"},{"1":"whereas"},{"1":"whereat"},{"1":"whereby"},{"1":"wherefore"},{"1":"wherefrom"},{"1":"wherein"},{"1":"whereinto"},{"1":"whereof"},{"1":"whereon"},{"1":"whereto"},{"1":"whereunder"},{"1":"whereupon"},{"1":"wherever"},{"1":"wherewith"},{"1":"wherewithal"},{"1":"will"},{"1":"yea"},{"1":"yes"},{"1":"yield"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<p><br></p>
-<b>stopwords: my additions</b>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["value"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"white house"},{"1":"white houses"},{"1":"avenue"},{"1":"street"},{"1":"nw"},{"1":"northwest"},{"1":"suite"},{"1":"number"},{"1":"numeric"},{"1":"sequence"},{"1":"sequences"},{"1":"add"},{"1":"addition"},{"1":"additions"},{"1":"adding"},{"1":"added"},{"1":"amend"},{"1":"amended"},{"1":"amendment"},{"1":"amendments"},{"1":"amending"},{"1":"amends"},{"1":"america"},{"1":"american"},{"1":"americas"},{"1":"bill"},{"1":"bills"},{"1":"chapter"},{"1":"chapters"},{"1":"code"},{"1":"codes"},{"1":"country"},{"1":"countrys"},{"1":"congress"},{"1":"congressional"},{"1":"district of columbia"},{"1":"district"},{"1":"districts"},{"1":"enact"},{"1":"enacted"},{"1":"enacting"},{"1":"enacts"},{"1":"federal"},{"1":"senate"},{"1":"senates"},{"1":"house of representatives"},{"1":"representative"},{"1":"representatives"},{"1":"the house"},{"1":"insert"},{"1":"inserting"},{"1":"inserted"},{"1":"inserts"},{"1":"law"},{"1":"laws"},{"1":"legislation"},{"1":"legislative"},{"1":"legislator"},{"1":"paragraph"},{"1":"paragraphs"},{"1":"sentence"},{"1":"sentences"},{"1":"percent"},{"1":"percentage"},{"1":"percentages"},{"1":"president"},{"1":"presidents"},{"1":"presidential"},{"1":"print"},{"1":"printing"},{"1":"printed"},{"1":"prints"},{"1":"record"},{"1":"recording"},{"1":"recorded"},{"1":"records"},{"1":"section"},{"1":"sections"},{"1":"united states"},{"1":"state"},{"1":"states"},{"1":"subchapter"},{"1":"subchapters"},{"1":"subsection"},{"1":"subsections"},{"1":"supreme court"},{"1":"supreme courts"},{"1":"court"},{"1":"courts"},{"1":"title"},{"1":"titles"},{"1":"unanimous consent"},{"1":"consent"},{"1":"consenting"},{"1":"united"},{"1":"u.s."},{"1":"us"},{"1":"urge"},{"1":"urging"},{"1":"urged"},{"1":"urges"},{"1":"colleague"},{"1":"colleagues"},{"1":"washington"},{"1":"d.c."},{"1":"d.c"},{"1":"dc"},{"1":"u."},{"1":"p.l"},{"1":"p.o"},{"1":"p.o."},{"1":"po"},{"1":"u"},{"1":"h.r"},{"1":"hr"},{"1":"h.r."},{"1":"llc"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<p><br></p>
-<p>
-</p>
-</div>
-</div>
-<div id="approach" class="section level2" number="1.2">
-<h2>
-<span class="header-section-number">1.2</span> approach<a class="anchor" aria-label="anchor" href="#approach"><i class="fas fa-link"></i></a>
+<div id="old-updates" class="section level2 unnumbered">
+<h2>OLD UPDATES<a class="anchor" aria-label="anchor" href="#old-updates"><i class="fas fa-link"></i></a>
 </h2>
-<div id="steps" class="section level4" number="1.2.0.1">
-<h4>
-<span class="header-section-number">1.2.0.1</span> steps:<a class="anchor" aria-label="anchor" href="#steps"><i class="fas fa-link"></i></a>
-</h4>
-<p>[1] join hein bound/daily speeches with desc metadata files</p>
-<p>[2] merge hein bound/daily speeches with desc metadata files</p>
-<p>[3] scrape congress.gov for 2016-2024</p>
-<p>[4] merge hein and congress.gov data for full 1873-2024 dataset</p>
-<p>[5] subset to speeches with (1) 1+ environmental keywords (<b>enviro speeches</b>), (2) 1+ labor keywords (<b>labor speeches</b>), and (3) 1+ environmental AND 1+ labor keywords (<b>enviro-labor speeches</b>)</p>
-[6] tokenize + remove stop words
-
-<p><br></p>
-</div>
-</div>
-<div id="snapshot" class="section level2" number="1.3">
-<h2>
-<span class="header-section-number">1.3</span> snapshot<a class="anchor" aria-label="anchor" href="#snapshot"><i class="fas fa-link"></i></a>
-</h2>
-<div id="speech-counts-over-time" class="section level5" number="1.3.0.0.1">
-<h5>
-<span class="header-section-number">1.3.0.0.1</span> speech counts over time:<a class="anchor" aria-label="anchor" href="#speech-counts-over-time"><i class="fas fa-link"></i></a>
-</h5>
-<iframe src="figures/speeches_by_year.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
-<center>
-<em>double-click legend keys to isolate type of speech</em>
-</center>
-</div>
-<div id="speeches-as-proportion-of-total-annual-speeches-over-time" class="section level5" number="1.3.0.0.2">
-<h5>
-<span class="header-section-number">1.3.0.0.2</span> speeches as proportion of total annual speeches over time:<a class="anchor" aria-label="anchor" href="#speeches-as-proportion-of-total-annual-speeches-over-time"><i class="fas fa-link"></i></a>
-</h5>
-<iframe src="figures/speeches_prop_by_year.html" scrolling="no" frameborder="0" height="400" width="100%"></iframe>
-<center>
-<em>double-click legend keys to isolate type of speech</em>
-</center>
-
-</div>
+<ul>
+<li><a href="https://carrieham.com/green/CUS/">CUS workshop</a></li>
+<li><a href="https://carrieham.com/green/01_13_2025/">01.13.2025</a></li>
+<li><a href="https://carrieham.com/green/11_26_2024/">11.26.2024</a></li>
+<li><a href="https://carrieham.com/green/11_12_2024/congress_analysis.html">11.12.2024</a></li>
+<li><a href="https://carrieham.com/green/10_29_2024/congress_analysis.html">10.29.2024</a></li>
+<li><a href="https://docs.google.com/presentation/d/1pxNu46ObGVL0M1YyESZgl6qajdTQmLb_auOjtcf_y-E/edit?usp=sharing">CLC presentation</a></li>
+<li><a href="https://carrieham.com/green/10_22_2024/congress_analysis.html">10.22.2024</a></li>
+<li><a href="https://carrieham.com/green/10_07_2024/congress_analysis.html">10.07.2024</a></li>
+<li><a href="https://www.carrieham.com/green/09_19_2024/congress_analysis.html">09.19.2024</a></li>
+</ul>
 </div>
 </div>
   <div class="chapter-nav">
 <div class="empty"></div>
-<div class="next"><a href="year-periods.html"><span class="header-section-number">2</span> 25-YEAR PERIODS</a></div>
+<div class="next"><a href="data.html"><span class="header-section-number">2</span> DATA</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
-<li><a class="nav-link" href="#data"><span class="header-section-number">1</span> DATA</a></li>
-<li><a class="nav-link" href="#source"><span class="header-section-number">1.1</span> source</a></li>
-<li><a class="nav-link" href="#approach"><span class="header-section-number">1.2</span> approach</a></li>
-<li><a class="nav-link" href="#snapshot"><span class="header-section-number">1.3</span> snapshot</a></li>
+<li><a class="nav-link" href="#intro"><span class="header-section-number">1</span> INTRO</a></li>
+<li><a class="nav-link" href="#work-to-date">WORK TO DATE</a></li>
+<li><a class="nav-link" href="#broader-work">BROADER WORK</a></li>
+<li><a class="nav-link" href="#next-steps">NEXT STEPS</a></li>
+<li><a class="nav-link" href="#old-updates">OLD UPDATES</a></li>
 </ul>
 
       <div class="book-extra">
@@ -249,7 +152,7 @@ source: Gentzkow, M, J. Shapiro, &amp; M. Taddy. 2018. <a href="https://data.sta
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>CLC text mining</strong>" was written by Carrie Hamilton. </p>
+    <p>"<strong></strong>" was written by Carrie Hamilton. </p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

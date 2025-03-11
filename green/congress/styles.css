@@ -71,7 +71,7 @@ favicon {
 	font-family: 'IBM Plex Mono', sans-serif;
 	font-size: 10px;
 }
-	
+
 .caption {
   text-align: left;
   margin-top: 1rem;
@@ -79,6 +79,105 @@ favicon {
   font-size: 0.9rem;
   color: #32127a;
 }
+
+@media (min-width: 1200px) {
+  .container-fluid {
+    max-width: 95rem;
+  }
+  .container-fluid .row {
+    justify-content: space-evenly;
+  }
+  .container-fluid main {
+    max-width: 45rem;
+  }
+  .sidebar {
+    max-width: 15rem;
+  }
+
+  /* Increase font-size for very wide devices */
+  body {
+    font-size: 18px
+  }
+}
+
+main {margin-top: 1rem;}
+
+@media (max-width: 991.98px) {
+  .sidebar {
+    max-width: 100%;
+  }
+
+  .collapse-lg {
+    display: none;
+    padding: 1rem;
+    border-radius: 0.2rem;
+    background: #fafafa;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 5px 5px 10px rgba(0.1, 0.1, 0.1, 0.5);
+    border: 1px solid var(--primary);
+  }
+  .book-toc {
+    column-count: 2;
+  }
+  .sidebar-book, main {
+    padding-left: 1rem;
+  }
+  .sidebar-book {
+    margin-top: 1rem;
+  }
+}
+@media (min-width: 992px) {
+  .collapse-lg {
+    display: block !important;
+  }
+}
+.collapse-lg.show {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .sidebar-chapter {
+    position: sticky;
+    max-height: 100vh;
+    top: 0;
+    overflow-y: auto;
+  }
+}
+
+@media (min-width: 992px) {
+  .sidebar-book {
+    position: sticky;
+    max-height: 100vh;
+    top: 0;
+    overflow-y: auto;
+  }
+}
+
+/* Chapter nav ----------------------------------------- */
+
+.chapter-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+.chapter-nav .prev, .chapter-nav .next {
+  padding: 0.5rem;
+  border: 1px solid #eee;
+  border-radius: 0.2rem;
+  /*box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);*/
+}
+.chapter-nav .empty {
+  border: none;
+}
+.chapter-nav .prev a:before {
+  content: "« ";
+}
+.chapter-nav .next a:after {
+  content: " »";
+}
+
+/* Sidebar ------------------------------------------------------ */
 
 .sidebar h1, .sidebar h2 {
   margin-top: 1.5rem;
@@ -113,7 +212,6 @@ favicon {
 
 .book-toc .active {
   font-weight: bolder;
-  text-decoration: underline dotted;
 }
 
 .book-extra {
@@ -125,6 +223,25 @@ favicon {
 
 .book-extra i {
   font-size: 1.2em;
+}
+
+/* Sticky footer ----------------------------------------- */
+html, body {height: 100%}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+.container-fluid {
+  flex: 1 0 auto;
+}
+footer {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+
+}
+footer a {
+  text-decoration: underline;
 }
 
 /* Scrollspy --------------------------------------------- */
@@ -139,15 +256,12 @@ nav[data-toggle="toc"] .nav > li > a {
 }
 
 nav[data-toggle="toc"] .nav > li > a:hover {
-  font-weight: bolder;
-  text-decoration: underline dotted;
+  text-decoration: underline;
 }
 
 nav[data-toggle="toc"] .nav a.nav-link.active,
 nav[data-toggle="toc"] .nav .nav-link.active > li > a {
   background-color: #eee;
-  font-weight: bolder;
-  text-decoration: underline dotted;
 }
 
 /* Nav: second level (shown on .active) */
@@ -165,6 +279,62 @@ nav[data-toggle="toc"] .nav .nav > li {
 nav[data-toggle="toc"] .nav .nav > li > a {
   margin-left: 10px;
 }
+/* Figures -------------------------------------------- */
+
+.figure, .inline-figure {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.inline-figure {
+  border: solid 0px #f1f1f1;
+  margin-bottom: 1rem; /* to match <p> */
+}
+
+.figure {
+  border-top: 0px solid #eee;
+  border-bottom: 0px solid #eee;
+  margin:  1.5rem -0.5rem 1rem -0.5rem;
+  padding: 1.5rem    0    1rem      1rem;
+}
+
+@media (max-width: 767.98px) {
+  .figure {
+    margin: 1.5rem -1rem 1.5rem -1rem;
+    padding: 1.5rem;
+    width: 100vw;
+  }
+}
+
+
+/* Headings -------------------------------------------- */
+
+.header-section-number {
+  color: #32127a;
+  font-weight: normal;
+}
+
+.dropdown-item .header-section-number {
+  position: absolute;
+  width: 2rem;
+  left: -1rem;
+  display: block;
+  text-align: right;
+}
+
+.anchor {
+  font-size: max(0.5em, 1rem);
+  margin-left: 0.5rem;
+  display: none;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor,
+h5:hover .anchor,
+h6:hover .anchor {
+  display: inline;
+}
 
 /* Tables ---------------------------------------------- */
 
@@ -178,39 +348,4 @@ table.kable_wrapper td {
   vertical-align: top;
   color: #32127a;
 	font-family: 'IBM Plex Mono', sans-serif;
-}
-
-/* Figures -------------------------------------------- */
-
-.figure, .inline-figure {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.inline-figure {
-  border: solid 2px #f1f1f1;
-  margin-bottom: 1rem; /* to match <p> */
-}
-
-.figure {
-  border-top: 2px solid #eee;
-  border-bottom: 2px solid #eee;
-  margin:  1.5rem -0.5rem 1rem -0.5rem;
-  padding: 1.5rem    0    1rem      1rem;
-}
-
-@media (max-width: 767.98px) {
-  .figure {
-    margin: 1.5rem -1rem 1.5rem -1rem;
-    padding: 1.5rem;
-    width: 100vw;
-  }
-}
-
-caption, p.caption {
-  text-align: left;
-  margin-top: 1rem;
-  margin-bottom: 0;
-  font-size: 0.9rem;
-  color: #777;
 }
