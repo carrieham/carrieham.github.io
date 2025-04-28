@@ -1,0 +1,816 @@
+---
+title: "MA figures"
+author: "Carrie Hamilton"
+output:
+  html_document: 
+    fig_height: 3.5
+    df_print: paged
+    toc: true
+    toc_float: true
+    self_contained: no
+css: "styles.css"
+font_family: Garamond, "EB Garamond", Georgia, serif;
+mainfont: Garamond, "EB Garamond", Georgia, serif;
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, cache=FALSE, out.width="100%")
+options(scipen = 999)
+
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+install.packages("pacman")
+library(pacman)
+
+p_load(bookdown,
+       rmarkdown,
+       data.table,
+       reticulate,
+       dplyr, 
+       DT,
+       ggrepel,
+       chromote,
+       webshot2,
+       htmlwidgets,
+       htmltools,
+       lubridate,
+       plotly,
+       stopwords,
+       tictoc,
+       tidyverse, 
+       stringi,
+       readxl,
+       writexl,
+       pals,
+       orca)
+
+```
+
+```{r variable set-up, include=FALSE}
+
+##### ENVIRO DICTIONARY VERSION
+enviro <- "enviro_v1"
+# enviro <- "enviro_v1_exp"
+# enviro <- "enviro_v2"
+
+##### LABOR DICTIONARY VERSION
+labor <- "labor_v1"
+# labor <- "labor_v2"
+# labor <- "labor_class"
+# labor <- "labor_bigLabor"
+# labor <- "labor_radicals"
+
+##### DICTIONARY VERSION
+# version <- paste(enviro,labor,sep="_")
+version <- paste(enviro,"exp",labor,sep="_")
+
+
+##### SPEECHES VS. CHUNKS
+# size <- "Speeches_200"
+# size <- "Chunks_100-200"
+# size <- "ChunksSubset_OR_50-150"
+size <- "ChunksSubset_OR_100-200"
+# size <- "ChunksSubset_AND_50-200"
+# size <- "ChunksSubset_AND_50-250"
+# size <- "ChunksSubset_labor_50-150"
+
+##### CHUNK SIZE
+### max
+# max_chunk_size <- 300
+# max_chunk_size <- 250
+max_chunk_size <- 200
+# max_chunk_size <- 150
+
+### min
+min_chunk_size <- 100
+# min_chunk_size <- 50
+
+
+
+##### CLUSTER SIZE
+min_cluster_size <- 150
+# min_cluster_size <- 200
+# min_cluster_size <- 250
+
+##### N-GRAMS
+n_min <- 1
+n_max <- 3
+
+##### N-NEIGHBORS (UMAP)
+n_neighbors <- 5
+# n_neighbors <- 10
+# n_neighbors <- 5
+
+
+
+##### OUTLIER REDUCTION
+nr_topics <- ""
+# nr_topics <- "auto"
+
+# ##### REDUCE FREQUENT WORDS IN TOPIC REPRESENTATION
+# # reduce_frequent_words <- "ReduceFreqWords"
+reduce_frequent_words <- ""
+
+##### MODEL NAME
+model_name <- paste("enviroLabor",size,"_",version,"_n",n_min,"-",n_max,"_umap",n_neighbors,"_c",min_cluster_size,nr_topics,sep="") #nr_topics,
+model_name <- paste(model_name,"_outlierReduction_updateTopics",sep="")
+
+##### MODEL LABEL
+file_name = paste("enviroLabor",size,"_",version,"_c",min_cluster_size,sep="")
+file_name <- paste(file_name,"_outlierReduction_updateTopics",sep="")
+
+```
+
+```{r input data, include=FALSE, eval=FALSE}
+
+#### LOAD DATA
+load(verbose=TRUE,paste("data/enviroSpeeches_",enviro,".Rda",sep=""))
+load(verbose=TRUE,paste("data/laborSpeeches_",labor,".Rda",sep=""))
+
+#### PROCESSING
+enviroLaborSpeeches <- laborSpeeches %>% #_subset
+  inner_join(select(enviroSpeeches,speech_id,date,environment),join_by(speech_id,date)) %>% #_subset
+  # select(speech_id:environment,labor,word_count:last_col()) %>%
+  filter(year>=1885) %>%
+  # filter(chamber!="E") %>%
+  # filter(year>=1965) %>%
+  mutate(word_count = str_count(speech, '\\w+')) %>%
+  # mutate(word_count = map(speech, \(speech) stri_stats_latex(speech)[4]),
+  #        word_count = as.numeric(str_extract(word_count,"[:digit:]+"))) %>%
+  mutate(#period20yr = as.numeric(year) - (as.numeric(year)-5) %% 20,
+         #period10yr = as.numeric(year) - (as.numeric(year)-5) %% 10,
+         #period4yr = as.numeric(year) - (as.numeric(year)-1) %% 4,
+         period2yr = as.numeric(year) - (as.numeric(year)-1) %% 2,
+         # period2yr = as.numeric(year) - 1 + as.numeric(year) %% 2,
+         period1yr = as.numeric(year))
+
+enviroLaborSpeeches_totals <- enviroLaborSpeeches %>%
+  select(period1yr,total_annual_speeches) %>%
+  distinct() %>%
+  rename("Year"="period1yr",
+         "Total_Annual_Speeches"="total_annual_speeches")
+save(enviroLaborSpeeches_totals,file=paste("topic_models/enviroLabor/",size,"/",model_name,"/enviroLaborSpeeches_totals.Rda",sep=""))
+
+
+enviroLaborSpeeches_totals_2yr <- enviroLaborSpeeches %>%
+  select(year,period2yr,total_annual_speeches) %>%
+  distinct() %>%
+  group_by(period2yr) %>%
+  summarize(Total_Annual_Speeches=sum(total_annual_speeches)) %>%
+  rename("Year"="period2yr")
+save(enviroLaborSpeeches_totals_2yr,file=paste("topic_models/enviroLabor/",size,"/",model_name,"/enviroLaborSpeeches_totals_2yr.Rda",sep=""))
+
+```
+
+```{r load topics + dtm, include=FALSE}
+
+load(file=paste("topic_models/enviroLabor/",size,"/",model_name,"/enviroLaborSpeeches_totals_2yr.Rda",sep=""))
+# load(file="topic_models/enviroLabor/enviroLaborSpeeches_totals.Rda")
+# load(file="topic_models/enviroLabor/enviroLaborSpeeches_totals_2yr.Rda")
+# load(file="topic_models/enviroLabor/enviroLaborSpeeches_totals_4yr.Rda")
+
+topic_info <- read_excel(paste("topic_models/enviroLabor/",size,"/",model_name,"/",file_name,".xlsx",sep=""),
+                       sheet = "topic_info")
+DT::datatable(topic_info)
+
+# dtm_4yr <- read_excel(paste("topic_models/enviroLabor/",size,"/",model_name,"/",file_name,".xlsx",sep=""), 
+#                       sheet = "dtm_4yr") %>%
+#   left_join(enviroLaborSpeeches_totals_4yr) %>%
+#   # mutate(Words=str_split(Words,", ")) %>%
+#   mutate(Proportion_Total=Frequency/Total_Annual_Speeches,
+#          Name_trunc=str_trunc(Name,15))
+
+dtm_2yr <- read_excel(paste("topic_models/enviroLabor/",size,"/",model_name,"/",file_name,".xlsx",sep=""), 
+                      sheet = "dtm_2yr") %>%
+  left_join(enviroLaborSpeeches_totals_2yr) %>%
+  # mutate(Words=str_split(Words,", ")) %>%
+  mutate(Proportion_Total=Frequency/Total_Annual_Speeches,
+         Name_trunc=str_trunc(Name,15))
+
+# dtm_1yr <- read_excel(paste("topic_models/enviroLabor/",size,"/",model_name,"/",file_name,".xlsx",sep=""), 
+#                       sheet = "dtm_1yr") %>%
+#   left_join(enviroLaborSpeeches_totals) %>%
+#   # mutate(Words=str_split(Words,", ")) %>%
+#   mutate(Proportion_Total=Frequency/Total_Annual_Speeches,
+#          Name_trunc=str_trunc(Name,15))
+```
+
+```{r freq dtm, out.width="100%"}
+
+#fig.asp=0.5, out.width='100%'
+
+# plot_dtm_1yr <- readRDS(file=paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_1yr_proportions.rds",sep=""))
+
+periods=c("2yr") #c("20yr","10yr","4yr","1yr") # "6month" 
+
+for (period in periods) {
+
+  eval(parse(text=paste("dtm <- dtm_",period,sep="")))
+  
+  dtm <- dtm %>% 
+    mutate(Name_trunc=factor(Name_trunc,levels = unique(dtm$Name_trunc)))
+
+  dtm_plot <- ggplot() +
+    geom_line(data= filter(dtm,Topic!=-1),
+              lwd=0.5,
+              aes(x=Year,
+                  y=Frequency,
+                  group=1,
+                  color=Name_trunc,
+                  # text=paste(Year))) +
+                  text=paste("<b>YEAR: </b>",Year," | <b>TOPIC: </b>",Name,"<br>",str_trunc(Words,100),sep=""))) +
+                  # text=paste("<b>[",Year,"] TOPIC ",Topic,": </b>",str_trunc(Hover,50)))) +
+    geom_point(data=filter(dtm,Topic!=-1),
+               size=1,
+               aes(x=Year,
+                   y=Frequency,
+                   group=1,
+                   color=Name_trunc,
+                   text=paste("<b>YEAR: </b>",Year," | <b>TOPIC: </b>",Name,"<br>",str_trunc(Words,100),sep=""))) +
+    scale_colour_manual(values=c(
+      unname(alphabet()),
+      unname(alphabet2()),
+      unname(polychrome()),
+      unname(glasbey()),
+      unname(cols25()),
+      unname(alphabet()),
+      unname(alphabet2()),
+      unname(polychrome()),
+      unname(glasbey()))) +
+    # ggtitle(paste(period," topics over time",sep="")) +
+    guides(color=guide_legend(title = "<b>TOPIC:</b>")) +
+    # scale_x_continuous(breaks = seq(1880, 2020, by = 10)) + 
+    theme_minimal() +
+  theme(
+    legend.title=element_text(family="EB Garamond", size=10,face="bold"), #color="#32127a",
+    legend.text=element_text(family="EB Garamond", size=8),  #color="#32127a",
+    plot.title=element_text(family="EB Garamond",hjust=0.5,size=18,face="bold"),  #color="#32127a",
+    axis.title.x=element_blank(),
+    axis.title.y=element_text(family="EB Garamond", size=16),  #color="#32127a",
+    axis.text=element_text(family="EB Garamond",size=14),#,size=10),  #color="#32127a",
+    # axis.line=element_line(color="#32127a"),  
+    # axis.ticks=element_line(color="#32127a"),  
+    strip.text=element_text(family="EB Garamond",face="bold"),
+    panel.grid.major.x = element_line(),
+    panel.grid.major.y = element_line(),
+    panel.grid.minor.x = element_line(),
+    panel.grid.minor.y = element_line())
+  
+  ##### make interactive
+  ggplotly(dtm_plot, tooltip="text", dynamicTicks=T) %>% #height=350 #height=400, width=1100
+    style(
+          visible="legendonly",
+          # mode = "markers+lines",
+          hoverlabel=list(align="end",
+                          #xanchor="left",
+                          font=list(family="EB Garamond",
+                                    size=11))) %>%
+    # rangeslider() %>%
+    layout(
+      autosize = TRUE,
+      # margin = list(t = 50, r = 10, b = 200, l = 50),
+      # hovermode="x",
+      font=list(family="EB Garamond"), ##32127a
+      legend=list(#margin = list(t = 200, r = 10, b = 200, l = 200),
+                  #x=0.65,xanchor='center', xref="container", #xref="paper"
+                  #y=-0.2,yanchor='top', yref="container", #xref="paper"
+                  orientation='v')) %>%
+                  # traceorder="reversed",
+                  # title=list(font=list(family="IBM Plex Mono")),
+                  # font=list(family="IBM Plex Mono", size=11))) %>%
+    partial_bundle() %>%
+    # saveWidget(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_",period,"_",file_name,".html",sep=""),selfcontained = F, libdir = "lib")
+    saveRDS(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_",period,".rds",sep=""))
+}
+
+# plot_dtm_1yr <- readRDS(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_1yr_proportions_total.rds",sep=""))
+# plot_dtm_1yr %>%
+#   style(visible=TRUE)
+
+```
+
+```{r prop total dtm, out.width="100%"}
+
+#fig.asp=0.5, out.width='100%'
+
+# plot_dtm_1yr <- readRDS(file=paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_1yr_proportions.rds",sep=""))
+
+periods=c("2yr") #c("20yr","10yr","4yr","1yr") # "6month" 
+
+for (period in periods) {
+
+  eval(parse(text=paste("dtm <- dtm_",period,sep="")))
+  
+  dtm <- dtm %>% 
+    mutate(Name_trunc=factor(Name_trunc,levels = unique(dtm$Name_trunc)))
+
+  dtm_plot <- ggplot() +
+    geom_line(data= filter(dtm,Topic!=-1),
+              lwd=0.5,
+              aes(x=Year,
+                  y=Proportion_Total,
+                  group=1,
+                  color=Name_trunc,
+                  # text=paste(Year))) +
+                  text=paste("<b>YEAR: </b>",Year," | <b>TOPIC: </b>",Name,"<br>",str_trunc(Words,100),sep=""))) +
+                  # text=paste("<b>[",Year,"] TOPIC ",Topic,": </b>",str_trunc(Hover,50)))) +
+    geom_point(data=filter(dtm,Topic!=-1),
+               size=1,
+               aes(x=Year,
+                   y=Proportion_Total,
+                   group=1,
+                   color=Name_trunc,
+                   text=paste("<b>YEAR: </b>",Year," | <b>TOPIC: </b>",Name,"<br>",str_trunc(Words,100),sep=""))) +
+    scale_colour_manual(values=c(
+      unname(alphabet()),
+      unname(alphabet2()),
+      unname(polychrome()),
+      unname(glasbey()),
+      unname(cols25()),
+      unname(alphabet()),
+      unname(alphabet2()),
+      unname(polychrome()),
+      unname(glasbey()))) +
+    # ggtitle(paste(period," topics over time",sep="")) +
+    guides(color=guide_legend(title = "<b>TOPIC:</b>")) +
+    # scale_x_continuous(breaks = seq(1880, 2020, by = 10)) + 
+    theme_minimal() +
+  theme(
+    legend.title=element_text(family="EB Garamond", size=10,face="bold"), #color="#32127a",
+    legend.text=element_text(family="EB Garamond", size=8),  #color="#32127a",
+    plot.title=element_text(family="EB Garamond",hjust=0.5,size=18,face="bold"),  #color="#32127a",
+    axis.title.x=element_blank(),
+    axis.title.y=element_text(family="EB Garamond", size=16),  #color="#32127a",
+    axis.text=element_text(family="EB Garamond",size=14),#,size=10),  #color="#32127a",
+    # axis.line=element_line(color="#32127a"),  
+    # axis.ticks=element_line(color="#32127a"),  
+    strip.text=element_text(family="EB Garamond",face="bold"),
+    panel.grid.major.x = element_line(),
+    panel.grid.major.y = element_line(),
+    panel.grid.minor.x = element_line(),
+    panel.grid.minor.y = element_line())
+  
+  ##### make interactive
+  ggplotly(dtm_plot, tooltip="text", dynamicTicks=T) %>% #height=350 #height=400, width=1100
+    style(
+          visible="legendonly",
+          # mode = "markers+lines",
+          hoverlabel=list(align="end",
+                          #xanchor="left",
+                          font=list(family="EB Garamond",
+                                    size=11))) %>%
+    # rangeslider() %>%
+    layout(
+      autosize = TRUE,
+      # margin = list(t = 50, r = 10, b = 200, l = 50),
+      # hovermode="x",
+      font=list(family="EB Garamond"), ##32127a
+      legend=list(#margin = list(t = 200, r = 10, b = 200, l = 200),
+                  #x=0.65,xanchor='center', xref="container", #xref="paper"
+                  #y=-0.2,yanchor='top', yref="container", #xref="paper"
+                  orientation='v')) %>%
+                  # traceorder="reversed",
+                  # title=list(font=list(family="IBM Plex Mono")),
+                  # font=list(family="IBM Plex Mono", size=11))) %>%
+    partial_bundle() %>%
+    # saveWidget(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_",period,"_",file_name,".html",sep=""),selfcontained = F, libdir = "lib")
+    saveRDS(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_",period,"_proportions_total.rds",sep=""))
+}
+
+# plot_dtm_1yr <- readRDS(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_1yr_proportions_total.rds",sep=""))
+# plot_dtm_1yr %>%
+#   style(visible=TRUE)
+
+```
+
+```{r SETUP 300: topics and traces, eval=FALSE}
+
+# TOPICS_1880s_1920s <- c(7,8,15,16,17,35,36,37,39,41,51,55,58,64,66,71) 
+TOPICS_1880s_1910s <- c(7,8,15,16,17,35,37,39,41,51,58,64,66,71)  #PRE-WAR
+# TOPICS_30s <- c(1,7,9,16,18,25,34,36,41,51,55,64,66)
+TOPICS_20s_30s <- c(1,7,9,16,17,18,25,34,36,41,51,55,64,66) #INTER-WAR
+# TOPICS_40s <- c(1,10,14,15,16,18,20,36,48,49,64)
+# TOPICS_50s <- c(1,7,8,9,13,15,16,18,25,48,49,63,64)
+TOPICS_40s_50s <- c(1,7,8,9,10,13,14,15,16,18,20,25,36,48,49,63,64) #WWII & POST-WAR
+# TOPICS_60s <- c(1,5,7,8,9,10,13,14,16,25,34,36,39,47,48,56,63,64)
+# TOPICS_70s <- c(0,5,6,7,8,10,13,14,16,18,20,22,24,25,27,31,34,36,39,40,41,47,56,60,63,69)
+TOPICS_60s_70s <- c(0,1,5,6,7,8,10,13,14,16,18,20,22,24,25,27,31,34,36,39,40,41,47,48,56,60,63,64,69)
+TOPICS_80s <- c(1,5,6,7,8,9,13,15,20,21,25,31,34,39,41,47,49,52,56,60,71)
+# TOPICS_90s <- c(0,1,2,4,5,6,7,8,10,11,13,14,15,16,20,21,23,24,26,27,36,39,40,46,48,49,52,55,56,58,60,64,71)
+# TOPICS_2000s <- c(0,1,2,4,6,8,10,12,13,14,16,17,20,21,26,27,31,34,36,37,41,46,49,52,56)
+TOPICS_90s_2000s <- c(0,1,2,4,5,6,7,8,10,11,12,13,14,15,16,17,20,21,23,24,26,27,31,34,36,37,39,40,41,46,48,49,52,55,56,58,60,64,71)
+TOPICS_2010s_2020s <- c(0,1,2,4,5,6,7,8,10,12,13,14,15,16,20,21,22,23,24,25,27,31,34,36,37,39,40,47,48,49,51,55,58,64,69)
+
+# TRACES_1880s_1920s <- TOPICS_1880s_1920s+1
+TRACES_1880s_1910s <- TOPICS_1880s_1910s+1
+# TRACES_30s <- TOPICS_30s+1
+TRACES_20s_30s <- TOPICS_20s_30s+1
+# TRACES_40s <- TOPICS_40s+1
+# TRACES_50s <- TOPICS_50s+1
+TRACES_40s_50s <- TOPICS_40s_50s+1
+# TRACES_60s <- TOPICS_60s+1
+# TRACES_70s <- TOPICS_70s+1
+TRACES_60s_70s <- TOPICS_60s_70s+1
+TRACES_80s <- TOPICS_80s+1
+# TRACES_90s <- TOPICS_90s+1
+# TRACES_2000s <- TOPICS_2000s+1
+TRACES_90s_2000s <- TOPICS_90s_2000s+1
+TRACES_2010s_2020s <- TOPICS_2010s_2020s+1
+
+```
+
+```{r MODEL VERSION, results="asis", echo=FALSE}
+
+# cat(paste0("\n### ",model_name,"\n"))
+cat(paste0("## MODEL VERSION","\n"))
+
+cat(paste0("<center><b>enviro dictionary:</b> ",enviro,"\\n"))
+cat(paste0("<center><b>labor dictionary:</b> ",labor,"\\n"))
+cat(paste0("<center><b>min topic size:</b> ",min_cluster_size," chunks","\\n"))
+cat(paste0("<center><b>chunk size:</b> ",min_chunk_size,"-",max_chunk_size," words","\\n"))
+cat(paste0("<center><b>periods:</b> 2-year","\\n"))
+
+```
+
+
+## ALL TOPICS
+
+```{r viz 2-YEAR, out.width="100%"}
+
+# plot_dtm_4yr_normalized <- readRDS(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_4yr_normalized.rds",sep=""))
+# plot_dtm_4yr_normalized %>%
+#   style(visible=TRUE)
+
+plot_dtm_2yr <- readRDS(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr.rds",sep="")) %>%
+  layout(autosize=TRUE,
+         font=list(family="EB Garamond"),
+         legend=list(font=list(family="EB Garamond",size=10),
+                     orientation='h',
+                     xanchor="center",
+                     x=0.5,
+                     y=-0.1,
+                     yanchor='top',
+                     yref="paper",
+                     title=FALSE),
+         title=list(font=list(family="EB Garamond",size=14,face="bold")),
+         xaxis = list(title=list(font=list(family="EB Garamond",size=12)),
+                      tickfont=list(family="EB Garamond",size=10)),
+         yaxis = list(title=list(font=list(family="EB Garamond",size=12)),
+                      tickfont=list(family="EB Garamond",size=10)))
+
+plot_dtm_2yr %>%
+  style(visible=TRUE) 
+
+# plot_dtm_2yr_normalized <- readRDS(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_normalized.rds",sep="")) %>%
+#   layout(autosize=TRUE,
+#          font=list(family="EB Garamond"),
+#          legend=list(font=list(family="EB Garamond",size=10),
+#                      orientation='h',
+#                      xanchor="center",
+#                      x=0.5,
+#                      y=-0.1,
+#                      yanchor='top',
+#                      yref="paper",
+#                      title=FALSE),
+#          title=list(font=list(family="EB Garamond",size=14,face="bold")),
+#          xaxis = list(title=list(font=list(family="EB Garamond",size=12)),
+#                       tickfont=list(family="EB Garamond",size=10)),
+#          yaxis = list(title=list(font=list(family="EB Garamond",size=12)),
+#                       tickfont=list(family="EB Garamond",size=10)))
+# 
+# plot_dtm_2yr_normalized %>%
+#   style(visible=TRUE) 
+
+plot_dtm_2yr_proportions_total<- readRDS(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_proportions_total.rds",sep="")) %>%
+  layout(autosize=TRUE,
+         font=list(family="EB Garamond"),
+         legend=list(font=list(family="EB Garamond",size=10),
+                     orientation='h',
+                     xanchor="center",
+                     x=0.5,
+                     y=-0.1,
+                     yanchor='top',
+                     yref="paper",
+                     title=FALSE),
+         title=list(font=list(family="EB Garamond",size=14,face="bold")),
+         xaxis = list(title=list(font=list(family="EB Garamond",size=12)),
+                      tickfont=list(family="EB Garamond",size=10)),
+         yaxis = list(title=list(font=list(family="EB Garamond",size=12)),
+                      tickfont=list(family="EB Garamond",size=10)))
+
+plot_dtm_2yr_proportions_total %>%
+  style(visible=TRUE)
+
+# plot_dtm_2yr_proportions <- readRDS(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_proportions.rds",sep="")) %>%
+#   layout(autosize=TRUE,
+#          font=list(family="EB Garamond"),
+#          legend=list(font=list(family="EB Garamond",size=10),
+#                      orientation='h',
+#                      xanchor="center",
+#                      x=0.5,
+#                      y=-0.1,
+#                      yanchor='top',
+#                      yref="paper",
+#                      title=FALSE),
+#          title=list(font=list(family="EB Garamond",size=14,face="bold")),
+#          xaxis = list(title=list(font=list(family="EB Garamond",size=12)),
+#                       tickfont=list(family="EB Garamond",size=10)),
+#          yaxis = list(title=list(font=list(family="EB Garamond",size=12)),
+#                       tickfont=list(family="EB Garamond",size=10)))
+# 
+# plot_dtm_2yr_proportions %>%
+#   style(visible=TRUE)
+#     
+
+```
+
+
+## BY TOPIC
+
+```{r vis 2-YEAR html plots, eval=FALSE}
+
+TRACES <- c(1:nrow(topic_info))
+
+for (trace in TRACES) {
+  
+  plot_dtm_2yr %>%
+    style(showlegend=FALSE) %>%
+    style(traces=c(trace,trace+nrow(topic_info)),visible="True") %>%
+    layout(font=list(family="EB Garamond"),
+           # title=list(text=paste(topic_info$Name[[trace]]),
+           #            font=list(family="EB Garamond",
+           #                      size=14,
+           #                      face="bold")),
+           xaxis = list(range=list(1885,2024),autorange=FALSE,
+                        title=list(font=list(family="EB Garamond",size=12)),
+                        tickfont=list(family="EB Garamond",size=10)),
+           yaxis = list(title=list(font=list(family="EB Garamond",size=12)),
+                        tickfont=list(family="EB Garamond",size=10))) %>%
+    plotly_build() %>%
+    saveWidget(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_topic_",trace-1,".html",sep=""),selfcontained = FALSE,libdir="lib")
+
+  
+  # plot_dtm_2yr_normalized %>%
+  # style(showlegend=FALSE) %>%
+  # style(traces=c(trace,trace+nrow(topic_info)),visible="True") %>%
+  # layout(title=list(text=paste(topic_info$Name[[trace]]),
+  #                   font=list(family="IBM Plex Mono",
+  #                             size=18,
+  #                             face="bold")),
+  #        xaxis = list(range=list(1885,2024),autorange=FALSE,
+  #                     title=list(font=list(size=16)),
+  #                     tickfont=list(size=14)),
+  #        yaxis = list(title=list(font=list(size=16)),
+  #                     tickfont=list(size=14))) %>%
+  # plotly_build() %>%
+  # saveWidget(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_normalized_topic_",trace-1,".html",sep=""),selfcontained = FALSE,libdir="lib")
+
+plot_dtm_2yr_proportions_total %>%
+  style(showlegend=FALSE) %>%
+  style(traces=c(trace,trace+nrow(topic_info)),visible="True") %>%
+    layout(font=list(family="EB Garamond"),
+           # title=list(text=paste(topic_info$Name[[trace]]),
+           #            font=list(family="EB Garamond",
+           #                      size=14,
+           #                      face="bold")),
+           xaxis = list(range=list(1885,2024),autorange=FALSE,
+                        title=list(font=list(family="EB Garamond",size=12)),
+                        tickfont=list(family="EB Garamond",size=10)),
+           yaxis = list(title=list(font=list(family="EB Garamond",size=12)),
+                        tickfont=list(family="EB Garamond",size=10))) %>%
+    plotly_build() %>%
+  saveWidget(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_proportions_total_topic_",trace-1,".html",sep=""),selfcontained = FALSE,libdir="lib")
+
+    # plot_dtm_2yr_proportions %>%
+    # style(showlegend=FALSE) %>%
+    # style(traces=c(trace,trace+nrow(topic_info)),visible="True") %>%
+    # layout(title=list(text=paste(topic_info$Name[[trace]]),
+    #                   font=list(family="IBM Plex Mono",
+    #                             size=18,
+    #                             face="bold")),
+    #        xaxis = list(range=list(1885,2024),autorange=FALSE,
+    #                     title=list(font=list(size=16)),
+    #                     tickfont=list(size=14)),
+    #        yaxis = list(title=list(font=list(size=16)),
+    #                     tickfont=list(size=14))) %>%
+    # plotly_build() %>%
+    # saveWidget(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_proportions_topic_",trace-1,".html",sep=""),selfcontained = FALSE,libdir="lib")
+
+}
+
+```
+
+```{r vis 2-YEAR static plots, eval=FALSE}
+
+TRACES <- c(1:nrow(topic_info))
+
+for (trace in TRACES) {
+  
+  # ggplot() +
+  #   geom_line(data= filter(dtm_2yr,Topic==(trace-1)),
+  #             lwd=0.5,
+  #             color="#32127a",
+  #             aes(x=Year,
+  #                 y=Frequency)) +
+  #   geom_point(data=filter(dtm_2yr,Topic==(trace-1)),
+  #              size=1,
+  #              color="#32127a",
+  #              aes(x=Year,
+  #                  y=Frequency)) +
+  #   ggtitle(paste(topic_info$Name[[trace]])) +
+  #   # guides(color=guide_legend(title = "<b>TOPIC:</b>")) +
+  #   scale_x_continuous(breaks = seq(1885, 2024, by = 8), 
+  #                      minor_breaks=seq(1885, 2024, by = 4),
+  #                      limits=c(1885,2025)) +
+  #   theme_minimal() +
+  #   theme(
+  #     legend.title=element_text(face="bold"), #color="#32127a",
+  #     # legend.text=element_text(family="EB Garamond"),  #color="#32127a",
+  #     plot.title=element_text(hjust=0.5,face="bold",size=9),  #color="#32127a",
+  #     axis.title.x=element_blank(),
+  #     axis.title.y=element_text(size=8),  #color="#32127a",
+  #     axis.text=element_text(size=8),#,size=10),  #color="#32127a",
+  #     # axis.line=element_line(color="#32127a"),  
+  #     # axis.ticks=element_line(color="#32127a"),  
+  #     # strip.text=element_text(family="EB Garamond",face="bold"),
+  #     panel.grid.major.x = element_line(),
+  #     panel.grid.major.y = element_line(),
+  #     panel.grid.minor.x = element_line(),
+  #     panel.grid.minor.y = element_line()) 
+  # ggsave(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_topic_",trace-1,".jpg",sep=""),
+  #        scale=1,width = 6, height = 2, units="in")
+  
+  
+  ggplot() +
+    geom_line(data= filter(dtm_2yr,Topic==(trace-1)),
+              lwd=0.5,
+              color="#32127a",
+              aes(x=Year,
+                  y=Proportion_Total)) +
+    geom_point(data=filter(dtm_2yr,Topic==(trace-1)),
+               size=1,
+               color="#32127a",
+               aes(x=Year,
+                   y=Proportion_Total)) +
+    ggtitle(paste(topic_info$Name[[trace]])) +
+    # guides(color=guide_legend(title = "<b>TOPIC:</b>")) +
+    scale_x_continuous(breaks = seq(1885, 2024, by = 8),
+                       minor_breaks=seq(1885, 2024, by = 4),
+                       limits=c(1885,2025)) +
+    theme_minimal() +
+    theme(
+      legend.title=element_text(face="bold"), #color="#32127a",
+      # legend.text=element_text(family="EB Garamond"),  #color="#32127a",
+      plot.title=element_text(hjust=0.5,face="bold",size=9),  #color="#32127a",
+      axis.title.x=element_blank(),
+      axis.title.y=element_text(size=8),  #color="#32127a",
+      axis.text=element_text(size=8),#,size=10),  #color="#32127a",
+      # axis.line=element_line(color="#32127a"),
+      # axis.ticks=element_line(color="#32127a"),
+      # strip.text=element_text(family="EB Garamond",face="bold"),
+      panel.grid.major.x = element_line(),
+      panel.grid.major.y = element_line(),
+      panel.grid.minor.x = element_line(),
+      panel.grid.minor.y = element_line())
+  ggsave(paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_proportions_total_topic_",trace-1,".jpg",sep=""),
+         scale=1,width = 6, height = 2, units="in")
+
+  
+}
+
+
+```
+
+```{r vis 2-YEAR html plots RESULTS, results="asis", echo=FALSE, cols.min.print=3,rows.print=5,rownames.print=FALSE}
+
+TRACES <- c(1:nrow(topic_info))
+# html_list <- c()
+table_list <- list()
+# table <- c()
+topic <- 0
+
+# for (trace in TRACES) {
+#   
+#   table <- dtm_2yr %>%
+#     filter(Topic==topic) %>%
+#     select(Year,Frequency,Words) %>%
+#     mutate(Year=as.numeric(Year),
+#            Frequency=as.numeric(Frequency)) %>%
+#     rename("Count"="Frequency") %>%
+#     arrange(Year) %>%
+#     rmarkdown::paged_table()
+#   
+#   table_list[[trace]] <- table
+#   
+#   print(htmltools::tagList(DT::datatable(table_list[[trace]],
+#                                          rownames=FALSE,
+#                                          # filter="top")))
+#                                          options=list(#pageLength=5,
+#                                                       lengthMenu = c(5, 10, 15, 20)))))
+#   # print(knitr::kable(table_list[[trace]]))
+#   
+#   # table_list <- list(table_list,table)
+#   
+#   # table_list[[trace]] <- table
+#   # # DT::datatable(table_list[[trace]]) %>%
+#   # print(htmltools::tagList(
+#   #   DT::datatable(table_list[[trace]],
+#   #                 rownames=FALSE,
+#   #                 filter="top",
+#   #                 options=list(pageLength=5,
+#   #                              lengthMenu = c(5, 10, 15, 20)))
+#   # ))
+#   # 
+#   # print(#htmltools::tagList(
+#   #   DT::datatable(table,
+#   #                 rownames=FALSE,
+#   #                 filter="top",
+#   #                 options=list(pageLength=5,
+#   #                              lengthMenu = c(5, 10, 15, 20)))
+#   # )#)
+#   # cat("\n")
+#   
+#   # 
+#   topic <- topic+1
+#   
+# }
+
+topic <- 0
+for (trace in TRACES) {
+  
+  cat(paste0("### Fig. ",trace,". ",topic_info$Name[topic_info$Topic==topic],"\n"))
+  
+  outfile1 <-paste("MA_figures/dtm_2yr_topic_",trace-1,".html",sep="")
+  outfile2 <-paste("MA_figures/dtm_2yr_proportions_total_topic_",trace-1,".html",sep="")
+  
+  # outfile1 <-paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_topic_",trace-1,".html",sep="")
+  # outfile2 <-paste("topic_models/enviroLabor/",size,"/",model_name,"/figures/dtm/dtm_2yr_proportions_total_topic_",trace-1,".html",sep="")
+  
+  print(htmltools::tags$iframe(
+    src = outfile1, 
+    # scrolling = "no", 
+    frameBorder = "0",
+    height=250,
+    width="100%"
+  ))
+  
+  print(htmltools::tags$iframe(
+    src = outfile2, 
+    # scrolling = "no", 
+    frameBorder = "0",
+    height=250,
+    width="100%"
+    
+  ))
+  
+  
+  table <- dtm_2yr %>%
+    filter(Topic==topic) %>%
+    select(Year,Frequency,Words) %>%
+    mutate(Year=as.numeric(Year),
+           Frequency=as.numeric(Frequency)) %>%
+    rename("Count"="Frequency") %>%
+    arrange(Year) %>%
+    rmarkdown::paged_table()
+  
+  table_list[[trace]] <- table
+  
+  print(htmltools::tagList(DT::datatable(table_list[[trace]],
+                                         rownames=FALSE,
+                                         # filter="top")))
+                                         options=list(#pageLength=5,
+                                           lengthMenu = c(5, 10, 15, 20)))))
+
+    # htmltools::tagList() %>%
+    # print()
+  
+  # print(htmltools::tagList(table_list[[trace]]))
+  
+  # # print(rmarkdown::paged_table(table))
+  # print(rmarkdown::paged_table(table)) %>%
+  # htmltools::tagList() #%>%
+  # # print()
+  
+  topic <- topic+1
+  
+}
+
+
+# for (file in html_list) {
+#   
+#   cat(paste0("\n\n### ",topic_info$Name[topic_info$Topic==topic],"\n"))
+#   
+#   print(htmltools::tags$iframe(
+#     src = file, 
+#     # scrolling = "no", 
+#     frameBorder = "0",
+#     height=300,
+#     width="100%"
+#   ))
+#   
+#   topic <- topic+1
+#   
+# }
+
+
+```
+

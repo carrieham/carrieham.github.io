@@ -1,0 +1,169 @@
+/* Selected rows/cells */
+table.dataTable tr.selected td, table.dataTable td.selected {
+  background-color: #c6c1d4 !important;
+}
+/* In case of scrollX/Y or FixedHeader */
+.dataTables_scrollBody .dataTables_sizing {
+  visibility: hidden;
+}
+
+/* The datatables' theme CSS file doesn't define
+the color but with white background. It leads to an issue that
+when the HTML's body color is set to 'white', the user can't
+see the text since the background is white. One case happens in the
+RStudio's IDE when inline viewing the DT table inside an Rmd file,
+if the IDE theme is set to "Cobalt".
+
+See https://github.com/rstudio/DT/issues/447 for more info
+
+This fixes should have little side-effects because all the other elements
+of the default theme use the #333 font color.
+
+TODO: The upstream may use relative colors for both the table background
+and the color. It means the table can display well without this patch
+then. At that time, we need to remove the below CSS attributes.
+*/
+.datatables {
+  color: #32127a;
+  overflow: auto;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.datatables-wrapper {
+  border: 1px solid #c6c1d4;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.datatables table {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.datatables th {
+  padding: 0 5px 0 5px;
+  border: none;
+  border-bottom: 2px solid #c6c1d4;/*#dddddd;*/
+  min-width: 45px;
+}
+
+.datatables-empty th {
+  display: none;
+}
+
+.datatables td {
+  padding: 0 4px 0 4px;
+  vertical-align: middle;
+}
+
+.datatables .even {
+  background-color: #e9e6f0;/*#e5e1ed #c6c1d4;rgba(140, 140, 140, 0.1);*/
+}
+
+.datatables-padding-col {
+  display: none;
+}
+
+.datatables a {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.datatables-index-nav {
+  cursor: pointer;
+  padding: 0 5px 0 5px;
+  float: right;
+  border: 0;
+}
+
+.datatables-index-nav-disabled {
+  cursor: default;
+  text-decoration: none;
+  color: #c6c1d4;/*#999;*/
+}
+
+a.datatables-index-nav-disabled:hover {
+  text-decoration: none;
+  color: #c6c1d4;/*#999;*/
+  background-color: white;
+}
+
+.datatables-indexes {
+  cursor: pointer;
+  float: right;
+  border: 0;
+}
+
+.datatables-index-current {
+  cursor: default;
+  text-decoration: none;
+  font-weight: bold;
+  color: #669999;/*#333;*/
+  border: 0;
+}
+
+a.datatables-index-current:hover {
+  /*text-decoration: none;*/
+  font-weight: bold;
+  /*color: *#333;*/
+}
+
+.datatables-index {
+  width: 30px;
+  display: inline-block;
+  text-align: center;
+  border: 0;
+}
+
+.datatables-index-separator-left {
+  display: inline-block;
+  color: #32127a;/*#333;*/
+  font-size: 9px;
+  padding: 0 0 0 0;
+  cursor: default;
+}
+
+.datatables-index-separator-right {
+  display: inline-block;
+  color: #32127a;/*#333;*/
+  font-size: 9px;
+  padding: 0 4px 0 0;
+  cursor: default;
+}
+
+.datatables-footer {
+  padding-top: 4px;
+  padding-bottom: 5px;
+}
+
+.datatables-not-empty .datatables-footer {
+  border-top: 2px solid #c6c1d4;/*#dddddd;*/
+}
+
+.datatables-info {
+  overflow: hidden;
+  color: #c6c1d4;/*#999;*/
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.datatables-header-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.datatables-header-type {
+  color: #c6c1d4;
+  font-weight: 400;
+}
+
+.datatables-na-cell {
+  font-style: italic;
+  opacity: 0.3;
+}

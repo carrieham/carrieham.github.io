@@ -1,0 +1,117 @@
+@import url("https://cdn.jsdelivr.net/npm/@xz/fonts@1/serve/ibm-plex-mono.min.css");
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800');
+@import url('https://fonts.googleapis.com/css2?family=Garamond:ital,wght@0,400..800;1,400..800');
+html{font-family: Garamond, "EB Garamond", Georgia, serif;}
+
+
+h1 {
+	/*color: #32127a;*/
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: center;
+	font-weight: bold;
+	font-size: 22px;
+}
+
+h2{
+	/*color: #32127a;*/
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: center;
+	font-weight: normal;
+	font-weight: bold;
+	font-size: 20px;
+}
+
+h3{
+	/*color: #32127a;*/
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: center;
+	font-weight: bold;
+	font-size: 16px;
+}
+
+h4{
+	/*color: #32127a;*/
+	font-family: 'IBM Plex Mono', sans-serif;
+	text-align: center;
+	font-weight: bold;
+	font-size: 14px;
+}
+
+
+a:link {
+	color: #669999;
+	text-decoration: underline dotted;
+	font-weight: bold;
+}
+
+a:visited {
+	color: #669999;
+	text-decoration: underline dotted;
+	font-weight: bold;
+}
+
+a:hover {
+  color: white;
+  background-color: #669999;
+  text-decoration: underline dotted;
+  font-weight: normal;
+}
+
+a:active {
+  color: white;
+  background-color: #669999;
+  text-decoration: underline dotted;
+  font-weight: normal;
+}
+
+body {
+  /*color: #32127a;*/
+	font-family: Garamond, "EB Garamond", Georgia, serif;
+	text-align: left;
+	max-width: 1200px;
+	font-size: 14px;
+	/*margin-left: 25px;*/
+	
+}
+
+
+.main-container {
+                max-width: 1200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+.html-widget {
+                margin-bottom: 10px;
+                /*font-family: Garamond, "EB Garamond", Georgia, serif;*/
+            }
+            
+.pagedtable {
+  overflow: auto;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-family: Garamond, "EB Garamond", Georgia, serif;
+}
+
+table.dataTable {
+  font-family: Garamond, "EB Garamond", Georgia, serif;
+}
+
+.tocify {
+    width: 20%;
+    max-height: 90%;
+    overflow: auto;
+    margin-left: 2%;
+    position: fixed;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: 'IBM Plex Mono', sans-serif;
+}
+            
+.tocify .list-group-item:hover, .tocify .list-group-item:focus {
+    background-color: #f5f5f5;
+}
+
+.tocify .list-group-item.active, .tocify .list-group-item.active:hover, .tocify .list-group-item.active:focus, .tocify .list-group-item.active:visited {
+    background-color: #32127a;
+}
