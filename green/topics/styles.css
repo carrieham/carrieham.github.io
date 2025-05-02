@@ -79,11 +79,12 @@ body {
                 max-width: 1200px;
                 margin-left: auto;
                 margin-right: auto;
+                font-family: Garamond, "EB Garamond", Georgia, serif;
             }
 
 .html-widget {
                 margin-bottom: 10px;
-                /*font-family: Garamond, "EB Garamond", Georgia, serif;*/
+                font-family: Garamond, "EB Garamond", Georgia, serif;
             }
             
 .pagedtable {
@@ -95,6 +96,7 @@ body {
 
 table.dataTable {
   font-family: Garamond, "EB Garamond", Georgia, serif;
+  font-size: 11px;
 }
 
 .tocify {
