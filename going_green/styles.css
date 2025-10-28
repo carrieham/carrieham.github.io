@@ -1,0 +1,216 @@
+@import url("https://cdn.jsdelivr.net/npm/@xz/fonts@1/serve/ibm-plex-mono.min.css");
+
+body {
+  color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	font-size: 14px;
+}
+
+h1 {
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+}
+
+h2{
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	font-size: 24px;
+}
+
+h3{
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	font-size: 20px;
+}
+
+h4{
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	font-size: 18px;
+}
+
+h5{
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	font-size: 16px;
+}
+
+h6{
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+}
+
+.header-section-number {
+  color: #32127a;
+  font-weight: normal;
+  font-family: 'IBM Plex Mono', sans-serif;
+}
+
+a:link {
+	color: #669999;
+}
+
+a:visited {
+	color: #669999;
+}
+
+a:hover {
+  color: #669999;
+  text-decoration: underline dotted;
+  font-weight: bold;
+}
+
+a:active {
+  color: #669999;
+  text-decoration: underline dotted;
+  font-weight: bold;
+}
+
+favicon {
+	color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+	font-size: 10px;
+}
+	
+.caption {
+  text-align: left;
+  margin-top: 1rem;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  color: #32127a;
+}
+
+.sidebar h1, .sidebar h2 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.sidebar h1 {
+  font-size: 1.1rem;
+}
+@media (max-width: 991.98px) {
+  .sidebar h1 {
+    font-size: 1.5rem;
+    margin-top: 0rem;
+  }
+}
+.sidebar h2 {
+  font-size: 0.9rem;
+}
+
+.sidebar hr {
+  margin: 0 0 0.5rem 0;
+}
+
+.sidebar li {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.sidebar li.book-part {
+  margin-top: 1rem;
+}
+
+.book-toc .active {
+  font-weight: bolder;
+  text-decoration: underline dotted;
+}
+
+.book-extra {
+  border-top: 1px solid #ccc;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.book-extra i {
+  font-size: 1.2em;
+}
+
+/* Scrollspy --------------------------------------------- */
+
+nav[data-toggle="toc"] .nav > li {
+  margin-bottom: calc(0.5rem - 3px);
+}
+
+nav[data-toggle="toc"] .nav > li > a {
+  padding: 3px;
+  display: block;
+}
+
+nav[data-toggle="toc"] .nav > li > a:hover {
+  font-weight: bolder;
+  text-decoration: underline dotted;
+}
+
+nav[data-toggle="toc"] .nav a.nav-link.active,
+nav[data-toggle="toc"] .nav .nav-link.active > li > a {
+  background-color: #eee;
+  font-weight: bolder;
+  text-decoration: underline dotted;
+}
+
+/* Nav: second level (shown on .active) */
+nav[data-toggle="toc"] .nav-link + ul {
+  display: none;
+}
+nav[data-toggle="toc"] .nav-link.active + ul {
+  margin-top: 3px;
+  display: block;
+}
+
+nav[data-toggle="toc"] .nav .nav > li {
+  margin-bottom: 0;
+}
+nav[data-toggle="toc"] .nav .nav > li > a {
+  margin-left: 10px;
+}
+
+/* Tables ---------------------------------------------- */
+
+.inline-table {
+  overflow-x: auto;
+  color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+}
+
+table.kable_wrapper td {
+  vertical-align: top;
+  color: #32127a;
+	font-family: 'IBM Plex Mono', sans-serif;
+}
+
+/* Figures -------------------------------------------- */
+
+.figure, .inline-figure {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.inline-figure {
+  border: solid 2px #f1f1f1;
+  margin-bottom: 1rem; /* to match <p> */
+}
+
+.figure {
+  border-top: 2px solid #eee;
+  border-bottom: 2px solid #eee;
+  margin:  1.5rem -0.5rem 1rem -0.5rem;
+  padding: 1.5rem    0    1rem      1rem;
+}
+
+@media (max-width: 767.98px) {
+  .figure {
+    margin: 1.5rem -1rem 1.5rem -1rem;
+    padding: 1.5rem;
+    width: 100vw;
+  }
+}
+
+caption, p.caption {
+  text-align: left;
+  margin-top: 1rem;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  color: #777;
+}
